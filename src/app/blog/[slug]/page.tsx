@@ -8,7 +8,8 @@ import { mdxComponents } from "@/components/mdx";
 import { getPostBySlug, getAllPosts } from "@/lib/blog";
 import { siteConfig } from "@/lib/config";
 import { ShareButtons } from "@/components/ShareButtons";
-import { CalendarIcon, ClockIcon, ArrowRightIcon } from "@/components/Icons";
+import { RisoThumbnail } from "@/components/riso/RisoThumbnail";
+import { TAG_COLORS, pickByIndex } from "@/lib/riso";
 import type { Metadata } from "next";
 
 interface PostPageProps {
@@ -54,6 +55,9 @@ export default async function PostPage({ params }: PostPageProps) {
     notFound();
   }
 
+  const allPosts = getAllPosts();
+  const upNext = allPosts.filter((p) => p.slug !== slug).slice(0, 2);
+
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "Article",
@@ -70,50 +74,158 @@ export default async function PostPage({ params }: PostPageProps) {
 
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
-      <article className="mx-auto max-w-3xl px-6 py-16">
-      <header className="animate-fade-in mb-12">
-        <Link href="/blog" className="text-muted hover:text-accent mb-8 inline-flex items-center gap-1 text-sm transition-colors">
-          <ArrowRightIcon className="h-4 w-4 rotate-180" />
-          Back to Blog
-        </Link>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+      <div className="mx-auto max-w-[1240px] px-5 py-8 sm:px-7 md:py-12">
+        <div className="animate-fade-in mb-8">
+          <Link
+            href="/blog"
+            className="font-mono-label inline-flex items-center gap-2 transition-colors hover:text-[color:var(--accent)]"
+            style={{ color: "var(--muted)", fontSize: "0.78rem" }}
+          >
+            <span aria-hidden="true">←</span> Back to Blog
+          </Link>
+        </div>
 
-        {post.tags && post.tags.length > 0 && (
-          <div className="mb-4 flex flex-wrap gap-2">
-            {post.tags.map((tag) => (
-              <span key={tag} className="bg-accent/10 text-accent rounded-full px-2.5 py-1 text-xs font-medium">
-                {tag}
-              </span>
-            ))}
+        <header className="animate-fade-in mx-auto mb-10 max-w-[68ch]">
+          {post.tags && post.tags.length > 0 && (
+            <div className="mb-6 flex flex-wrap gap-2">
+              {post.tags.map((tag, idx) => (
+                <span
+                  key={tag}
+                  className="pill"
+                  style={{ background: pickByIndex(TAG_COLORS, idx) }}
+                >
+                  {tag}
+                </span>
+              ))}
+            </div>
+          )}
+
+          <h1
+            className="font-display mb-6 tracking-[-0.03em]"
+            style={{
+              fontSize: "clamp(2.4rem, 6vw, 5rem)",
+              lineHeight: 0.98,
+              textTransform: "none",
+            }}
+          >
+            {post.title}
+          </h1>
+
+          <div
+            className="font-mono-label flex flex-wrap items-center gap-x-2 gap-y-1"
+            style={{ color: "var(--muted)", fontSize: "0.78rem" }}
+          >
+            <span>{format(new Date(post.date), "MMM d, yyyy")}</span>
+            <span aria-hidden="true">·</span>
+            <span>{post.readingTime}</span>
+            <span aria-hidden="true">·</span>
+            <span>{siteConfig.name}</span>
+          </div>
+        </header>
+
+        {post.coverImage && (
+          <div className="animate-fade-in-delay-1 mx-auto mb-14 max-w-[68ch]">
+            <div
+              className="relative w-full overflow-hidden"
+              style={{
+                aspectRatio: "16 / 10",
+                border: "3px solid var(--border)",
+                boxShadow: "7px 7px 0 var(--border)",
+              }}
+            >
+              <Image
+                src={post.coverImage}
+                alt={post.title}
+                fill
+                sizes="(min-width: 1024px) 768px, 100vw"
+                className="object-cover"
+                priority
+              />
+            </div>
           </div>
         )}
 
-        <h1 className="mb-6 font-serif text-4xl font-medium tracking-tight md:text-5xl">{post.title}</h1>
+        <article className="prose prose-lg animate-fade-in-delay-2 mx-auto max-w-[68ch]">
+          <MDXRemote
+            source={post.content}
+            options={{ mdxOptions: { rehypePlugins: [rehypeSlug] } }}
+            components={mdxComponents}
+          />
+        </article>
 
-        <div className="text-muted flex items-center gap-4">
-          <span className="flex items-center gap-1.5">
-            <CalendarIcon className="h-4 w-4" />
-            {format(new Date(post.date), "MMMM d, yyyy")}
-          </span>
-          <span className="flex items-center gap-1.5">
-            <ClockIcon className="h-4 w-4" />
-            {post.readingTime}
-          </span>
+        <div className="mx-auto max-w-[68ch]">
+          <ShareButtons title={post.title} slug={slug} />
         </div>
-      </header>
 
-      {post.coverImage && (
-        <div className="animate-fade-in-delay-1 relative mb-12 aspect-[16/9] overflow-hidden rounded-xl">
-          <Image src={post.coverImage} alt={post.title} fill className="object-cover" priority />
-        </div>
-      )}
-
-      <div className="prose prose-lg animate-fade-in-delay-2 max-w-none">
-        <MDXRemote source={post.content} options={{ mdxOptions: { rehypePlugins: [rehypeSlug] } }} components={mdxComponents} />
+        {upNext.length > 0 && (
+          <section className="mx-auto mt-20 max-w-[68ch]">
+            <div
+              className="font-mono-label mb-5"
+              style={{ color: "var(--muted)", fontSize: "0.78rem" }}
+            >
+              [ UP NEXT ]
+            </div>
+            <ul className="flex flex-col gap-5">
+              {upNext.map((p) => (
+                <li key={p.slug}>
+                  <Link
+                    href={`/blog/${p.slug}`}
+                    className="brutal-lift-sm group flex items-stretch gap-4"
+                    style={{
+                      background: "var(--card)",
+                      border: "3px solid var(--border)",
+                      boxShadow: "5px 5px 0 var(--border)",
+                      padding: "12px",
+                    }}
+                  >
+                    <div
+                      className="flex-shrink-0 overflow-hidden"
+                      style={{
+                        width: 80,
+                        height: 80,
+                        border: "2.5px solid var(--border)",
+                      }}
+                    >
+                      {p.coverImage ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={p.coverImage}
+                          alt=""
+                          className="h-full w-full object-cover"
+                        />
+                      ) : (
+                        <RisoThumbnail seed={p.slug} className="h-full w-full" />
+                      )}
+                    </div>
+                    <div className="flex min-w-0 flex-1 flex-col justify-center">
+                      <h3
+                        className="font-display mb-1 tracking-[-0.02em] transition-colors group-hover:text-[color:var(--accent)]"
+                        style={{
+                          fontSize: "1.05rem",
+                          lineHeight: 1.05,
+                          textTransform: "none",
+                        }}
+                      >
+                        {p.title}
+                      </h3>
+                      <div
+                        className="font-mono-label"
+                        style={{ color: "var(--muted)", fontSize: "0.7rem" }}
+                      >
+                        {format(new Date(p.date), "MMM d, yyyy")} · {p.readingTime}
+                      </div>
+                    </div>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
       </div>
-
-      <ShareButtons title={post.title} slug={slug} />
-    </article>
     </>
   );
 }

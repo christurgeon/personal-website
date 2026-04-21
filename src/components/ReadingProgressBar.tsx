@@ -46,8 +46,14 @@ export function ReadingProgressBar() {
   return (
     <div
       ref={barRef}
-      className="pointer-events-none fixed top-0 left-0 right-0 z-[60] h-[3px] bg-accent"
-      style={{ transform: "scaleX(0)", transformOrigin: "left" }}
+      aria-hidden="true"
+      className="pointer-events-none fixed top-0 right-0 left-0 z-[60] h-[5px]"
+      style={{
+        background: "var(--red)",
+        borderBottom: "2px solid var(--border)",
+        transform: "scaleX(0)",
+        transformOrigin: "left",
+      }}
     />
   );
 }

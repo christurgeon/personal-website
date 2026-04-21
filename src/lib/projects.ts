@@ -6,6 +6,7 @@ export interface Project {
   github?: string;
   website?: string;
   featured?: boolean;
+  sticker?: string;
 }
 
 export const projects: Project[] = [
@@ -14,7 +15,7 @@ export const projects: Project[] = [
     description:
       "Nurture your relationships with gentle reminders and AI-powered messages shaped by your tone and history together.",
     language: "Swift",
-    tags: ["iOS", "SwiftUI", "Plant Care"],
+    tags: ["iOS", "SwiftUI", "Relationships"],
     website: "https://usetend.org",
     featured: true,
   },
@@ -25,6 +26,7 @@ export const projects: Project[] = [
     language: "Rust",
     tags: ["CLI", "Cryptography", "Security"],
     github: "https://github.com/christurgeon/ironlock",
+    sticker: "CLI",
   },
   {
     name: "GrooveFactory",
@@ -33,6 +35,7 @@ export const projects: Project[] = [
     language: "TypeScript",
     tags: ["AI", "Music", "MIDI"],
     github: "https://github.com/christurgeon/groovefactory",
+    sticker: "APP",
   },
   {
     name: "RawDog",
@@ -40,6 +43,7 @@ export const projects: Project[] = [
     language: "Rust",
     tags: ["CLI", "Photography", "Image Processing"],
     github: "https://github.com/christurgeon/rawdog",
+    sticker: "CLI",
   },
   {
     name: "Tracks4Africa Forum Scraper",
@@ -48,6 +52,7 @@ export const projects: Project[] = [
     language: "Python",
     tags: ["Scraping", "Travel", "CLI"],
     github: "https://github.com/christurgeon/tracks4africa-forum-scraper",
+    sticker: "CLI",
   },
 ];
 

@@ -2,70 +2,129 @@ import Link from "next/link";
 import Image from "next/image";
 import { format } from "date-fns";
 import { PostMeta } from "@/lib/blog";
-import { CalendarIcon, ClockIcon, ArrowRightIcon } from "./Icons";
+import { hashString, pickByIndex, TAG_COLORS, type RisoColor } from "@/lib/riso";
+import { RisoThumbnail } from "./riso/RisoThumbnail";
+import { Sticker } from "./riso/Sticker";
 
 interface PostCardProps {
   post: PostMeta;
   featured?: boolean;
 }
 
+const stickerPool: Array<{ label: string; color: RisoColor; rotate: number }> = [
+  { label: "Fresh!", color: "red", rotate: 8 },
+  { label: "New", color: "blue", rotate: -6 },
+  { label: "Essay", color: "green", rotate: 5 },
+  { label: "Deep Dive", color: "pink", rotate: -4 },
+  { label: "Tech", color: "yellow", rotate: 7 },
+];
+
 export function PostCard({ post, featured = false }: PostCardProps) {
+  const idx = hashString(post.slug);
+  const sticker = featured ? stickerPool[0] : pickByIndex(stickerPool, idx);
+
   return (
     <article
-      className={`group bg-card border-border hover:border-accent/30 hover:shadow-accent/5 relative overflow-hidden rounded-xl border transition-all duration-300 hover:shadow-lg ${
-        featured ? "md:col-span-2" : ""
-      }`}
+      className="brutal-lift group relative overflow-hidden"
+      style={{
+        background: "var(--card)",
+        border: "3px solid var(--border)",
+        boxShadow: "7px 7px 0 var(--border)",
+      }}
     >
-      {post.coverImage && (
-        <div className="relative aspect-[16/9] overflow-hidden">
-          <Image src={post.coverImage} alt={post.title} fill className="object-cover transition-transform duration-500 group-hover:scale-105" />
-          <div className="from-card/80 absolute inset-0 bg-gradient-to-t to-transparent" />
+      <Link href={`/blog/${post.slug}`} className="block">
+        <div
+          className="relative w-full overflow-hidden"
+          style={{
+            aspectRatio: "16 / 10",
+            borderBottom: "3px solid var(--border)",
+          }}
+        >
+          {post.coverImage ? (
+            <Image
+              src={post.coverImage}
+              alt={post.title}
+              fill
+              sizes="(min-width: 1024px) 400px, (min-width: 640px) 50vw, 100vw"
+              className="gallery-image-zoom object-cover"
+            />
+          ) : (
+            <RisoThumbnail seed={post.slug} className="h-full w-full" />
+          )}
         </div>
-      )}
+      </Link>
 
-      <div className={`p-6 ${post.coverImage ? "relative -mt-12" : ""}`}>
-        {post.tags && post.tags.length > 0 && (
-          <div className="mb-3 flex flex-wrap gap-2">
-            {post.tags.slice(0, 3).map((tag) => (
-              <span key={tag} className="bg-accent/10 text-accent rounded-full px-2.5 py-1 text-xs font-medium">
-                {tag}
-              </span>
-            ))}
-          </div>
-        )}
+      <Sticker
+        color={sticker.color}
+        rotate={sticker.rotate}
+        className="pointer-events-none absolute z-10"
+        style={{ top: "-14px", right: "18px" }}
+      >
+        {sticker.label}
+      </Sticker>
+
+      <div style={{ padding: "22px 22px 24px" }}>
+        <div className="mb-4 flex flex-wrap items-center gap-2">
+          {post.tags && post.tags.length > 0 && (
+            <>
+              {post.tags.slice(0, 2).map((tag, tIdx) => (
+                <span
+                  key={tag}
+                  className="pill"
+                  style={{ background: pickByIndex(TAG_COLORS, tIdx) }}
+                >
+                  {tag}
+                </span>
+              ))}
+            </>
+          )}
+          <span
+            className="font-mono-label"
+            style={{ color: "var(--muted)", fontSize: "0.72rem" }}
+          >
+            {format(new Date(post.date), "MMM d · yyyy")}
+          </span>
+          <span
+            className="font-mono-label"
+            style={{ color: "var(--muted)", fontSize: "0.72rem" }}
+          >
+            · {post.readingTime}
+          </span>
+        </div>
 
         <Link href={`/blog/${post.slug}`}>
           <h3
-            className={`group-hover:text-accent mb-3 font-serif font-medium tracking-tight transition-colors ${
-              featured ? "text-2xl md:text-3xl" : "text-xl"
-            }`}
+            className="font-display mb-3 tracking-[-0.03em] uppercase transition-colors group-hover:text-[color:var(--accent)]"
+            style={{
+              fontSize: featured ? "1.5rem" : "1.25rem",
+              lineHeight: "1.02",
+            }}
           >
             {post.title}
           </h3>
         </Link>
 
-        <p className="text-muted mb-4 line-clamp-2">{post.excerpt}</p>
+        <p
+          className="mb-5 line-clamp-2"
+          style={{ color: "var(--muted)", fontSize: "0.95rem", lineHeight: "1.5" }}
+        >
+          {post.excerpt}
+        </p>
 
-        <div className="flex items-center justify-between">
-          <div className="text-muted flex items-center gap-4 text-sm">
-            <span className="flex items-center gap-1.5">
-              <CalendarIcon className="h-4 w-4" />
-              {format(new Date(post.date), "MMM d, yyyy")}
-            </span>
-            <span className="flex items-center gap-1.5">
-              <ClockIcon className="h-4 w-4" />
-              {post.readingTime}
-            </span>
-          </div>
-
-          <Link
-            href={`/blog/${post.slug}`}
-            className="text-accent hover:text-accent-hover flex items-center gap-1 text-sm font-medium transition-colors"
-          >
-            Read
-            <ArrowRightIcon className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-          </Link>
-        </div>
+        <Link
+          href={`/blog/${post.slug}`}
+          className="font-mono-label inline-flex items-center gap-1.5"
+          style={{
+            background: "var(--paper)",
+            color: "var(--ink)",
+            border: "2.5px solid var(--border)",
+            padding: "6px 12px",
+            boxShadow: "3px 3px 0 var(--border)",
+            fontSize: "0.72rem",
+          }}
+        >
+          Read essay →
+        </Link>
       </div>
     </article>
   );

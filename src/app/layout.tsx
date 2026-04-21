@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Crimson_Pro, Source_Sans_3 } from "next/font/google";
+import { Archivo_Black, DM_Sans, Space_Mono } from "next/font/google";
 import { GoogleAnalytics } from "@next/third-parties/google";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
@@ -8,15 +8,24 @@ import { ReadingProgressBar } from "@/components/ReadingProgressBar";
 import { siteConfig } from "@/lib/config";
 import "./globals.css";
 
-const serif = Crimson_Pro({
+const display = Archivo_Black({
   subsets: ["latin"],
-  variable: "--font-serif",
+  weight: "400",
+  variable: "--font-display",
   display: "swap",
 });
 
-const sans = Source_Sans_3({
+const sans = DM_Sans({
   subsets: ["latin"],
+  weight: ["400", "500", "700"],
   variable: "--font-sans",
+  display: "swap",
+});
+
+const mono = Space_Mono({
+  subsets: ["latin"],
+  weight: ["400", "700"],
+  variable: "--font-mono",
   display: "swap",
 });
 
@@ -30,14 +39,6 @@ export const metadata: Metadata = {
   alternates: {
     canonical: "/",
   },
-  icons: {
-    icon: [
-      { url: "/favicons/favicon-16x16.png", sizes: "16x16", type: "image/png" },
-      { url: "/favicons/favicon-32x32.png", sizes: "32x32", type: "image/png" },
-    ],
-    apple: [{ url: "/favicons/apple-touch-icon.png", sizes: "180x180", type: "image/png" }],
-  },
-  manifest: "/favicons/site.webmanifest",
   openGraph: {
     title: siteConfig.title,
     description: siteConfig.metaDescription,
@@ -77,7 +78,7 @@ export default function RootLayout({
   };
 
   return (
-    <html lang="en" className={`${serif.variable} ${sans.variable}`} suppressHydrationWarning>
+    <html lang="en" className={`${display.variable} ${sans.variable} ${mono.variable}`} suppressHydrationWarning>
       <body className="flex min-h-screen flex-col antialiased">
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(personJsonLd) }} />
         <ThemeProvider>

@@ -35,10 +35,15 @@ export function getPostSlugs(): string[] {
   return fs.readdirSync(postsDirectory).filter((file) => file.endsWith(".mdx"));
 }
 
+const postCache = new Map<string, Post>();
+let allPostsCache: PostMeta[] | null = null;
+
 export function getPostBySlug(slug: string): Post | null {
   const realSlug = slug.replace(/\.mdx$/, "");
-  const fullPath = path.join(postsDirectory, `${realSlug}.mdx`);
+  const cached = postCache.get(realSlug);
+  if (cached) return cached;
 
+  const fullPath = path.join(postsDirectory, `${realSlug}.mdx`);
   if (!fs.existsSync(fullPath)) {
     return null;
   }
@@ -48,22 +53,26 @@ export function getPostBySlug(slug: string): Post | null {
   const parsed = frontmatterSchema.parse(data);
   const stats = readingTime(content);
 
-  return {
+  const post: Post = {
     slug: realSlug,
     ...parsed,
     tags: parsed.tags ?? [],
     readingTime: stats.text,
     content,
   };
+  postCache.set(realSlug, post);
+  return post;
 }
 
 export function getAllPosts(): PostMeta[] {
+  if (allPostsCache) return allPostsCache;
+
   const slugs = getPostSlugs();
-  const posts = slugs
+  allPostsCache = slugs
     .map((slug) => getPostBySlug(slug.replace(/\.mdx$/, "")))
     .filter((post): post is Post => post !== null)
     .map(({ content, ...meta }) => meta)
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
-  return posts;
+  return allPostsCache;
 }

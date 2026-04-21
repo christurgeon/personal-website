@@ -9,11 +9,14 @@ import {
   XTwitterIcon,
   ResumeIcon,
   ArrowRightIcon,
+  ExternalLinkIcon,
   PencilIcon,
   CameraIcon,
   GiftIcon,
   TendIcon,
 } from "@/components/Icons";
+import { Sticker } from "@/components/riso/Sticker";
+import { STRIPE_COLORS, pickByIndex } from "@/lib/riso";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -22,172 +25,173 @@ export const metadata: Metadata = {
   alternates: { canonical: "/links" },
 };
 
-const sections = [
+type LinkItem = {
+  name: string;
+  href: string;
+  description?: string;
+  icon: React.ComponentType<{ className?: string }>;
+  external: boolean;
+};
+
+type Section = {
+  title: string;
+  links: LinkItem[];
+};
+
+const sections: Section[] = [
   {
     title: "Site",
     links: [
-      {
-        name: "Blog",
-        href: "/blog",
-        description: "Read the blog",
-        show_description: false,
-        icon: PencilIcon,
-        external: false,
-      },
-      {
-        name: "Photography",
-        href: "/photography",
-        description: "View my photo gallery",
-        show_description: false,
-        icon: CameraIcon,
-        external: false,
-      },
+      { name: "Blog", href: "/blog", description: "Essays & rabbit holes", icon: PencilIcon, external: false },
+      { name: "Photography", href: "/photography", description: "Photos from the road", icon: CameraIcon, external: false },
+      { name: "About", href: "/about", description: "Who is this guy?", icon: ArrowRightIcon, external: false },
     ],
   },
   {
     title: "Projects",
     links: [
-      {
-        name: "Tend",
-        href: "https://usetend.org",
-        description: "Nurture your relationships",
-        show_description: false,
-        icon: TendIcon,
-        external: true,
-      },
+      { name: "Tend", href: "https://usetend.org", description: "Nurture your relationships", icon: TendIcon, external: true },
     ],
   },
   {
     title: "Socials & More",
     links: [
-      {
-        name: "LinkedIn",
-        href: siteConfig.socials.linkedin,
-        icon: LinkedInIcon,
-        external: true,
-      },
-      {
-        name: "GitHub",
-        href: siteConfig.socials.github,
-        icon: GitHubIcon,
-        external: true,
-      },
-      {
-        name: "What I'm Reading",
-        href: siteConfig.socials.goodreads,
-        icon: GoodreadsIcon,
-        external: true,
-      },
-      {
-        name: "SoundCloud",
-        href: siteConfig.socials.soundcloud,
-        icon: SoundCloudIcon,
-        external: true,
-      },
-      {
-        name: "X",
-        href: siteConfig.socials.x,
-        icon: XTwitterIcon,
-        external: true,
-      },
-      {
-        name: "Beli",
-        href: siteConfig.socials.beli,
-        icon: BeliIcon,
-        external: true,
-      },
-      {
-        name: "Resume",
-        href: siteConfig.documents.resume,
-        description: "Download my resume",
-        show_description: false,
-        icon: ResumeIcon,
-        external: true,
-      },
-      {
-        name: "Referrals",
-        href: "/referrals",
-        description: "Services I use and recommend",
-        show_description: false,
-        icon: GiftIcon,
-        external: false,
-      },
+      { name: "LinkedIn", href: siteConfig.socials.linkedin, icon: LinkedInIcon, external: true },
+      { name: "GitHub", href: siteConfig.socials.github, icon: GitHubIcon, external: true },
+      { name: "What I'm Reading", href: siteConfig.socials.goodreads, icon: GoodreadsIcon, external: true },
+      { name: "SoundCloud", href: siteConfig.socials.soundcloud, icon: SoundCloudIcon, external: true },
+      { name: "X", href: siteConfig.socials.x, icon: XTwitterIcon, external: true },
+      { name: "Beli", href: siteConfig.socials.beli, icon: BeliIcon, external: true },
+      { name: "Resume", href: siteConfig.documents.resume, description: "Download the PDF", icon: ResumeIcon, external: true },
+      { name: "Referrals", href: "/referrals", description: "Services I use", icon: GiftIcon, external: false },
     ],
   },
 ];
 
-const allLinks = sections.flatMap((s) => s.links).filter((link) => link.href);
+const sectionsWithOffsets = sections.reduce<
+  Array<{ title: string; links: LinkItem[]; offset: number }>
+>((acc, section) => {
+  const prev = acc[acc.length - 1];
+  const offset = prev ? prev.offset + prev.links.length : 0;
+  acc.push({ title: section.title, links: section.links.filter((l) => l.href), offset });
+  return acc;
+}, []);
 
 export default function LinksPage() {
-  let globalIndex = 0;
-
   return (
-    <div className="gradient-bg flex min-h-screen flex-col items-center justify-center px-6 py-12">
-      <div className="w-full max-w-md">
-        {/* Profile Section */}
-        <div className="animate-fade-in mb-8 text-center">
-          <div className="border-accent/30 relative mx-auto mb-4 h-24 w-24 overflow-hidden rounded-full border-2 shadow-lg">
-            <Image src="/images/profile.jpg" alt={siteConfig.name} fill className="object-cover" priority />
-          </div>
-
-          <h1 className="mb-1 font-serif text-lg font-medium tracking-tight sm:text-2xl">{siteConfig.name}</h1>
-          <p className="text-muted text-sm">{siteConfig.linksPageDescription}</p>
-        </div>
-
-        {/* Sections */}
-        <div className="space-y-6">
-          {sections.map((section) => {
-            const filteredLinks = section.links.filter((link) => link.href);
-            return (
-              <div key={section.title}>
-                <h2
-                  className="text-muted animate-fade-in mb-2 text-xs font-semibold uppercase tracking-widest"
-                  style={{ animationDelay: `${(globalIndex + 1) * 80}ms`, opacity: 0 }}
-                >
-                  {section.title}
-                </h2>
-                <div className="space-y-3">
-                  {filteredLinks.map((link) => {
-                    globalIndex++;
-                    const currentIndex = globalIndex;
-                    return (
-                      <a
-                        key={link.name}
-                        href={link.href}
-                        target={link.external ? "_blank" : undefined}
-                        rel={link.external ? "noopener noreferrer" : undefined}
-                        className="bg-card border-border hover:border-accent/50 hover:shadow-accent/5 group animate-fade-in flex w-full items-center gap-4 rounded-xl border p-4 transition-all duration-300 hover:shadow-lg"
-                        style={{ animationDelay: `${(currentIndex + 1) * 80}ms`, opacity: 0 }}
-                      >
-                        {link.icon && (
-                          <span className="text-muted group-hover:text-accent transition-colors">
-                            <link.icon className="h-5 w-5" />
-                          </span>
-                        )}
-                        <div className="flex-1">
-                          <span className="group-hover:text-accent font-medium transition-colors">{link.name}</span>
-                          {link.show_description && link.description && (
-                            <p className="text-muted mt-0.5 text-sm">{link.description}</p>
-                          )}
-                        </div>
-                        <ArrowRightIcon className="text-muted group-hover:text-accent h-4 w-4 transition-all group-hover:translate-x-1" />
-                      </a>
-                    );
-                  })}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-
-        {/* Footer */}
-        <p
-          className="text-muted animate-fade-in mt-12 text-center text-xs"
-          style={{ animationDelay: `${(allLinks.length + 2) * 80}ms`, opacity: 0 }}
+    <div className="mx-auto max-w-[540px] px-5 py-10">
+      {/* Profile block */}
+      <div className="animate-fade-in mb-10 flex flex-col items-center text-center">
+        <div
+          className="relative mb-5 h-28 w-28 overflow-hidden"
+          style={{
+            border: "4px solid var(--border)",
+            background: "var(--card)",
+            boxShadow: "6px 6px 0 var(--border)",
+            transform: "rotate(-3deg)",
+          }}
         >
-          © {new Date().getFullYear()} {siteConfig.name}
+          <Image
+            src="/images/profile.jpg"
+            alt={siteConfig.name}
+            fill
+            className="object-cover"
+            priority
+            sizes="112px"
+          />
+        </div>
+
+        <h1 className="font-display text-[clamp(2rem,8vw,3rem)] leading-none tracking-tight">
+          {siteConfig.name.toUpperCase()}
+        </h1>
+
+        <div className="mt-3 flex items-center justify-center gap-3">
+          <Sticker color="yellow" rotate={-4}>
+            @ Point72
+          </Sticker>
+          <Sticker color="blue" rotate={3}>
+            Builder
+          </Sticker>
+        </div>
+
+        <p className="font-mono-label text-muted mt-4 max-w-[34ch]">
+          {siteConfig.linksPageDescription}
         </p>
       </div>
+
+      {/* Sections */}
+      <div className="space-y-8">
+        {sectionsWithOffsets.map((section) => (
+            <div key={section.title}>
+              <div className="mb-3 flex items-center gap-3">
+                <span className="font-mono-label text-muted">[ {section.title.toUpperCase()} ]</span>
+                <span
+                  className="h-[3px] flex-1"
+                  style={{ background: "var(--border)" }}
+                  aria-hidden="true"
+                />
+              </div>
+
+              <div className="space-y-3">
+                {section.links.map((link, i) => {
+                  const Icon = link.icon;
+                  const globalIndex = section.offset + i;
+                  const stripe = pickByIndex(STRIPE_COLORS, globalIndex);
+                  const rotate = globalIndex % 2 === 0 ? -0.3 : 0.3;
+
+                  return (
+                    <a
+                      key={link.name}
+                      href={link.href}
+                      target={link.external ? "_blank" : undefined}
+                      rel={link.external ? "noopener noreferrer" : undefined}
+                      className="brutal-lift-sm group flex w-full items-stretch overflow-hidden"
+                      style={{
+                        background: "var(--card)",
+                        color: "var(--ink)",
+                        border: "3px solid var(--border)",
+                        boxShadow: "4px 4px 0 var(--border)",
+                        transform: `rotate(${rotate}deg)`,
+                      }}
+                    >
+                      {/* Left color stripe */}
+                      <div
+                        aria-hidden="true"
+                        className="w-3 flex-shrink-0"
+                        style={{ background: stripe, borderRight: "3px solid var(--border)" }}
+                      />
+
+                      {/* Content */}
+                      <div className="flex flex-1 items-center gap-4 px-4 py-4 sm:px-5">
+                        <Icon className="h-6 w-6 flex-shrink-0" />
+                        <div className="flex-1 text-left">
+                          <div className="font-display text-base tracking-tight sm:text-lg">
+                            {link.name.toUpperCase()}
+                          </div>
+                          {link.description && (
+                            <div className="font-mono-label text-muted mt-0.5">
+                              {link.description}
+                            </div>
+                          )}
+                        </div>
+                        {link.external ? (
+                          <ExternalLinkIcon className="h-5 w-5 flex-shrink-0 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                        ) : (
+                          <ArrowRightIcon className="h-5 w-5 flex-shrink-0 transition-transform group-hover:translate-x-1" />
+                        )}
+                      </div>
+                    </a>
+                  );
+                })}
+              </div>
+            </div>
+        ))}
+      </div>
+
+      {/* Footer */}
+      <p className="font-mono-label text-muted animate-fade-in-delay-3 mt-12 text-center">
+        © {new Date().getFullYear()} {siteConfig.name.toUpperCase()}
+      </p>
     </div>
   );
 }
