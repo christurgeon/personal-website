@@ -17,7 +17,7 @@ What follows is the workflow I've landed on. It's not about being cautious — I
 
 Left to its own devices, an agent will happily produce plausible-looking code that solves the wrong problem, introduces a subtle bug in an edge case, imports a package that doesn't exist, or silently breaks a contract the rest of the codebase depends on. The code *looks* right. It compiles. The tests — which the agent also wrote — pass.
 
-The mental model I've found most useful: treat the agent like a very fast, well-read junior engineer with infinite energy and no memory of yesterday. They can write code all day. They do not know your codebase, and they do not know which details matter. Your job is to supply that context and verify the output. Everything below is a way of doing that cheaply — and the lack of memory, which is a liability when you're implementing, turns out to be an asset when you're reviewing.
+The mental model I've found most useful: the agent is fast, well-read, tireless, and starts every session knowing nothing about yesterday. It can write code all day. It does not know your codebase, and it does not know all of the details that matter. Your job is to supply that context and verify the output. Everything below is a way of doing that cheaply — and the lack of memory, which is a liability when you're implementing, turns out to be an asset when you're reviewing.
 
 <Callout type="warning" title="The Failure Mode to Watch">
   The dangerous output isn't the code that breaks loudly. It's the code that works in the happy path but silently violates an invariant you didn't think to mention. If you're not reading the diff, you need *something* reading it.
@@ -143,6 +143,28 @@ The per-task loop above is one rhythm. Here's the other: periodic sweeps across 
 These are slow and noisy. Most of what they flag isn't worth fixing, but enough of it is that the ratio earns its keep. It's the agentic equivalent of running every linter you own in paranoid mode, except the linter understands semantics.
 
 I usually run one of these on a Friday afternoon when I don't want to start something new but don't want to coast either.
+
+---
+
+## The Curve Gets Steeper
+
+Early in a project, you can let the agent rip. The blast radius of any change is small because there's barely anything to break. As the project matures, that inverts. Every new feature has to fit through a narrower hole — respect existing contracts, not regress tests you wrote three weeks ago, play nice with data already in production, and not surprise the six other places that import from the file you're touching.
+
+Tom Cargill called the asymmetry the [ninety-ninety rule](https://en.wikipedia.org/wiki/Ninety%E2%80%93ninety_rule): the first 90% of the code takes 90% of the time, and the last 10% takes the other 90%. With an agent in the loop, that curve gets steeper, not flatter. Early on, the agent is drafting in an empty room. Near launch, every change is a puzzle piece, and the agent has to hold most of the surrounding puzzle in its head to place it correctly.
+
+Ousterhout calls the underlying phenomenon [change amplification](https://en.wikiversity.org/wiki/Software_Design/Change_amplification): a seemingly simple change requires modifications in many places. It's the first symptom of complexity, and it hits agent-driven workflows especially hard. The agent doesn't automatically see the three callers, the migration that depends on the schema, or the invariant encoded in the test suite two directories over. What a human engineer absorbs as tacit knowledge over months, the agent has to be fed fresh every session.
+
+This is why I plan harder the closer I get to launch, not less. A thirty-minute planning session that surfaces *"this breaks the email webhook"* is cheaper by an order of magnitude than discovering it from a user report on day three. Boehm's cost-of-change curve — defects get roughly 100x more expensive to fix the later you catch them — was true before agents and is still true with them. The only thing that changes is *who* is doing the catching.
+
+Practically, the effort shifts as the project matures:
+
+- **Early:** prompts are short, plans are loose, the agent improvises.
+- **Middle:** more research before the prompt, more pushback before the plan.
+- **Late:** the plan *is* the deliverable. I spend more time scoping the change, mapping what it touches, and writing the brief than I spend watching the agent type.
+
+The agent doesn't get dumber as the project grows. The job just gets harder, and most of the extra work is *supplying context the agent can't infer*. Planning deeply is how you pay that tax upfront instead of in postmortems.
+
+One caveat worth naming: this workflow has a shelf life. Agents are getting better at the exact things that make it necessary — persistent memory across sessions, absorbing a codebase's conventions without being hand-fed, reasoning over hundreds of thousands of lines at once. A year or two from now, most of what I've described here will probably read as period-specific scaffolding. That's fine. You build the guardrails the current tools need, and tear them down when the tools outgrow them.
 
 ---
 
