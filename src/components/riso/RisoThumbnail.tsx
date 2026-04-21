@@ -16,7 +16,7 @@ const palettes: Array<{ bg: string; shapes: string[] }> = [
 export function RisoThumbnail({ seed, className = "" }: RisoThumbnailProps) {
   const h = hashString(seed);
   const palette = palettes[h % palettes.length];
-  const variant = (h >> 4) % 4;
+  const variant = (h >>> 4) % 4;
   const dotsId = `riso-dots-${h.toString(36)}`;
 
   return (

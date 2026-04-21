@@ -2,30 +2,18 @@ import Link from "next/link";
 import Image from "next/image";
 import { format } from "date-fns";
 import { PostMeta } from "@/lib/blog";
-import { hashString, pickByIndex, TAG_COLORS, type RisoColor } from "@/lib/riso";
+import { pickByIndex, TAG_COLORS } from "@/lib/riso";
 import { RisoThumbnail } from "./riso/RisoThumbnail";
-import { Sticker } from "./riso/Sticker";
 
 interface PostCardProps {
   post: PostMeta;
   featured?: boolean;
 }
 
-const stickerPool: Array<{ label: string; color: RisoColor; rotate: number }> = [
-  { label: "Fresh!", color: "red", rotate: 8 },
-  { label: "New", color: "blue", rotate: -6 },
-  { label: "Essay", color: "green", rotate: 5 },
-  { label: "Deep Dive", color: "pink", rotate: -4 },
-  { label: "Tech", color: "yellow", rotate: 7 },
-];
-
 export function PostCard({ post, featured = false }: PostCardProps) {
-  const idx = hashString(post.slug);
-  const sticker = featured ? stickerPool[0] : pickByIndex(stickerPool, idx);
-
   return (
     <article
-      className="brutal-lift group relative overflow-hidden"
+      className="brutal-lift group relative"
       style={{
         background: "var(--card)",
         border: "3px solid var(--border)",
@@ -53,15 +41,6 @@ export function PostCard({ post, featured = false }: PostCardProps) {
           )}
         </div>
       </Link>
-
-      <Sticker
-        color={sticker.color}
-        rotate={sticker.rotate}
-        className="pointer-events-none absolute z-10"
-        style={{ top: "-14px", right: "18px" }}
-      >
-        {sticker.label}
-      </Sticker>
 
       <div style={{ padding: "22px 22px 24px" }}>
         <div className="mb-4 flex flex-wrap items-center gap-2">
