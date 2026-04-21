@@ -15,7 +15,6 @@ import {
   GiftIcon,
   TendIcon,
 } from "@/components/Icons";
-import { Sticker } from "@/components/riso/Sticker";
 import { STRIPE_COLORS, pickByIndex } from "@/lib/riso";
 import type { Metadata } from "next";
 
@@ -42,9 +41,9 @@ const sections: Section[] = [
   {
     title: "Site",
     links: [
-      { name: "Blog", href: "/blog", description: "Essays & rabbit holes", icon: PencilIcon, external: false },
-      { name: "Photography", href: "/photography", description: "Photos from the road", icon: CameraIcon, external: false },
-      { name: "About", href: "/about", description: "Who is this guy?", icon: ArrowRightIcon, external: false },
+      { name: "Blog", href: "/blog", icon: PencilIcon, external: false },
+      { name: "Photography", href: "/photography", icon: CameraIcon, external: false },
+      { name: "About", href: "/about", icon: ArrowRightIcon, external: false },
     ],
   },
   {
@@ -105,15 +104,6 @@ export default function LinksPage() {
           {siteConfig.name.toUpperCase()}
         </h1>
 
-        <div className="mt-3 flex items-center justify-center gap-3">
-          <Sticker color="yellow" rotate={-4}>
-            @ Point72
-          </Sticker>
-          <Sticker color="blue" rotate={3}>
-            Builder
-          </Sticker>
-        </div>
-
         <p className="font-mono-label text-muted mt-4 max-w-[34ch]">
           {siteConfig.linksPageDescription}
         </p>
@@ -132,7 +122,7 @@ export default function LinksPage() {
                 />
               </div>
 
-              <div className="space-y-3">
+              <div className="space-y-4">
                 {section.links.map((link, i) => {
                   const Icon = link.icon;
                   const globalIndex = section.offset + i;

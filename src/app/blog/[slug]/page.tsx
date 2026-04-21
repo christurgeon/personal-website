@@ -9,7 +9,7 @@ import { getPostBySlug, getAllPosts } from "@/lib/blog";
 import { siteConfig } from "@/lib/config";
 import { ShareButtons } from "@/components/ShareButtons";
 import { RisoThumbnail } from "@/components/riso/RisoThumbnail";
-import { TAG_COLORS, pickByIndex } from "@/lib/riso";
+import { TAG_COLORS, TAG_FGS, pickByIndex } from "@/lib/riso";
 import type { Metadata } from "next";
 
 interface PostPageProps {
@@ -96,7 +96,10 @@ export default async function PostPage({ params }: PostPageProps) {
                 <span
                   key={tag}
                   className="pill"
-                  style={{ background: pickByIndex(TAG_COLORS, idx) }}
+                  style={{
+                    background: pickByIndex(TAG_COLORS, idx),
+                    color: pickByIndex(TAG_FGS, idx),
+                  }}
                 >
                   {tag}
                 </span>
