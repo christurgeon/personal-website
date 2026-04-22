@@ -1,3 +1,4 @@
+import type { CSSProperties } from "react";
 import Link from "next/link";
 import { getAllPosts } from "@/lib/blog";
 import { siteConfig } from "@/lib/config";
@@ -107,15 +108,16 @@ export default function Home() {
             <Link
               key={tile.href}
               href={tile.href}
-              className="brutal-lift group relative block"
-              style={{
-                background: tile.bg,
-                color: tile.fg,
-                border: "3px solid var(--border)",
-                boxShadow: "6px 6px 0 var(--border)",
-                padding: "22px 22px 24px",
-                transform: `rotate(${tile.rotate})`,
-              }}
+              className="lane-tile group relative block"
+              style={
+                {
+                  background: tile.bg,
+                  color: tile.fg,
+                  border: "3px solid var(--border)",
+                  padding: "22px 22px 24px",
+                  "--tile-rotate": tile.rotate,
+                } as CSSProperties
+              }
             >
               <div
                 className="font-mono-label mb-3"

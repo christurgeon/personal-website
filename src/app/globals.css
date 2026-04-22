@@ -199,6 +199,30 @@ footer {
   box-shadow: 2px 2px 0 var(--border);
 }
 
+/* Rotate-safe lift: composes a per-element rotation (via --tile-rotate) with
+   a translate so the :hover transform doesn't clobber the rotation. */
+.lane-tile {
+  --tile-rotate: 0deg;
+  --tile-dx: 0px;
+  --tile-dy: 0px;
+  --tile-shadow: 6px;
+  transform: rotate(var(--tile-rotate)) translate(var(--tile-dx), var(--tile-dy));
+  box-shadow: var(--tile-shadow) var(--tile-shadow) 0 var(--border);
+  transition:
+    transform 0.14s ease,
+    box-shadow 0.14s ease;
+}
+.lane-tile:hover {
+  --tile-dx: -3px;
+  --tile-dy: -3px;
+  --tile-shadow: 9px;
+}
+.lane-tile:active {
+  --tile-dx: 3px;
+  --tile-dy: 3px;
+  --tile-shadow: 0px;
+}
+
 /* Pill — mono uppercase tag with border, used for meta/labels.
    Callers that override `background` should also pass the matching
    --on-<hue> as `color` (see TAG_FGS in src/lib/riso.ts). */

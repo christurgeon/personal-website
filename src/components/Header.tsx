@@ -50,7 +50,7 @@ export function Header() {
               const active = isActive(item.href);
               return (
                 <li key={item.href}>
-                  <Link href={item.href} className={`nav-link${active ? "nav-link--active" : ""}`}>
+                  <Link href={item.href} className={active ? "nav-link nav-link--active" : "nav-link"}>
                     {item.name}
                   </Link>
                 </li>
