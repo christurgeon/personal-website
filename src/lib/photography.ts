@@ -392,6 +392,32 @@ export const photoCategories: PhotoCategory[] = [
     ],
   },
   {
+    slug: "guatemala",
+    name: "Guatemala",
+    country: "Guatemala",
+    description:
+      "Smoldering volcanoes rising above colonial streets and the quiet rhythm of life along the Pacific coast.",
+    coverImage: "/images/photography/guatemala/volcan-de-fuego-1.jpg",
+    photos: [
+      {
+        id: "gt-1",
+        src: "/images/photography/guatemala/volcan-de-fuego-1.jpg",
+        alt: "A lone figure silhouetted on the ridge of Acatenango as Volcán de Fuego erupts",
+        width: 1638,
+        height: 2048,
+        location: "Volcán de Acatenango",
+      },
+      {
+        id: "gt-2",
+        src: "/images/photography/guatemala/beach-1.jpg",
+        alt: "Two silhouettes standing in the surf at sunset on the Pacific coast",
+        width: 1638,
+        height: 2048,
+        location: "Pacific Coast",
+      },
+    ],
+  },
+  {
     slug: "patagonia",
     name: "Patagonia",
     country: "Argentina & Chile",
