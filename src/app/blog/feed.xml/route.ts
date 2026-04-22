@@ -12,7 +12,7 @@ export function GET() {
       <guid isPermaLink="true">${siteConfig.url}/blog/${post.slug}</guid>
       <description><![CDATA[${post.excerpt}]]></description>
       <pubDate>${new Date(post.date).toUTCString()}</pubDate>
-    </item>`,
+    </item>`
     )
     .join("\n");
 

@@ -60,16 +60,10 @@ export function PostCard({ post, featured = false }: PostCardProps) {
               ))}
             </>
           )}
-          <span
-            className="font-mono-label"
-            style={{ color: "var(--muted)", fontSize: "0.72rem" }}
-          >
+          <span className="font-mono-label" style={{ color: "var(--muted)", fontSize: "0.72rem" }}>
             {format(new Date(post.date), "MMM d · yyyy")}
           </span>
-          <span
-            className="font-mono-label"
-            style={{ color: "var(--muted)", fontSize: "0.72rem" }}
-          >
+          <span className="font-mono-label" style={{ color: "var(--muted)", fontSize: "0.72rem" }}>
             · {post.readingTime}
           </span>
         </div>
@@ -86,10 +80,7 @@ export function PostCard({ post, featured = false }: PostCardProps) {
           </h3>
         </Link>
 
-        <p
-          className="mb-5 line-clamp-2"
-          style={{ color: "var(--muted)", fontSize: "0.95rem", lineHeight: "1.5" }}
-        >
+        <p className="mb-5 line-clamp-2" style={{ color: "var(--muted)", fontSize: "0.95rem", lineHeight: "1.5" }}>
           {post.excerpt}
         </p>
 

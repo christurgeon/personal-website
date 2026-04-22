@@ -1,5 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import fs from "fs";
+import { describe, it, expect } from "vitest";
 import { getPostSlugs, getPostBySlug, getAllPosts } from "../blog";
 
 // These tests run against the real content/posts directory.
@@ -55,9 +54,7 @@ describe("getAllPosts", () => {
   it("returns posts sorted by date descending", () => {
     const posts = getAllPosts();
     for (let i = 1; i < posts.length; i++) {
-      expect(new Date(posts[i - 1].date).getTime()).toBeGreaterThanOrEqual(
-        new Date(posts[i].date).getTime(),
-      );
+      expect(new Date(posts[i - 1].date).getTime()).toBeGreaterThanOrEqual(new Date(posts[i].date).getTime());
     }
   });
 

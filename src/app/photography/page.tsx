@@ -28,10 +28,7 @@ export default function PhotographyPage() {
         <div className="font-mono-label mb-4" style={{ color: "var(--muted)" }}>
           [ 03 / FRAMES ]
         </div>
-        <h1
-          className="font-display leading-[0.92] tracking-[-0.04em] uppercase"
-          style={{ fontSize: "clamp(2.8rem, 9vw, 6.5rem)" }}
-        >
+        <h1 className="font-display leading-[0.92] tracking-[-0.04em] uppercase" style={{ fontSize: "clamp(2.8rem, 9vw, 6.5rem)" }}>
           Photo{" "}
           <span
             className="inline-block border-[3px] px-[0.12em]"
@@ -46,10 +43,7 @@ export default function PhotographyPage() {
             Graphy
           </span>
         </h1>
-        <p
-          className="animate-fade-in-delay-1 mt-6 max-w-2xl text-lg md:text-xl"
-          style={{ color: "var(--muted)" }}
-        >
+        <p className="animate-fade-in-delay-1 mt-6 max-w-2xl text-lg md:text-xl" style={{ color: "var(--muted)" }}>
           A visual diary I keep instead of a written one.
         </p>
 
@@ -107,18 +101,9 @@ export default function PhotographyPage() {
                 }}
               >
                 {/* Cover image */}
-                <div
-                  className="relative aspect-[4/3] overflow-hidden border-b-[3px]"
-                  style={{ borderColor: "var(--border)" }}
-                >
+                <div className="relative aspect-[4/3] overflow-hidden border-b-[3px]" style={{ borderColor: "var(--border)" }}>
                   <div className="gallery-image-zoom absolute inset-0">
-                    <Image
-                      src={category.coverImage}
-                      alt={category.name}
-                      fill
-                      className="object-cover"
-                      sizes="(max-width: 768px) 100vw, 50vw"
-                    />
+                    <Image src={category.coverImage} alt={category.name} fill className="object-cover" sizes="(max-width: 768px) 100vw, 50vw" />
                   </div>
 
                   {/* Floating sticker — top-left */}
@@ -142,15 +127,9 @@ export default function PhotographyPage() {
                 </div>
 
                 {/* Colored info strip */}
-                <div
-                  className="flex items-end justify-between gap-4 p-5 md:p-6"
-                  style={{ background: stripBg, color: stripFg }}
-                >
+                <div className="flex items-end justify-between gap-4 p-5 md:p-6" style={{ background: stripBg, color: stripFg }}>
                   <div className="min-w-0 flex-1">
-                    <div
-                      className="font-mono-label mb-2 flex items-center gap-2"
-                      style={{ color: stripFg, opacity: 0.9 }}
-                    >
+                    <div className="font-mono-label mb-2 flex items-center gap-2" style={{ color: stripFg, opacity: 0.9 }}>
                       <MapPinIcon className="h-3.5 w-3.5" />
                       <span>{category.country}</span>
                     </div>

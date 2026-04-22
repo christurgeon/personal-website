@@ -1,15 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { siteConfig } from "@/lib/config";
-import {
-  ArrowRightIcon,
-  GitHubIcon,
-  GoodreadsIcon,
-  LinkedInIcon,
-  SoundCloudIcon,
-  XTwitterIcon,
-  BeliIcon,
-} from "@/components/Icons";
+import { ArrowRightIcon, GitHubIcon, GoodreadsIcon, LinkedInIcon, SoundCloudIcon, XTwitterIcon, BeliIcon } from "@/components/Icons";
 import { Sticker } from "@/components/riso/Sticker";
 import { COLOR_PAIRS, type RisoColor } from "@/lib/riso";
 import type { Metadata } from "next";
@@ -69,14 +61,7 @@ export default function AboutPage() {
                 transform: "rotate(-3deg)",
               }}
             >
-              <Image
-                src="/images/profile.jpg"
-                alt={siteConfig.name}
-                fill
-                className="object-cover"
-                priority
-                sizes="(min-width: 640px) 192px, 160px"
-              />
+              <Image src="/images/profile.jpg" alt={siteConfig.name} fill className="object-cover" priority sizes="(min-width: 640px) 192px, 160px" />
             </div>
             <div className="absolute -top-4 -right-4">
               <Sticker color="red" rotate={10}>
@@ -112,7 +97,8 @@ export default function AboutPage() {
             <Link href={siteConfig.socials.github} target="_blank" rel="noopener noreferrer">
               code
             </Link>
-            , I&apos;m usually <Link href="/blog">writing words</Link>, taking <Link href="/photography">photos</Link> of places I don&apos;t want to forget, or producing{" "}
+            , I&apos;m usually <Link href="/blog">writing words</Link>, taking <Link href="/photography">photos</Link> of places I don&apos;t want to
+            forget, or producing{" "}
             <Link href={siteConfig.socials.soundcloud} target="_blank" rel="noopener noreferrer">
               electronic music
             </Link>{" "}
@@ -130,9 +116,7 @@ export default function AboutPage() {
       {/* Find me elsewhere */}
       <section className="animate-fade-in-delay-2 mb-14">
         <div className="mb-6 flex items-end justify-between gap-4">
-          <h2 className="font-display text-[clamp(1.8rem,4vw,2.75rem)] leading-[0.95] tracking-[-0.03em]">
-            FIND ME ELSEWHERE
-          </h2>
+          <h2 className="font-display text-[clamp(1.8rem,4vw,2.75rem)] leading-[0.95] tracking-[-0.03em]">FIND ME ELSEWHERE</h2>
           <div className="font-mono-label text-muted hidden sm:block">[ ACROSS THE WEB ]</div>
         </div>
 
@@ -167,7 +151,6 @@ export default function AboutPage() {
             })}
         </div>
       </section>
-
     </div>
   );
 }

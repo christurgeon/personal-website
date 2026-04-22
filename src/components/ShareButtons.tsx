@@ -22,14 +22,7 @@ const variants: Record<"yellow" | "blue" | "pink", Variant> = {
 
 function LinkIcon({ className = "" }: { className?: string }) {
   return (
-    <svg
-      className={className}
-      fill="none"
-      viewBox="0 0 24 24"
-      stroke="currentColor"
-      strokeWidth={2.2}
-      aria-hidden="true"
-    >
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.2} aria-hidden="true">
       <path
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -41,14 +34,7 @@ function LinkIcon({ className = "" }: { className?: string }) {
 
 function CheckIcon({ className = "" }: { className?: string }) {
   return (
-    <svg
-      className={className}
-      fill="none"
-      viewBox="0 0 24 24"
-      stroke="currentColor"
-      strokeWidth={2.6}
-      aria-hidden="true"
-    >
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.6} aria-hidden="true">
       <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
     </svg>
   );
@@ -65,23 +51,14 @@ export function ShareButtons({ title, slug }: ShareButtonsProps) {
   }, [url]);
 
   const shareToX = () => {
-    window.open(
-      `https://x.com/intent/tweet?text=${encodeURIComponent(title)}&url=${encodeURIComponent(url)}`,
-      "_blank",
-      "noopener,noreferrer",
-    );
+    window.open(`https://x.com/intent/tweet?text=${encodeURIComponent(title)}&url=${encodeURIComponent(url)}`, "_blank", "noopener,noreferrer");
   };
 
   const shareToLinkedIn = () => {
-    window.open(
-      `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`,
-      "_blank",
-      "noopener,noreferrer",
-    );
+    window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`, "_blank", "noopener,noreferrer");
   };
 
-  const buttonBase =
-    "brutal-lift-sm font-mono-label inline-flex items-center gap-2 px-3.5 py-2 text-[0.72rem]";
+  const buttonBase = "brutal-lift-sm font-mono-label inline-flex items-center gap-2 px-3.5 py-2 text-[0.72rem]";
 
   const buttonStyle = (v: Variant) => ({
     background: v.bg,
@@ -110,42 +87,21 @@ export function ShareButtons({ title, slug }: ShareButtonsProps) {
       </div>
 
       <div className="flex flex-wrap items-center gap-3">
-        <span
-          className="font-mono-label mr-2"
-          style={{ color: "var(--muted)", fontSize: "0.78rem" }}
-        >
+        <span className="font-mono-label mr-2" style={{ color: "var(--muted)", fontSize: "0.78rem" }}>
           Share →
         </span>
 
-        <button
-          onClick={copyLink}
-          className={buttonBase}
-          style={buttonStyle(variants.yellow)}
-          aria-label="Copy link to clipboard"
-          type="button"
-        >
+        <button onClick={copyLink} className={buttonBase} style={buttonStyle(variants.yellow)} aria-label="Copy link to clipboard" type="button">
           {copied ? <CheckIcon className="h-4 w-4" /> : <LinkIcon className="h-4 w-4" />}
           <span>{copied ? "Copied" : "Copy Link"}</span>
         </button>
 
-        <button
-          onClick={shareToX}
-          className={buttonBase}
-          style={buttonStyle(variants.blue)}
-          aria-label="Post on X"
-          type="button"
-        >
+        <button onClick={shareToX} className={buttonBase} style={buttonStyle(variants.blue)} aria-label="Post on X" type="button">
           <XTwitterIcon className="h-4 w-4" />
           <span>Post on X</span>
         </button>
 
-        <button
-          onClick={shareToLinkedIn}
-          className={buttonBase}
-          style={buttonStyle(variants.pink)}
-          aria-label="Share to LinkedIn"
-          type="button"
-        >
+        <button onClick={shareToLinkedIn} className={buttonBase} style={buttonStyle(variants.pink)} aria-label="Share to LinkedIn" type="button">
           <LinkedInIcon className="h-4 w-4" />
           <span>Share to LinkedIn</span>
         </button>

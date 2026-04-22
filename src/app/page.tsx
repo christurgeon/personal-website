@@ -75,13 +75,7 @@ export default function Home() {
 
       {/* Recent Posts */}
       <section className="mx-auto max-w-[1240px] px-5 pt-20 pb-12 sm:px-7 md:pt-24">
-        <SectionHead
-          number="01"
-          kicker="Writing"
-          title={<>Recent</>}
-          highlight="Posts"
-          more={{ label: "All Posts", href: "/blog" }}
-        />
+        <SectionHead number="01" kicker="Writing" title={<>Recent</>} highlight="Posts" more={{ label: "All Posts", href: "/blog" }} />
 
         {posts.length > 0 ? (
           <div className="grid gap-7 md:grid-cols-2 lg:grid-cols-3">
@@ -143,10 +137,7 @@ export default function Home() {
                 {tile.title}
               </h3>
               <p style={{ fontSize: "0.92rem", lineHeight: 1.45, opacity: 0.92 }}>{tile.tagline}</p>
-              <div
-                className="font-mono-label mt-5 inline-flex items-center gap-1"
-                style={{ color: tile.fg }}
-              >
+              <div className="font-mono-label mt-5 inline-flex items-center gap-1" style={{ color: tile.fg }}>
                 Enter →
               </div>
             </Link>

@@ -12,8 +12,7 @@ export interface Project {
 export const projects: Project[] = [
   {
     name: "Tend",
-    description:
-      "Nurture your relationships with gentle reminders and AI-powered messages shaped by your tone and history together.",
+    description: "Nurture your relationships with gentle reminders and AI-powered messages shaped by your tone and history together.",
     language: "Swift",
     tags: ["iOS", "SwiftUI", "Relationships"],
     website: "https://usetend.org",
@@ -21,8 +20,7 @@ export const projects: Project[] = [
   },
   {
     name: "IronLock",
-    description:
-      "Secure file encryption CLI using Argon2id and ChaCha20-Poly1305.",
+    description: "Secure file encryption CLI using Argon2id and ChaCha20-Poly1305.",
     language: "Rust",
     tags: ["CLI", "Cryptography", "Security"],
     github: "https://github.com/christurgeon/ironlock",
@@ -30,8 +28,7 @@ export const projects: Project[] = [
   },
   {
     name: "GrooveFactory",
-    description:
-      "An AI-powered MIDI generator for electronic music producers.",
+    description: "An AI-powered MIDI generator for electronic music producers.",
     language: "TypeScript",
     tags: ["AI", "Music", "MIDI"],
     github: "https://github.com/christurgeon/groovefactory",
@@ -47,8 +44,7 @@ export const projects: Project[] = [
   },
   {
     name: "Tracks4Africa Forum Scraper",
-    description:
-      "Search Tracks4Africa forums for road and track condition reports by place name.",
+    description: "Search Tracks4Africa forums for road and track condition reports by place name.",
     language: "Python",
     tags: ["Scraping", "Travel", "CLI"],
     github: "https://github.com/christurgeon/tracks4africa-forum-scraper",

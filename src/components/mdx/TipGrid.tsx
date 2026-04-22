@@ -1,13 +1,21 @@
 const tips = [
-  { icon: "\u{1F3AF}", title: "Time applications to big expenses", text: "Furniture, flights, insurance premiums — hit the minimum spend naturally." },
+  {
+    icon: "\u{1F3AF}",
+    title: "Time applications to big expenses",
+    text: "Furniture, flights, insurance premiums — hit the minimum spend naturally.",
+  },
   { icon: "\u{1F504}", title: "Never close cards", text: "Downgrade to no-fee versions. Closing hurts utilization ratio and average account age." },
-  { icon: "\u2708\uFE0F", title: "Transfer points, don't cash out", text: "Point transfers to airline/hotel partners often yield 1.5–2x the value of cash redemption." },
+  {
+    icon: "\u2708\uFE0F",
+    title: "Transfer points, don't cash out",
+    text: "Point transfers to airline/hotel partners often yield 1.5–2x the value of cash redemption.",
+  },
   { icon: "\u{1F4CA}", title: "Track everything", text: "Spreadsheet with open dates, bonus deadlines, annual fee dates, and downgrade windows." },
 ];
 
 export default function TipGrid() {
   return (
-    <div className="not-prose grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 my-6">
+    <div className="not-prose my-6 grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
       {tips.map((item, i) => (
         <div
           key={i}

@@ -15,9 +15,7 @@ export default function SummaryBox({ children }: SummaryBoxProps) {
         margin: "2rem 0",
       }}
     >
-      <div className="prose dark:prose-invert max-w-none">
-        {children}
-      </div>
+      <div className="prose dark:prose-invert max-w-none">{children}</div>
     </div>
   );
 }

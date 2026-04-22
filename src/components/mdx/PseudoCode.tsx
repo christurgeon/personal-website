@@ -14,15 +14,13 @@ const steps = [
   {
     number: 3,
     title: "Offset your gains",
-    description:
-      "Your realized losses cancel out capital gains from winning trades, reducing your tax bill.",
+    description: "Your realized losses cancel out capital gains from winning trades, reducing your tax bill.",
     color: "#3b82f6",
   },
   {
     number: 4,
     title: "Deduct up to $3K from income",
-    description:
-      "If losses exceed gains, deduct up to $3,000 against ordinary income. The rest carries forward to future years.",
+    description: "If losses exceed gains, deduct up to $3,000 against ordinary income. The rest carries forward to future years.",
     color: "#8b5cf6",
   },
   {
@@ -94,9 +92,7 @@ export default function PseudoCode() {
             </div>
             <div>
               <div style={{ fontWeight: 600, marginBottom: "0.2rem" }}>{step.title}</div>
-              <div style={{ color: "#94a3b8", fontSize: "0.8rem", lineHeight: 1.5 }}>
-                {step.description}
-              </div>
+              <div style={{ color: "#94a3b8", fontSize: "0.8rem", lineHeight: 1.5 }}>{step.description}</div>
             </div>
           </div>
         ))}

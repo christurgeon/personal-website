@@ -74,10 +74,7 @@ export default async function PostPage({ params }: PostPageProps) {
 
   return (
     <>
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-      />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       <div className="mx-auto max-w-[1240px] px-5 py-8 sm:px-7 md:py-12">
         <div className="animate-fade-in mb-8">
           <Link
@@ -118,10 +115,7 @@ export default async function PostPage({ params }: PostPageProps) {
             {post.title}
           </h1>
 
-          <div
-            className="font-mono-label flex flex-wrap items-center gap-x-2 gap-y-1"
-            style={{ color: "var(--muted)", fontSize: "0.78rem" }}
-          >
+          <div className="font-mono-label flex flex-wrap items-center gap-x-2 gap-y-1" style={{ color: "var(--muted)", fontSize: "0.78rem" }}>
             <span>{format(new Date(post.date), "MMM d, yyyy")}</span>
             <span aria-hidden="true">·</span>
             <span>{post.readingTime}</span>
@@ -140,24 +134,13 @@ export default async function PostPage({ params }: PostPageProps) {
                 boxShadow: "7px 7px 0 var(--border)",
               }}
             >
-              <Image
-                src={post.coverImage}
-                alt={post.title}
-                fill
-                sizes="(min-width: 1024px) 768px, 100vw"
-                className="object-cover"
-                priority
-              />
+              <Image src={post.coverImage} alt={post.title} fill sizes="(min-width: 1024px) 768px, 100vw" className="object-cover" priority />
             </div>
           </div>
         )}
 
         <article className="prose prose-lg animate-fade-in-delay-2 mx-auto max-w-[68ch]">
-          <MDXRemote
-            source={post.content}
-            options={{ mdxOptions: { rehypePlugins: [rehypeSlug] } }}
-            components={mdxComponents}
-          />
+          <MDXRemote source={post.content} options={{ mdxOptions: { rehypePlugins: [rehypeSlug] } }} components={mdxComponents} />
         </article>
 
         <div className="mx-auto max-w-[68ch]">
@@ -166,10 +149,7 @@ export default async function PostPage({ params }: PostPageProps) {
 
         {upNext.length > 0 && (
           <section className="mx-auto mt-20 max-w-[68ch]">
-            <div
-              className="font-mono-label mb-5"
-              style={{ color: "var(--muted)", fontSize: "0.78rem" }}
-            >
+            <div className="font-mono-label mb-5" style={{ color: "var(--muted)", fontSize: "0.78rem" }}>
               [ UP NEXT ]
             </div>
             <ul className="flex flex-col gap-5">
@@ -195,11 +175,7 @@ export default async function PostPage({ params }: PostPageProps) {
                     >
                       {p.coverImage ? (
                         // eslint-disable-next-line @next/next/no-img-element
-                        <img
-                          src={p.coverImage}
-                          alt=""
-                          className="h-full w-full object-cover"
-                        />
+                        <img src={p.coverImage} alt="" className="h-full w-full object-cover" />
                       ) : (
                         <RisoThumbnail seed={p.slug} className="h-full w-full" />
                       )}
@@ -215,10 +191,7 @@ export default async function PostPage({ params }: PostPageProps) {
                       >
                         {p.title}
                       </h3>
-                      <div
-                        className="font-mono-label"
-                        style={{ color: "var(--muted)", fontSize: "0.7rem" }}
-                      >
+                      <div className="font-mono-label" style={{ color: "var(--muted)", fontSize: "0.7rem" }}>
                         {format(new Date(p.date), "MMM d, yyyy")} · {p.readingTime}
                       </div>
                     </div>

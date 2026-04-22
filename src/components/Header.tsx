@@ -50,7 +50,7 @@ export function Header() {
               const active = isActive(item.href);
               return (
                 <li key={item.href}>
-                  <Link href={item.href} className={`nav-link${active ? " nav-link--active" : ""}`}>
+                  <Link href={item.href} className={`nav-link${active ? "nav-link--active" : ""}`}>
                     {item.name}
                   </Link>
                 </li>
@@ -87,7 +87,16 @@ export function Header() {
             aria-label={menuOpen ? "Close menu" : "Open menu"}
             aria-expanded={menuOpen}
           >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={3} strokeLinecap="square" aria-hidden="true">
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth={3}
+              strokeLinecap="square"
+              aria-hidden="true"
+            >
               {menuOpen ? <path d="M6 6L18 18M18 6L6 18" /> : <path d="M4 7h16M4 12h16M4 17h16" />}
             </svg>
           </button>

@@ -21,11 +21,9 @@ export default function AgentWorkflowLoop() {
         color: "#e2e8f0",
       }}
     >
-      <div className="text-center mb-5 text-xs uppercase tracking-widest text-slate-400">
-        The Loop
-      </div>
+      <div className="mb-5 text-center text-xs tracking-widest text-slate-400 uppercase">The Loop</div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
         {steps.map((step, i) => (
           <div
             key={step.label}
@@ -48,12 +46,8 @@ export default function AgentWorkflowLoop() {
             >
               {String(i + 1).padStart(2, "0")}
             </div>
-            <div style={{ fontWeight: 600, fontSize: "0.95rem", marginBottom: "0.25rem" }}>
-              {step.label}
-            </div>
-            <div style={{ fontSize: "0.8rem", color: "#94a3b8", lineHeight: 1.45 }}>
-              {step.detail}
-            </div>
+            <div style={{ fontWeight: 600, fontSize: "0.95rem", marginBottom: "0.25rem" }}>{step.label}</div>
+            <div style={{ fontSize: "0.8rem", color: "#94a3b8", lineHeight: 1.45 }}>{step.detail}</div>
           </div>
         ))}
       </div>

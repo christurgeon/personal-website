@@ -51,17 +51,7 @@ function TagPill({ tag, bg }: { tag: string; bg: string }) {
   );
 }
 
-function IconButton({
-  href,
-  label,
-  bg,
-  children,
-}: {
-  href: string;
-  label: string;
-  bg: string;
-  children: React.ReactNode;
-}) {
+function IconButton({ href, label, bg, children }: { href: string; label: string; bg: string; children: React.ReactNode }) {
   return (
     <a
       href={href}
@@ -93,10 +83,7 @@ export default function ProjectsPage() {
         <div className="font-mono-label mb-4" style={{ color: "var(--muted)" }}>
           [ 02 / SHIPPING ]
         </div>
-        <h1
-          className="font-display leading-[0.92] tracking-[-0.04em] uppercase"
-          style={{ fontSize: "clamp(2.8rem, 9vw, 6.5rem)" }}
-        >
+        <h1 className="font-display leading-[0.92] tracking-[-0.04em] uppercase" style={{ fontSize: "clamp(2.8rem, 9vw, 6.5rem)" }}>
           Things I{" "}
           <span
             className="inline-block border-[3px] px-[0.12em]"
@@ -111,10 +98,7 @@ export default function ProjectsPage() {
             Build
           </span>
         </h1>
-        <p
-          className="animate-fade-in-delay-1 mt-6 max-w-2xl text-lg md:text-xl"
-          style={{ color: "var(--muted)" }}
-        >
+        <p className="animate-fade-in-delay-1 mt-6 max-w-2xl text-lg md:text-xl" style={{ color: "var(--muted)" }}>
           Things I&apos;ve built, mostly for fun.
         </p>
 
@@ -157,10 +141,7 @@ export default function ProjectsPage() {
                 <div className="font-mono-label pt-2" style={{ color: "var(--muted)" }}>
                   [ 00 / FLAGSHIP ]
                 </div>
-                <h2
-                  className="font-display leading-[0.92] tracking-[-0.03em] uppercase"
-                  style={{ fontSize: "clamp(2.4rem, 5vw, 4rem)" }}
-                >
+                <h2 className="font-display leading-[0.92] tracking-[-0.03em] uppercase" style={{ fontSize: "clamp(2.4rem, 5vw, 4rem)" }}>
                   {featured.name}
                 </h2>
                 <p className="text-lg" style={{ color: "var(--ink)" }}>
@@ -211,10 +192,7 @@ export default function ProjectsPage() {
               </div>
 
               {/* Right — riso panel */}
-              <div
-                className="relative min-h-[260px] border-t-[3px] md:border-t-0 md:border-l-[3px]"
-                style={{ borderColor: "var(--border)" }}
-              >
+              <div className="relative min-h-[260px] border-t-[3px] md:border-t-0 md:border-l-[3px]" style={{ borderColor: "var(--border)" }}>
                 <RisoThumbnail seed={featured.name} className="absolute inset-0 h-full w-full" />
                 <div
                   className="font-display pointer-events-none absolute inset-0 flex items-end p-6 leading-[0.85] tracking-[-0.04em] uppercase"
@@ -245,10 +223,7 @@ export default function ProjectsPage() {
             <div className="font-mono-label" style={{ color: "var(--muted)" }}>
               [ THE REST / {String(rest.length).padStart(2, "0")} ]
             </div>
-            <h2
-              className="font-display mt-2 leading-[0.95] tracking-[-0.03em] uppercase"
-              style={{ fontSize: "clamp(1.8rem, 3.5vw, 2.8rem)" }}
-            >
+            <h2 className="font-display mt-2 leading-[0.95] tracking-[-0.03em] uppercase" style={{ fontSize: "clamp(1.8rem, 3.5vw, 2.8rem)" }}>
               Also in the shed
             </h2>
           </div>
@@ -298,32 +273,18 @@ export default function ProjectsPage() {
                     ))}
                   </div>
 
-                  <div
-                    className="mt-auto flex items-center justify-between pt-3 border-t-[3px]"
-                    style={{ borderColor: "var(--border)" }}
-                  >
-                    <span
-                      className="font-mono-label"
-                      style={{ color: fg, opacity: 0.85 }}
-                    >
+                  <div className="mt-auto flex items-center justify-between border-t-[3px] pt-3" style={{ borderColor: "var(--border)" }}>
+                    <span className="font-mono-label" style={{ color: fg, opacity: 0.85 }}>
                       #{String(index + 1).padStart(2, "0")}
                     </span>
                     <div className="flex items-center gap-2">
                       {project.github && (
-                        <IconButton
-                          href={project.github}
-                          label={`${project.name} on GitHub`}
-                          bg="var(--paper)"
-                        >
+                        <IconButton href={project.github} label={`${project.name} on GitHub`} bg="var(--paper)">
                           <GitHubIcon className="h-5 w-5" />
                         </IconButton>
                       )}
                       {project.website && (
-                        <IconButton
-                          href={project.website}
-                          label={`${project.name} website`}
-                          bg="var(--paper)"
-                        >
+                        <IconButton href={project.website} label={`${project.name} website`} bg="var(--paper)">
                           <ExternalLinkIcon className="h-5 w-5" />
                         </IconButton>
                       )}

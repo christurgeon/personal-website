@@ -35,17 +35,13 @@ const variants: Record<string, { left: CardSide; right: CardSide }> = {
       title: "Tax-Advantaged Accounts",
       subtitle: "Hold tax-inefficient assets here",
       color: "#ef4444",
-      items: [
-        "Bonds, REITs, actively managed funds, high-dividend stocks — anything that generates income taxed at ordinary rates.",
-      ],
+      items: ["Bonds, REITs, actively managed funds, high-dividend stocks — anything that generates income taxed at ordinary rates."],
     },
     right: {
       title: "Taxable Brokerage",
       subtitle: "Hold tax-efficient assets here",
       color: "#10b981",
-      items: [
-        "Broad index funds, long-term holdings, growth stocks — things with low turnover that benefit from long-term capital gains rates.",
-      ],
+      items: ["Broad index funds, long-term holdings, growth stocks — things with low turnover that benefit from long-term capital gains rates."],
     },
   },
 };
@@ -60,11 +56,20 @@ function CardColumn({ side }: { side: CardSide }) {
         padding: "1.25rem",
       }}
     >
-      <div style={{ fontSize: "0.7rem", textTransform: "uppercase", letterSpacing: "0.08em", color: side.color, fontWeight: 600, marginBottom: "0.5rem" }}>
+      <div
+        style={{
+          fontSize: "0.7rem",
+          textTransform: "uppercase",
+          letterSpacing: "0.08em",
+          color: side.color,
+          fontWeight: 600,
+          marginBottom: "0.5rem",
+        }}
+      >
         {side.title}
       </div>
-      <div className="text-base sm:text-lg font-bold mb-3">{side.subtitle}</div>
-      <ul className="text-sm leading-relaxed pl-4 m-0">
+      <div className="mb-3 text-base font-bold sm:text-lg">{side.subtitle}</div>
+      <ul className="m-0 pl-4 text-sm leading-relaxed">
         {side.items.map((item, i) => (
           <li key={i} dangerouslySetInnerHTML={{ __html: item }} />
         ))}
@@ -77,7 +82,7 @@ export default function ComparisonCards({ variant }: { variant: string }) {
   const data = variants[variant];
   if (!data) return null;
   return (
-    <div className="not-prose grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 my-6">
+    <div className="not-prose my-6 grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
       <CardColumn side={data.left} />
       <CardColumn side={data.right} />
     </div>

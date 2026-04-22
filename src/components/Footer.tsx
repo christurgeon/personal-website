@@ -28,10 +28,7 @@ export function Footer() {
       }}
     >
       <div className="mx-auto max-w-[1240px] px-6 py-12 sm:px-7">
-        <div
-          className="grid grid-cols-1 gap-8 pb-8 sm:grid-cols-3"
-          style={{ borderBottom: "3px solid var(--border)" }}
-        >
+        <div className="grid grid-cols-1 gap-8 pb-8 sm:grid-cols-3" style={{ borderBottom: "3px solid var(--border)" }}>
           <FooterColumn title="Site">
             {siteLinks.map((l) => (
               <FooterLink key={l.href} href={l.href}>
@@ -87,17 +84,7 @@ function FooterColumn({ title, children }: { title: string; children: React.Reac
   );
 }
 
-function FooterLink({
-  href,
-  external,
-  icon,
-  children,
-}: {
-  href: string;
-  external?: boolean;
-  icon?: React.ReactNode;
-  children: React.ReactNode;
-}) {
+function FooterLink({ href, external, icon, children }: { href: string; external?: boolean; icon?: React.ReactNode; children: React.ReactNode }) {
   if (external) {
     return (
       <li>

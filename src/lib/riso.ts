@@ -26,9 +26,9 @@ export const TAG_COLORS = ["var(--yellow)", "var(--pink)", "var(--green)", "var(
 export const TAG_FGS = ["var(--on-yellow)", "var(--on-pink)", "var(--on-green)", "var(--on-blue)"] as const;
 
 export const COLOR_PAIRS: Record<RisoColor, { bg: string; fg: string }> = {
-  red:    { bg: "var(--red)",    fg: "var(--on-red)" },
-  blue:   { bg: "var(--blue)",   fg: "var(--on-blue)" },
-  green:  { bg: "var(--green)",  fg: "var(--on-green)" },
+  red: { bg: "var(--red)", fg: "var(--on-red)" },
+  blue: { bg: "var(--blue)", fg: "var(--on-blue)" },
+  green: { bg: "var(--green)", fg: "var(--on-green)" },
   yellow: { bg: "var(--yellow)", fg: "var(--on-yellow)" },
-  pink:   { bg: "var(--pink)",   fg: "var(--on-pink)" },
+  pink: { bg: "var(--pink)", fg: "var(--on-pink)" },
 };

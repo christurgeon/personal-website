@@ -31,11 +31,7 @@ export default function ShufflePage() {
   return (
     <div className="mx-auto max-w-[1240px] px-5 py-8 sm:px-7 md:py-10">
       {/* Back link */}
-      <Link
-        href="/photography"
-        className="font-mono-label group mb-8 inline-flex items-center gap-1.5"
-        style={{ color: "var(--muted)" }}
-      >
+      <Link href="/photography" className="font-mono-label group mb-8 inline-flex items-center gap-1.5" style={{ color: "var(--muted)" }}>
         <ChevronLeftIcon className="h-3.5 w-3.5 transition-transform group-hover:-translate-x-1" />
         Back to Photography
       </Link>
@@ -46,10 +42,7 @@ export default function ShufflePage() {
           [ RANDOM / ALL FRAMES ]
         </div>
 
-        <h1
-          className="font-display leading-[0.92] tracking-[-0.04em] uppercase"
-          style={{ fontSize: "clamp(2.6rem, 8.5vw, 6rem)" }}
-        >
+        <h1 className="font-display leading-[0.92] tracking-[-0.04em] uppercase" style={{ fontSize: "clamp(2.6rem, 8.5vw, 6rem)" }}>
           Shuffled{" "}
           <span
             className="inline-block border-[3px] px-[0.12em]"
@@ -65,10 +58,7 @@ export default function ShufflePage() {
           </span>
         </h1>
 
-        <p
-          className="animate-fade-in-delay-1 mt-6 max-w-2xl text-lg md:text-xl"
-          style={{ color: "var(--muted)" }}
-        >
+        <p className="animate-fade-in-delay-1 mt-6 max-w-2xl text-lg md:text-xl" style={{ color: "var(--muted)" }}>
           A random arrangement of every frame across every destination. Hit shuffle to roll the dice again.
         </p>
 
@@ -97,14 +87,9 @@ export default function ShufflePage() {
       </header>
 
       {/* Gallery */}
-      <section
-        className="animate-fade-in-delay-3 mb-16"
-        suppressHydrationWarning
-      >
+      <section className="animate-fade-in-delay-3 mb-16" suppressHydrationWarning>
         {photos.length > 0 ? (
-          <div
-            className={`transition-opacity duration-300 ${isShuffling ? "opacity-50" : "opacity-100"}`}
-          >
+          <div className={`transition-opacity duration-300 ${isShuffling ? "opacity-50" : "opacity-100"}`}>
             <PhotoGallery photos={photos} showLocation />
           </div>
         ) : (

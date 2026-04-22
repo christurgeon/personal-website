@@ -1,11 +1,5 @@
 import { describe, it, expect } from "vitest";
-import {
-  getAllCategories,
-  getCategoryBySlug,
-  getAllPhotos,
-  getShuffledPhotos,
-  photoCategories,
-} from "../photography";
+import { getAllCategories, getCategoryBySlug, getAllPhotos, getShuffledPhotos, photoCategories } from "../photography";
 
 describe("getAllCategories", () => {
   it("returns all categories", () => {

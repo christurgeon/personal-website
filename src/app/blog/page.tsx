@@ -15,22 +15,14 @@ export default function BlogPage() {
 
   // Derive year range for the sticker (deterministic — purely from data)
   const years = posts.map((p) => new Date(p.date).getFullYear()).filter((y) => !Number.isNaN(y));
-  const yearRange =
-    years.length > 0
-      ? years[0] === years[years.length - 1]
-        ? `${years[0]}`
-        : `${Math.min(...years)}–${Math.max(...years)}`
-      : "";
+  const yearRange = years.length > 0 ? (years[0] === years[years.length - 1] ? `${years[0]}` : `${Math.min(...years)}–${Math.max(...years)}`) : "";
 
   return (
     <div className="mx-auto max-w-[1240px] px-5 py-10 sm:px-7">
       {/* Hero — CHROME-LOUD */}
       <header className="animate-fade-in relative mb-14 md:mb-20">
         {/* Eyebrow */}
-        <div
-          className="font-mono-label mb-5"
-          style={{ color: "var(--muted)", fontSize: "0.78rem" }}
-        >
+        <div className="font-mono-label mb-5" style={{ color: "var(--muted)", fontSize: "0.78rem" }}>
           [ WRITING / ESSAYS ]
         </div>
 
@@ -59,19 +51,13 @@ export default function BlogPage() {
         </h1>
 
         {/* Intro line */}
-        <p
-          className="mt-8 max-w-2xl text-lg md:text-xl"
-          style={{ color: "var(--muted)", lineHeight: 1.5 }}
-        >
+        <p className="mt-8 max-w-2xl text-lg md:text-xl" style={{ color: "var(--muted)", lineHeight: 1.5 }}>
           Stories, essays, advice, and the occasional rabbit hole.
         </p>
 
         {/* Floating stickers — top-right, only if we have posts */}
         {posts.length > 0 && (
-          <div
-            aria-hidden="true"
-            className="pointer-events-none absolute right-0 top-0 hidden flex-col items-end gap-3 md:flex"
-          >
+          <div aria-hidden="true" className="pointer-events-none absolute top-0 right-0 hidden flex-col items-end gap-3 md:flex">
             <Sticker color="red" rotate={6}>
               {posts.length} {posts.length === 1 ? "Post" : "Posts"}
             </Sticker>

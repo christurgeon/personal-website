@@ -55,8 +55,26 @@ export function RisoThumbnail({ seed, className = "" }: RisoThumbnailProps) {
       )}
       {variant === 3 && (
         <>
-          <rect x="40" y="40" width="150" height="170" fill={palette.shapes[0]} stroke="var(--border)" strokeWidth="3" transform="rotate(-6 115 125)" />
-          <rect x="180" y="60" width="180" height="140" fill={palette.shapes[1]} stroke="var(--border)" strokeWidth="3" transform="rotate(4 270 130)" />
+          <rect
+            x="40"
+            y="40"
+            width="150"
+            height="170"
+            fill={palette.shapes[0]}
+            stroke="var(--border)"
+            strokeWidth="3"
+            transform="rotate(-6 115 125)"
+          />
+          <rect
+            x="180"
+            y="60"
+            width="180"
+            height="140"
+            fill={palette.shapes[1]}
+            stroke="var(--border)"
+            strokeWidth="3"
+            transform="rotate(4 270 130)"
+          />
           <circle cx="320" cy="60" r="28" fill={palette.shapes[2]} stroke="var(--border)" strokeWidth="3" />
         </>
       )}

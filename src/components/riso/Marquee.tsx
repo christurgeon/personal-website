@@ -33,7 +33,7 @@ export function Marquee({ items, repeat = 4, speed = "normal" }: MarqueeProps) {
       }}
     >
       <div
-        className="font-display flex gap-12 whitespace-nowrap text-[clamp(1.4rem,3vw,2rem)] tracking-tight uppercase"
+        className="font-display flex gap-12 text-[clamp(1.4rem,3vw,2rem)] tracking-tight whitespace-nowrap uppercase"
         style={{ animation: `marquee-scroll ${duration} linear infinite`, width: "max-content" }}
       >
         {tiles.map((item, i) => (

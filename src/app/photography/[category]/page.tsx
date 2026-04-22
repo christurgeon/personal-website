@@ -51,11 +51,7 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
   return (
     <div className="mx-auto max-w-[1240px] px-5 py-8 sm:px-7 md:py-10">
       {/* Back link */}
-      <Link
-        href="/photography"
-        className="font-mono-label group mb-8 inline-flex items-center gap-1.5"
-        style={{ color: "var(--muted)" }}
-      >
+      <Link href="/photography" className="font-mono-label group mb-8 inline-flex items-center gap-1.5" style={{ color: "var(--muted)" }}>
         <ChevronLeftIcon className="h-3.5 w-3.5 transition-transform group-hover:-translate-x-1" />
         Back to Photography
       </Link>
@@ -66,17 +62,11 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
           [ DESTINATION {destinationNum} / {category.country.toUpperCase()} ]
         </div>
 
-        <h1
-          className="font-display leading-[0.92] tracking-[-0.04em] uppercase"
-          style={{ fontSize: "clamp(2.6rem, 8.5vw, 6rem)" }}
-        >
+        <h1 className="font-display leading-[0.92] tracking-[-0.04em] uppercase" style={{ fontSize: "clamp(2.6rem, 8.5vw, 6rem)" }}>
           {category.name}
         </h1>
 
-        <p
-          className="animate-fade-in-delay-1 mt-6 max-w-2xl text-lg md:text-xl"
-          style={{ color: "var(--muted)" }}
-        >
+        <p className="animate-fade-in-delay-1 mt-6 max-w-2xl text-lg md:text-xl" style={{ color: "var(--muted)" }}>
           {category.description}
         </p>
 
@@ -118,19 +108,14 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
           >
             <CameraIcon className="mx-auto mb-4 h-12 w-12" />
             <h2 className="font-display mb-3 text-2xl uppercase">Coming Soon</h2>
-            <p style={{ color: "var(--muted)" }}>
-              Photos from {category.name} will be added soon.
-            </p>
+            <p style={{ color: "var(--muted)" }}>Photos from {category.name} will be added soon.</p>
           </div>
         )}
       </section>
 
       {/* Prev / next navigation */}
       {allCategories.length > 1 && (
-        <section
-          className="mt-12 border-t-[3px] pt-10"
-          style={{ borderColor: "var(--border)" }}
-        >
+        <section className="mt-12 border-t-[3px] pt-10" style={{ borderColor: "var(--border)" }}>
           <div className="font-mono-label mb-6" style={{ color: "var(--muted)" }}>
             [ KEEP LOOKING ]
           </div>
@@ -144,23 +129,14 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
                 boxShadow: "4px 4px 0 var(--border)",
               }}
             >
-              <div
-                className="font-mono-label mb-3 flex items-center gap-2"
-                style={{ color: "var(--muted)" }}
-              >
+              <div className="font-mono-label mb-3 flex items-center gap-2" style={{ color: "var(--muted)" }}>
                 <ChevronLeftIcon className="h-3.5 w-3.5" />
                 Previous
               </div>
-              <div
-                className="font-display leading-[0.95] tracking-[-0.03em] uppercase"
-                style={{ fontSize: "clamp(1.4rem, 2.4vw, 1.9rem)" }}
-              >
+              <div className="font-display leading-[0.95] tracking-[-0.03em] uppercase" style={{ fontSize: "clamp(1.4rem, 2.4vw, 1.9rem)" }}>
                 {prevCategory.name}
               </div>
-              <div
-                className="font-mono-label mt-2"
-                style={{ color: "var(--muted)" }}
-              >
+              <div className="font-mono-label mt-2" style={{ color: "var(--muted)" }}>
                 {prevCategory.country}
               </div>
             </Link>
@@ -174,23 +150,14 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
                 boxShadow: "4px 4px 0 var(--border)",
               }}
             >
-              <div
-                className="font-mono-label mb-3 flex items-center justify-end gap-2"
-                style={{ color: "var(--muted)" }}
-              >
+              <div className="font-mono-label mb-3 flex items-center justify-end gap-2" style={{ color: "var(--muted)" }}>
                 Next
                 <ChevronLeftIcon className="h-3.5 w-3.5 rotate-180" />
               </div>
-              <div
-                className="font-display leading-[0.95] tracking-[-0.03em] uppercase"
-                style={{ fontSize: "clamp(1.4rem, 2.4vw, 1.9rem)" }}
-              >
+              <div className="font-display leading-[0.95] tracking-[-0.03em] uppercase" style={{ fontSize: "clamp(1.4rem, 2.4vw, 1.9rem)" }}>
                 {nextCategory.name}
               </div>
-              <div
-                className="font-mono-label mt-2"
-                style={{ color: "var(--muted)" }}
-              >
+              <div className="font-mono-label mt-2" style={{ color: "var(--muted)" }}>
                 {nextCategory.country}
               </div>
             </Link>

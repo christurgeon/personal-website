@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
 import Image from "next/image";
 import { Photo } from "@/lib/photography";
@@ -11,15 +11,15 @@ interface PhotoGalleryProps {
   showLocation?: boolean;
 }
 
+const subscribeNoop = () => () => {};
+const getSnapshotTrue = () => true;
+const getSnapshotFalse = () => false;
+
 export function PhotoGallery({ photos, showLocation = true }: PhotoGalleryProps) {
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [imageLoaded, setImageLoaded] = useState<Record<string, boolean>>({});
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  const mounted = useSyncExternalStore(subscribeNoop, getSnapshotTrue, getSnapshotFalse);
 
   const openLightbox = (index: number) => {
     setCurrentIndex(index);
@@ -97,20 +97,14 @@ export function PhotoGallery({ photos, showLocation = true }: PhotoGalleryProps)
                     src={photo.src}
                     alt={photo.alt}
                     fill
-                    className={`object-cover transition-opacity duration-500 ${
-                      isLoaded ? "opacity-100" : "opacity-0"
-                    }`}
+                    className={`object-cover transition-opacity duration-500 ${isLoaded ? "opacity-100" : "opacity-0"}`}
                     sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                    onLoad={() =>
-                      setImageLoaded((prev) => ({ ...prev, [photo.id]: true }))
-                    }
+                    onLoad={() => setImageLoaded((prev) => ({ ...prev, [photo.id]: true }))}
                   />
                 </div>
 
                 {/* Shimmer while loading */}
-                {!isLoaded && (
-                  <div className="animate-shimmer absolute inset-0" aria-hidden />
-                )}
+                {!isLoaded && <div className="animate-shimmer absolute inset-0" aria-hidden />}
 
                 {/* Frame number sticker — top-left */}
                 <div
@@ -136,10 +130,7 @@ export function PhotoGallery({ photos, showLocation = true }: PhotoGalleryProps)
                     borderColor: "var(--border)",
                   }}
                 >
-                  <div
-                    className="font-mono-label flex min-w-0 items-center gap-1.5"
-                    style={{ color: "var(--ink)" }}
-                  >
+                  <div className="font-mono-label flex min-w-0 items-center gap-1.5" style={{ color: "var(--ink)" }}>
                     {photo.location && (
                       <>
                         <MapPinIcon className="h-3 w-3 shrink-0" />
@@ -147,10 +138,7 @@ export function PhotoGallery({ photos, showLocation = true }: PhotoGalleryProps)
                       </>
                     )}
                   </div>
-                  <span
-                    className="font-mono-label shrink-0"
-                    style={{ color: "var(--muted)" }}
-                  >
+                  <span className="font-mono-label shrink-0" style={{ color: "var(--muted)" }}>
                     {numLabel}
                   </span>
                 </div>
@@ -163,111 +151,85 @@ export function PhotoGallery({ photos, showLocation = true }: PhotoGalleryProps)
       {/* Lightbox — portaled to body to escape any ancestor with `transform`
           (animate-fade-in-* on the wrapping section makes it the containing
           block for fixed descendants, which collapses this lightbox). */}
-      {mounted && lightboxOpen && currentPhoto && createPortal(
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center"
-          style={{ background: "color-mix(in srgb, var(--ink) 94%, transparent)" }}
-          onClick={closeLightbox}
-        >
-          {/* Close button — top-right */}
-          <button
+      {mounted &&
+        lightboxOpen &&
+        currentPhoto &&
+        createPortal(
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center"
+            style={{ background: "color-mix(in srgb, var(--ink) 94%, transparent)" }}
             onClick={closeLightbox}
-            className="brutal-lift-sm absolute top-5 right-5 z-10 flex h-12 w-12 items-center justify-center border-[3px]"
-            style={{
-              background: "var(--red)",
-              color: "var(--paper)",
-              borderColor: "var(--paper)",
-              boxShadow: "4px 4px 0 var(--paper)",
-            }}
-            aria-label="Close lightbox"
           >
-            <XIcon className="h-5 w-5" />
-          </button>
-
-          {/* Previous */}
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              goToPrevious();
-            }}
-            className="brutal-lift-sm absolute left-4 z-10 flex h-12 w-12 items-center justify-center border-[3px] md:left-8"
-            style={{
-              background: "var(--yellow)",
-              color: "var(--ink)",
-              borderColor: "var(--paper)",
-              boxShadow: "4px 4px 0 var(--paper)",
-            }}
-            aria-label="Previous photo"
-          >
-            <ChevronLeftIcon className="h-5 w-5" />
-          </button>
-
-          {/* Next */}
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              goToNext();
-            }}
-            className="brutal-lift-sm absolute right-4 z-10 flex h-12 w-12 items-center justify-center border-[3px] md:right-8"
-            style={{
-              background: "var(--yellow)",
-              color: "var(--ink)",
-              borderColor: "var(--paper)",
-              boxShadow: "4px 4px 0 var(--paper)",
-            }}
-            aria-label="Next photo"
-          >
-            <ChevronRightIcon className="h-5 w-5" />
-          </button>
-
-          {/* Image */}
-          <div
-            className="relative flex max-h-[85vh] max-w-[90vw] items-center justify-center"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <Image
-              src={currentPhoto.src}
-              alt={currentPhoto.alt}
-              width={currentPhoto.width}
-              height={currentPhoto.height}
-              className="animate-lightbox-enter block h-auto max-h-[85vh] w-auto border-[4px] object-contain"
+            {/* Close button — top-right */}
+            <button
+              onClick={closeLightbox}
+              className="brutal-lift-sm absolute top-5 right-5 z-10 flex h-12 w-12 items-center justify-center border-[3px]"
               style={{
+                background: "var(--red)",
+                color: "var(--paper)",
                 borderColor: "var(--paper)",
-                boxShadow: "8px 8px 0 var(--paper)",
-                background: "var(--ink)",
+                boxShadow: "4px 4px 0 var(--paper)",
               }}
-              priority
-            />
-          </div>
+              aria-label="Close lightbox"
+            >
+              <XIcon className="h-5 w-5" />
+            </button>
 
-          {/* Frame counter + meta */}
-          <div
-            className="pointer-events-none absolute bottom-6 left-1/2 flex -translate-x-1/2 flex-wrap items-center justify-center gap-2 px-4 text-center"
-          >
-            <span
-              className="font-mono-label pointer-events-auto inline-flex items-center border-[3px] px-3 py-1.5"
+            {/* Previous */}
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                goToPrevious();
+              }}
+              className="brutal-lift-sm absolute left-4 z-10 flex h-12 w-12 items-center justify-center border-[3px] md:left-8"
               style={{
-                background: "var(--paper)",
+                background: "var(--yellow)",
                 color: "var(--ink)",
                 borderColor: "var(--paper)",
+                boxShadow: "4px 4px 0 var(--paper)",
               }}
+              aria-label="Previous photo"
             >
-              [ {String(currentIndex + 1).padStart(3, "0")} / {totalStr} ]
-            </span>
-            {currentPhoto.location && (
-              <span
-                className="font-mono-label pointer-events-auto inline-flex items-center gap-1.5 border-[3px] px-3 py-1.5"
+              <ChevronLeftIcon className="h-5 w-5" />
+            </button>
+
+            {/* Next */}
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                goToNext();
+              }}
+              className="brutal-lift-sm absolute right-4 z-10 flex h-12 w-12 items-center justify-center border-[3px] md:right-8"
+              style={{
+                background: "var(--yellow)",
+                color: "var(--ink)",
+                borderColor: "var(--paper)",
+                boxShadow: "4px 4px 0 var(--paper)",
+              }}
+              aria-label="Next photo"
+            >
+              <ChevronRightIcon className="h-5 w-5" />
+            </button>
+
+            {/* Image */}
+            <div className="relative flex max-h-[85vh] max-w-[90vw] items-center justify-center" onClick={(e) => e.stopPropagation()}>
+              <Image
+                src={currentPhoto.src}
+                alt={currentPhoto.alt}
+                width={currentPhoto.width}
+                height={currentPhoto.height}
+                className="animate-lightbox-enter block h-auto max-h-[85vh] w-auto border-[4px] object-contain"
                 style={{
-                  background: "var(--yellow)",
-                  color: "var(--ink)",
                   borderColor: "var(--paper)",
+                  boxShadow: "8px 8px 0 var(--paper)",
+                  background: "var(--ink)",
                 }}
-              >
-                <MapPinIcon className="h-3 w-3" />
-                {currentPhoto.location}
-              </span>
-            )}
-            {currentPhoto.date && (
+                priority
+              />
+            </div>
+
+            {/* Frame counter + meta */}
+            <div className="pointer-events-none absolute bottom-6 left-1/2 flex -translate-x-1/2 flex-wrap items-center justify-center gap-2 px-4 text-center">
               <span
                 className="font-mono-label pointer-events-auto inline-flex items-center border-[3px] px-3 py-1.5"
                 style={{
@@ -276,13 +238,37 @@ export function PhotoGallery({ photos, showLocation = true }: PhotoGalleryProps)
                   borderColor: "var(--paper)",
                 }}
               >
-                {currentPhoto.date}
+                [ {String(currentIndex + 1).padStart(3, "0")} / {totalStr} ]
               </span>
-            )}
-          </div>
-        </div>,
-        document.body,
-      )}
+              {currentPhoto.location && (
+                <span
+                  className="font-mono-label pointer-events-auto inline-flex items-center gap-1.5 border-[3px] px-3 py-1.5"
+                  style={{
+                    background: "var(--yellow)",
+                    color: "var(--ink)",
+                    borderColor: "var(--paper)",
+                  }}
+                >
+                  <MapPinIcon className="h-3 w-3" />
+                  {currentPhoto.location}
+                </span>
+              )}
+              {currentPhoto.date && (
+                <span
+                  className="font-mono-label pointer-events-auto inline-flex items-center border-[3px] px-3 py-1.5"
+                  style={{
+                    background: "var(--paper)",
+                    color: "var(--ink)",
+                    borderColor: "var(--paper)",
+                  }}
+                >
+                  {currentPhoto.date}
+                </span>
+              )}
+            </div>
+          </div>,
+          document.body
+        )}
     </>
   );
 }

@@ -395,8 +395,7 @@ export const photoCategories: PhotoCategory[] = [
     slug: "guatemala",
     name: "Guatemala",
     country: "Guatemala",
-    description:
-      "Smoldering volcanoes rising above colonial streets and the quiet rhythm of life along the Pacific coast.",
+    description: "Smoldering volcanoes rising above colonial streets and the quiet rhythm of life along the Pacific coast.",
     coverImage: "/images/photography/guatemala/volcan-de-fuego-1.jpg",
     photos: [
       {
@@ -414,6 +413,31 @@ export const photoCategories: PhotoCategory[] = [
         width: 1638,
         height: 2048,
         location: "Pacific Coast",
+      },
+    ],
+  },
+  {
+    slug: "iceland",
+    name: "Iceland",
+    country: "Iceland",
+    description: "Black sand beaches, geothermal steam rising off the moss, and lone churches set against an endless northern sky.",
+    coverImage: "/images/photography/iceland/church-1.jpg",
+    photos: [
+      {
+        id: "is-1",
+        src: "/images/photography/iceland/church-1.jpg",
+        alt: "A lone church on the Icelandic coast",
+        width: 1638,
+        height: 2048,
+        location: "Iceland",
+      },
+      {
+        id: "is-2",
+        src: "/images/photography/iceland/hot-springs-1.jpg",
+        alt: "Geothermal hot springs in Iceland",
+        width: 1638,
+        height: 2048,
+        location: "Iceland",
       },
     ],
   },

@@ -91,9 +91,7 @@ export default function ReferMePage() {
           </span>
         </h1>
 
-        <p className="text-muted mt-6 text-lg">
-          Thanks for your interest in working at Point72. Here&apos;s how I can help.
-        </p>
+        <p className="text-muted mt-6 text-lg">Thanks for your interest in working at Point72. Here&apos;s how I can help.</p>
       </header>
 
       {/* Quiet prose intro */}
@@ -108,8 +106,8 @@ export default function ReferMePage() {
         <div className="prose max-w-none">
           <h2>How It Works</h2>
           <p>
-            Employee referrals are a great way to get your application noticed. If you&apos;re
-            interested in a role at Point72, I&apos;m happy to submit a referral on your behalf.
+            Employee referrals are a great way to get your application noticed. If you&apos;re interested in a role at Point72, I&apos;m happy to
+            submit a referral on your behalf.
           </p>
         </div>
       </section>
@@ -118,11 +116,7 @@ export default function ReferMePage() {
       <section className="animate-fade-in-delay-2 mb-10 space-y-5">
         <div className="mb-2 flex items-center gap-3">
           <span className="font-mono-label text-muted">[ STEPS TO GET REFERRED ]</span>
-          <span
-            className="h-[3px] flex-1"
-            style={{ background: "var(--border)" }}
-            aria-hidden="true"
-          />
+          <span className="h-[3px] flex-1" style={{ background: "var(--border)" }} aria-hidden="true" />
         </div>
 
         {steps.map((step, i) => (
@@ -144,14 +138,10 @@ export default function ReferMePage() {
                 color: "var(--ink)",
               }}
             >
-              <span className="font-display text-[clamp(2.5rem,6vw,4rem)] leading-none tracking-tight">
-                {step.n}
-              </span>
+              <span className="font-display text-[clamp(2.5rem,6vw,4rem)] leading-none tracking-tight">{step.n}</span>
             </div>
             <div className="p-5 sm:p-7">
-              <h3 className="font-display mb-2 text-xl tracking-tight uppercase sm:text-2xl">
-                {step.title}
-              </h3>
+              <h3 className="font-display mb-2 text-xl tracking-tight uppercase sm:text-2xl">{step.title}</h3>
               <div className="prose max-w-none">
                 <p>{step.body}</p>
               </div>
@@ -173,18 +163,11 @@ export default function ReferMePage() {
           <h2>A Few Notes</h2>
           <ul>
             <li>
-              I&apos;m happy to refer anyone who meets the criteria for the role, but a referral is
-              not a guarantee of an interview or offer — it simply helps get your resume in front of
-              the right people.
+              I&apos;m happy to refer anyone who meets the criteria for the role, but a referral is not a guarantee of an interview or offer — it
+              simply helps get your resume in front of the right people.
             </li>
-            <li>
-              The more specific you are about which role(s) you want, the better I can tailor the
-              referral.
-            </li>
-            <li>
-              If we haven&apos;t spoken in a while, feel free to include a quick intro so I can write
-              a more personalized note.
-            </li>
+            <li>The more specific you are about which role(s) you want, the better I can tailor the referral.</li>
+            <li>If we haven&apos;t spoken in a while, feel free to include a quick intro so I can write a more personalized note.</li>
           </ul>
         </div>
       </section>
@@ -203,9 +186,7 @@ export default function ReferMePage() {
             boxShadow: "10px 10px 0 var(--border)",
           }}
         >
-          <span className="font-display text-[clamp(1.3rem,4vw,2rem)] leading-none tracking-tight">
-            BROWSE POINT72 CAREERS
-          </span>
+          <span className="font-display text-[clamp(1.3rem,4vw,2rem)] leading-none tracking-tight">BROWSE POINT72 CAREERS</span>
           <ExternalLinkIcon className="h-7 w-7 flex-shrink-0 transition-transform group-hover:translate-x-1 group-hover:-translate-y-1 sm:h-8 sm:w-8" />
         </a>
 
@@ -221,9 +202,7 @@ export default function ReferMePage() {
         >
           <div className="flex items-center gap-3">
             <EmailIcon className="h-6 w-6" />
-            <span className="font-display text-lg tracking-tight sm:text-xl">
-              EMAIL ME YOUR DETAILS
-            </span>
+            <span className="font-display text-lg tracking-tight sm:text-xl">EMAIL ME YOUR DETAILS</span>
           </div>
           <ArrowRightIcon className="h-6 w-6 transition-transform group-hover:translate-x-1" />
         </a>

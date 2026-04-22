@@ -71,7 +71,15 @@ export function getAllPosts(): PostMeta[] {
   allPostsCache = slugs
     .map((slug) => getPostBySlug(slug.replace(/\.mdx$/, "")))
     .filter((post): post is Post => post !== null)
-    .map(({ content, ...meta }) => meta)
+    .map(({ slug, title, date, excerpt, coverImage, tags, readingTime }) => ({
+      slug,
+      title,
+      date,
+      excerpt,
+      coverImage,
+      tags,
+      readingTime,
+    }))
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
   return allPostsCache;

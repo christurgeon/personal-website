@@ -37,11 +37,7 @@ export function AnimatedHero({ name, description, socials }: AnimatedHeroProps) 
                 textTransform: "uppercase",
               }}
             >
-              <span
-                className="animate-blink inline-block h-2.5 w-2.5 rounded-full"
-                style={{ background: "var(--red)" }}
-                aria-hidden="true"
-              />
+              <span className="animate-blink inline-block h-2.5 w-2.5 rounded-full" style={{ background: "var(--red)" }} aria-hidden="true" />
               Now Broadcasting · {year}
             </span>
           </div>
@@ -94,12 +90,7 @@ export function AnimatedHero({ name, description, socials }: AnimatedHeroProps) 
               padding: "22px 22px 20px",
             }}
           >
-            <Sticker
-              color="pink"
-              rotate={-4}
-              className="absolute"
-              style={{ top: "-18px", left: "18px" }}
-            >
+            <Sticker color="pink" rotate={-4} className="absolute" style={{ top: "-18px", left: "18px" }}>
               About
             </Sticker>
             <p style={{ fontSize: "1.05rem", lineHeight: 1.55 }}>{description}</p>
@@ -193,10 +184,7 @@ export function AnimatedHero({ name, description, socials }: AnimatedHeroProps) 
           </div>
         </div>
 
-        <div
-          className="relative flex flex-col items-center gap-6 md:block md:min-h-[480px]"
-          aria-hidden="true"
-        >
+        <div className="relative flex flex-col items-center gap-6 md:block md:min-h-[480px]" aria-hidden="true">
           <div
             className="animate-fade-in-delay-1 w-full max-w-[340px] md:absolute md:top-[10px] md:right-0 md:w-[min(82%,320px)] md:max-w-none"
             style={{
@@ -209,21 +197,13 @@ export function AnimatedHero({ name, description, socials }: AnimatedHeroProps) 
               zIndex: 3,
             }}
           >
-            <div
-              className="font-mono-label mb-2"
-              style={{ color: "var(--ink)", opacity: 0.75 }}
-            >
+            <div className="font-mono-label mb-2" style={{ color: "var(--ink)", opacity: 0.75 }}>
               ▶ Currently
             </div>
-            <div
-              className="font-display mb-1.5"
-              style={{ fontSize: "1.35rem", lineHeight: 1.02, letterSpacing: "-0.03em" }}
-            >
+            <div className="font-display mb-1.5" style={{ fontSize: "1.35rem", lineHeight: 1.02, letterSpacing: "-0.03em" }}>
               Writing about AI-agent workflows
             </div>
-            <p style={{ fontSize: "0.9rem", lineHeight: 1.4 }}>
-              Notes on tooling for LLM-assisted dev work.
-            </p>
+            <p style={{ fontSize: "0.9rem", lineHeight: 1.4 }}>Notes on tooling for LLM-assisted dev work.</p>
           </div>
 
           <svg
@@ -259,25 +239,17 @@ export function AnimatedHero({ name, description, socials }: AnimatedHeroProps) 
               zIndex: 2,
             }}
           >
-            <div
-              className="font-mono-label mb-2"
-              style={{ color: "var(--paper)", opacity: 0.85 }}
-            >
+            <div className="font-mono-label mb-2" style={{ color: "var(--paper)", opacity: 0.85 }}>
               📷 Latest Dispatch
             </div>
-            <div
-              className="font-display mb-1.5"
-              style={{ fontSize: "1.35rem", lineHeight: 1.02, letterSpacing: "-0.03em" }}
-            >
+            <div className="font-display mb-1.5" style={{ fontSize: "1.35rem", lineHeight: 1.02, letterSpacing: "-0.03em" }}>
               Frames from the field
             </div>
-            <p style={{ fontSize: "0.9rem", lineHeight: 1.4 }}>
-              Ongoing visual diary — 48 keepers and counting.
-            </p>
+            <p style={{ fontSize: "0.9rem", lineHeight: 1.4 }}>Ongoing visual diary — 48 keepers and counting.</p>
           </div>
 
           <div
-            className="animate-fade-in-delay-3 w-full max-w-[340px] md:absolute md:bottom-0 md:right-[10px] md:w-[min(80%,300px)] md:max-w-none"
+            className="animate-fade-in-delay-3 w-full max-w-[340px] md:absolute md:right-[10px] md:bottom-0 md:w-[min(80%,300px)] md:max-w-none"
             style={{
               background: "var(--pink)",
               color: "var(--ink)",
@@ -288,21 +260,13 @@ export function AnimatedHero({ name, description, socials }: AnimatedHeroProps) 
               zIndex: 4,
             }}
           >
-            <div
-              className="font-mono-label mb-2"
-              style={{ color: "var(--ink)", opacity: 0.75 }}
-            >
+            <div className="font-mono-label mb-2" style={{ color: "var(--ink)", opacity: 0.75 }}>
               🎧 Shuffle
             </div>
-            <div
-              className="font-display mb-1.5"
-              style={{ fontSize: "1.35rem", lineHeight: 1.02, letterSpacing: "-0.03em" }}
-            >
+            <div className="font-display mb-1.5" style={{ fontSize: "1.35rem", lineHeight: 1.02, letterSpacing: "-0.03em" }}>
               Producing barely-listenable electronic music
             </div>
-            <p style={{ fontSize: "0.9rem", lineHeight: 1.4 }}>
-              Listen at your own risk.
-            </p>
+            <p style={{ fontSize: "0.9rem", lineHeight: 1.4 }}>Listen at your own risk.</p>
           </div>
         </div>
       </div>

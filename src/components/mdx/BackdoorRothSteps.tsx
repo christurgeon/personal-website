@@ -13,14 +13,12 @@ const steps = [
   {
     number: 3,
     title: "Report the conversion on Form 8606",
-    description:
-      "This tells the IRS the contribution was non-deductible, so you don't get taxed twice.",
+    description: "This tells the IRS the contribution was non-deductible, so you don't get taxed twice.",
   },
   {
     number: 4,
     title: "Enjoy tax-free growth forever",
-    description:
-      "Once in the Roth, your money grows and can be withdrawn in retirement completely tax-free.",
+    description: "Once in the Roth, your money grows and can be withdrawn in retirement completely tax-free.",
   },
 ];
 
@@ -36,20 +34,16 @@ export default function BackdoorRothSteps() {
         margin: "2rem 0",
       }}
     >
-      <div className="text-xs font-semibold uppercase tracking-wider text-indigo-400 mb-4">
-        The Backdoor Roth Process
-      </div>
-      <ol className="list-none m-0 p-0 flex flex-col gap-3">
+      <div className="mb-4 text-xs font-semibold tracking-wider text-indigo-400 uppercase">The Backdoor Roth Process</div>
+      <ol className="m-0 flex list-none flex-col gap-3 p-0">
         {steps.map((step) => (
           <li key={step.number} className="flex items-start gap-3">
-            <span className="shrink-0 w-6 h-6 rounded-full bg-indigo-500 text-white text-xs font-bold flex items-center justify-center mt-0.5">
+            <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-indigo-500 text-xs font-bold text-white">
               {step.number}
             </span>
             <div>
-              <div className="font-semibold text-sm sm:text-[0.95rem] leading-snug">{step.title}</div>
-              <div className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-0.5 leading-snug">
-                {step.description}
-              </div>
+              <div className="text-sm leading-snug font-semibold sm:text-[0.95rem]">{step.title}</div>
+              <div className="mt-0.5 text-xs leading-snug text-slate-500 sm:text-sm dark:text-slate-400">{step.description}</div>
             </div>
           </li>
         ))}
