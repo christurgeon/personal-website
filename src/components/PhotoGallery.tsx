@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback, useEffect } from "react";
+import { createPortal } from "react-dom";
 import Image from "next/image";
 import { Photo } from "@/lib/photography";
 import { XIcon, ChevronLeftIcon, ChevronRightIcon, MapPinIcon } from "@/components/Icons";
@@ -14,6 +15,11 @@ export function PhotoGallery({ photos, showLocation = true }: PhotoGalleryProps)
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [imageLoaded, setImageLoaded] = useState<Record<string, boolean>>({});
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const openLightbox = (index: number) => {
     setCurrentIndex(index);
@@ -154,8 +160,10 @@ export function PhotoGallery({ photos, showLocation = true }: PhotoGalleryProps)
         })}
       </div>
 
-      {/* Lightbox */}
-      {lightboxOpen && currentPhoto && (
+      {/* Lightbox — portaled to body to escape any ancestor with `transform`
+          (animate-fade-in-* on the wrapping section makes it the containing
+          block for fixed descendants, which collapses this lightbox). */}
+      {mounted && lightboxOpen && currentPhoto && createPortal(
         <div
           className="fixed inset-0 z-50 flex items-center justify-center"
           style={{ background: "color-mix(in srgb, var(--ink) 94%, transparent)" }}
@@ -217,23 +225,19 @@ export function PhotoGallery({ photos, showLocation = true }: PhotoGalleryProps)
             className="relative flex max-h-[85vh] max-w-[90vw] items-center justify-center"
             onClick={(e) => e.stopPropagation()}
           >
-            <div
-              className="animate-lightbox-enter border-[4px]"
+            <Image
+              src={currentPhoto.src}
+              alt={currentPhoto.alt}
+              width={currentPhoto.width}
+              height={currentPhoto.height}
+              className="animate-lightbox-enter block h-auto max-h-[85vh] w-auto border-[4px] object-contain"
               style={{
                 borderColor: "var(--paper)",
                 boxShadow: "8px 8px 0 var(--paper)",
                 background: "var(--ink)",
               }}
-            >
-              <Image
-                src={currentPhoto.src}
-                alt={currentPhoto.alt}
-                width={currentPhoto.width}
-                height={currentPhoto.height}
-                className="block h-auto max-h-[82vh] w-auto object-contain"
-                priority
-              />
-            </div>
+              priority
+            />
           </div>
 
           {/* Frame counter + meta */}
@@ -276,7 +280,8 @@ export function PhotoGallery({ photos, showLocation = true }: PhotoGalleryProps)
               </span>
             )}
           </div>
-        </div>
+        </div>,
+        document.body,
       )}
     </>
   );
