@@ -56,6 +56,11 @@ const categories: Category[] = [
         bonus: "$100 cash back",
         href: "https://get.venmo.com/7xWaniQM3Zb",
       },
+      {
+        name: "Bilt Mastercard",
+        description: "Earn points on rent with no transaction fee — plus 3x on dining, 2x on travel, 1x everywhere else",
+        href: "https://www.bilt.com/card?invite=7U3G683Y",
+      },
     ],
   },
   {
