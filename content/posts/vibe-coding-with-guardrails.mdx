@@ -146,6 +146,20 @@ I usually run one of these on a Friday afternoon when I don't want to start some
 
 ---
 
+## Groom the Memory
+
+The same agent that's helpful because it remembers things across sessions becomes unreliable when those memories rot. Claude Code commits notes to memory unprompted — your stylistic preferences, project facts, decisions you made out loud weeks ago — and most of them are right when written. The trouble is they keep applying long after the underlying truth has moved.
+
+A memory that says *"the auth service uses JWT"* is gospel until you migrate to session cookies and forget to update it. The agent now confidently leans on a fact that hasn't been true for a week. Worse, it cites the stale memory when justifying a decision, and you don't notice because you'd forgotten you ever told it to remember.
+
+This compounds with a well-documented property of long contexts. Liu et al.'s [Lost in the Middle](https://arxiv.org/abs/2307.03172) found that LLM recall over a long context follows a U-shape: performance is best at the beginning and end and reliably worst for information buried in the middle. The result has been replicated across model families. A bloated memory file doesn't just consume tokens — it pushes load-bearing facts into the recall sag while keeping the noise visible. Anthropic's own guidance on building long-running agents lands in the same place: a curated, retrievable set tends to beat "stuff everything into context" for code tasks, and compaction — the automatic summarization that fires near the context limit — preserves gist while losing fine-grained rationale. By the time you notice the drift, the *why* behind a decision is already gone, and only a confident-sounding *what* remains.
+
+The fix is cheap. Every couple of weeks, ask the agent to dump *everything* it has stored about you and the project. Read it cold. Delete what's wrong, condense what's bloated, rewrite anything that drifted. Ten minutes of pruning beats six months of an agent confidently repeating things that stopped being true on a Tuesday in March.
+
+Treat the memory the way you'd treat a `CLAUDE.md`: it's the agent's source of truth about your world, and a stale source of truth is worse than none.
+
+---
+
 ## The Curve Gets Steeper
 
 Early in a project, you can let the agent rip. The blast radius of any change is small because there's barely anything to break. As the project matures, that inverts. Every new feature has to fit through a narrower hole — respect existing contracts, not regress tests you wrote three weeks ago, play nice with data already in production, and not surprise the six other places that import from the file you're touching.
