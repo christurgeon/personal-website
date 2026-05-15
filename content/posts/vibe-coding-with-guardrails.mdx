@@ -146,6 +146,33 @@ I usually run one of these on a Friday afternoon when I don't want to start some
 
 ---
 
+## Steer Your Own Compaction
+
+Context windows are big now, but not infinite — and they degrade well before they fill. Claude Code shows you a context indicator, warns around **80% used**, and *auto-compacts* around **95%**, silently summarizing older turns to free up room. (The newer API beta exposes the same primitive at a configurable trigger, default 150K tokens.) Auto-compaction works. The problem is that by the time it fires, the agent is compressing under duress, and the summary is lossier than you'd think.
+
+How lossy? Factory.ai [benchmarked summarization-based handoff](https://www.morphllm.com/compaction-vs-summarization) at roughly **37% retention** — about two-thirds of decision-relevant detail gets lost or corrupted across a single compaction. Per-fact accuracy lands around 4 out of 5, which sounds fine until you notice *which* facts get mangled: file paths get paraphrased or hallucinated, error strings get reworded (breaking grep), line numbers shift, config values round. The exact details an engineer would never paraphrase are the first to go.
+
+The deeper problem is that the agent was already getting worse before compaction kicked in. Chroma's [*Context Rot*](https://research.trychroma.com/context-rot) study tested 18 frontier models — Claude Opus 4, GPT-4.1, Gemini 2.5 — and found that every model degraded at every context length increment, even on trivial tasks like repeating words. The [NoLiMa benchmark](https://arxiv.org/abs/2502.05167) (Modarressi et al., 2025) sharpened the point: 11 of 13 frontier models claiming 128K+ support dropped below half their short-context baseline at just 32K tokens. GPT-4o fell from **99.3% to 69.7%** accuracy on tasks requiring latent inference rather than literal match — a thirty-point drop at a sixteenth of the advertised window.
+
+So by the time the auto-compactor is summarizing, it's a mediocre summarizer working from already-degraded recall. That's the wrong moment to hand it the keys.
+
+The fix is to compact on your own terms, well before the agent does it for you. When I see the indicator climbing — that 80% warning is the cue, not 95% — I stop and ask the agent to write its own handoff:
+
+> *"Summarize this session as a brief for a fresh agent picking up where you left off. Include the goal, the constraints we surfaced, the decisions we made and why, the open questions, and what to do next. Be specific about file paths, function names, and exact error strings. Skip anything reconstructable from the diff."*
+
+The output is a tight, structured brief — usually 200 to 500 words. I read it, edit it (the agent always over-includes irrelevant detail and under-includes the one weird constraint that took an hour to find), and either paste it into a new session or save it as a scratch file the next one can pull in. Anthropic's own [guidance for long-running agents](https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents) lands in the same place — they prescribe a `claude-progress.txt` log, structured feature lists, and an `init.sh` to reconstruct the environment. Hand-written engineering artifacts beat model self-summary, by their own evidence.
+
+A few rules I've landed on:
+
+- **Watch the indicator.** The 80% warning is your cue, not 95%. Mid-task auto-compaction is the worst kind — it strips the scaffolding for the work you're actively doing.
+- **Compact at natural breakpoints.** End of a feature, after a major review, before switching subjects. Same instinct as committing code.
+- **Treat the brief as a real artifact.** Edit it. Trim what isn't load-bearing. Add what the agent missed. The brief is the bridge between sessions, and a sloppy bridge falls down in the middle.
+- **When in doubt, start fresh with a brief.** A fresh agent reading a tight 300-word handoff is almost always sharper than a tired one in a 90%-full context. Context rot is real, and it gets worse the more you stuff in.
+
+Compaction is going to happen. The only question is whether you wrote the summary or the agent did.
+
+---
+
 ## Groom the Memory
 
 The same agent that's helpful because it remembers things across sessions becomes unreliable when those memories rot. Claude Code commits notes to memory unprompted — your stylistic preferences, project facts, decisions you made out loud weeks ago — and most of them are right when written. The trouble is they keep applying long after the underlying truth has moved.
