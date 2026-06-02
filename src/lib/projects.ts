@@ -19,6 +19,14 @@ export const projects: Project[] = [
     featured: true,
   },
   {
+    name: "Shortlist",
+    description: "Quantitative stock pre-screener that scores quality, moat, growth, momentum/value, and insider activity across FMP, Finnhub, SEC EDGAR, and Yahoo into a ranked shortlist for a human deep dive. Config-driven, sector-aware, and free-tier friendly.",
+    language: "Python",
+    tags: ["CLI", "Finance", "Quant"],
+    github: "https://github.com/christurgeon/shortlist",
+    sticker: "CLI",
+  },
+  {
     name: "IronLock",
     description: "Secure file encryption CLI using Argon2id and ChaCha20-Poly1305.",
     language: "Rust",
