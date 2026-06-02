@@ -128,13 +128,6 @@ export default function ProjectsPage() {
               boxShadow: "8px 8px 0 var(--border)",
             }}
           >
-            {/* Featured sticker */}
-            <div className="pointer-events-none absolute top-4 left-4 z-10">
-              <Sticker color="red" rotate={-6}>
-                Featured
-              </Sticker>
-            </div>
-
             <div className="grid md:grid-cols-2">
               {/* Left — details */}
               <div className="flex flex-col gap-6 p-7 md:p-10">

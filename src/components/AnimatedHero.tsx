@@ -13,8 +13,6 @@ interface AnimatedHeroProps {
 }
 
 export function AnimatedHero({ name, description, socials }: AnimatedHeroProps) {
-  const year = new Date().getFullYear();
-
   const parts = name.trim().split(" ");
   const firstName = parts[0] ?? name;
   const lastName = parts.slice(1).join(" ") || "";
@@ -23,25 +21,6 @@ export function AnimatedHero({ name, description, socials }: AnimatedHeroProps) 
     <section className="relative pt-12 pb-20 md:pt-16 md:pb-24">
       <div className="grid grid-cols-1 gap-12 md:grid-cols-[1.3fr_1fr] md:gap-10">
         <div className="relative">
-          <div className="animate-fade-in mb-7">
-            <span
-              className="inline-flex items-center gap-2 border-[3px] px-4 py-2"
-              style={{
-                background: "var(--card)",
-                color: "var(--ink)",
-                borderColor: "var(--border)",
-                boxShadow: "3px 3px 0 var(--border)",
-                fontFamily: "var(--font-mono), monospace",
-                fontSize: "0.75rem",
-                letterSpacing: "0.1em",
-                textTransform: "uppercase",
-              }}
-            >
-              <span className="animate-blink inline-block h-2.5 w-2.5 rounded-full" style={{ background: "var(--red)" }} aria-hidden="true" />
-              Now Broadcasting · {year}
-            </span>
-          </div>
-
           <h1
             className="font-display animate-fade-in-delay-1 mb-7"
             style={{
