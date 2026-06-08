@@ -24,7 +24,8 @@ export function PostCard({ post, featured = false }: PostCardProps) {
         <div
           className="relative w-full overflow-hidden"
           style={{
-            aspectRatio: "16 / 10",
+            height: post.coverImage ? undefined : 72,
+            aspectRatio: post.coverImage ? "16 / 10" : undefined,
             borderBottom: "3px solid var(--border)",
           }}
         >
@@ -37,7 +38,7 @@ export function PostCard({ post, featured = false }: PostCardProps) {
               className="gallery-image-zoom object-cover"
             />
           ) : (
-            <RisoThumbnail seed={post.slug} className="h-full w-full" />
+            <RisoThumbnail seed={post.slug} slim className="h-full w-full" />
           )}
         </div>
       </Link>

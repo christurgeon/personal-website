@@ -3,6 +3,8 @@ import { hashString } from "@/lib/riso";
 interface RisoThumbnailProps {
   seed: string;
   className?: string;
+  /** Wide, short composition for slim card banners. Defaults to the tall/square layout. */
+  slim?: boolean;
 }
 
 const palettes: Array<{ bg: string; shapes: string[] }> = [
@@ -13,11 +15,60 @@ const palettes: Array<{ bg: string; shapes: string[] }> = [
   { bg: "var(--red)", shapes: ["var(--yellow)", "var(--pink)", "var(--blue)"] },
 ];
 
-export function RisoThumbnail({ seed, className = "" }: RisoThumbnailProps) {
+export function RisoThumbnail({ seed, className = "", slim = false }: RisoThumbnailProps) {
   const h = hashString(seed);
   const palette = palettes[h % palettes.length];
   const variant = (h >>> 4) % 4;
   const dotsId = `riso-dots-${h.toString(36)}`;
+
+  if (slim) {
+    return (
+      <svg viewBox="0 0 400 96" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice" className={className} aria-hidden="true">
+        <defs>
+          <pattern id={dotsId} x="0" y="0" width="8" height="8" patternUnits="userSpaceOnUse">
+            <circle cx="2" cy="2" r="1" fill="var(--border)" />
+          </pattern>
+        </defs>
+        <rect width="400" height="96" fill={palette.bg} />
+        {variant === 0 && (
+          <>
+            <circle cx="64" cy="48" r="40" fill={palette.shapes[0]} stroke="var(--border)" strokeWidth="3" />
+            <circle cx="152" cy="48" r="40" fill={palette.shapes[1]} stroke="var(--border)" strokeWidth="3" opacity="0.92" />
+            <circle cx="240" cy="48" r="40" fill={palette.shapes[2]} stroke="var(--border)" strokeWidth="3" opacity="0.92" />
+            <circle cx="328" cy="48" r="40" fill={palette.shapes[0]} stroke="var(--border)" strokeWidth="3" opacity="0.92" />
+          </>
+        )}
+        {variant === 1 && (
+          <>
+            <path
+              d="M0 70 L66 36 L133 64 L200 28 L266 60 L333 30 L400 56 L400 96 L0 96 Z"
+              fill={palette.shapes[0]}
+              stroke="var(--border)"
+              strokeWidth="3"
+            />
+            <circle cx="346" cy="30" r="18" fill={palette.shapes[1]} stroke="var(--border)" strokeWidth="3" />
+            <circle cx="58" cy="26" r="11" fill={palette.shapes[2]} stroke="var(--border)" strokeWidth="3" />
+          </>
+        )}
+        {variant === 2 && (
+          <>
+            <ellipse cx="200" cy="48" rx="78" ry="38" fill={palette.shapes[0]} stroke="var(--border)" strokeWidth="3" />
+            <path d="M160 48 Q200 18 240 48 Q200 78 160 48 Z" fill={palette.shapes[1]} stroke="var(--border)" strokeWidth="3" />
+            <rect x="30" y="28" width="36" height="36" fill={palette.shapes[2]} stroke="var(--border)" strokeWidth="3" transform="rotate(15 48 46)" />
+            <rect x="334" y="32" width="34" height="34" fill={palette.shapes[2]} stroke="var(--border)" strokeWidth="3" transform="rotate(-12 351 49)" />
+          </>
+        )}
+        {variant === 3 && (
+          <>
+            <rect x="22" y="20" width="120" height="64" fill={palette.shapes[0]} stroke="var(--border)" strokeWidth="3" transform="rotate(-5 82 52)" />
+            <rect x="150" y="14" width="140" height="70" fill={palette.shapes[1]} stroke="var(--border)" strokeWidth="3" transform="rotate(4 220 49)" />
+            <circle cx="346" cy="48" r="30" fill={palette.shapes[2]} stroke="var(--border)" strokeWidth="3" />
+          </>
+        )}
+        <rect width="400" height="96" fill={`url(#${dotsId})`} opacity="0.22" />
+      </svg>
+    );
+  }
 
   return (
     <svg viewBox="0 0 400 250" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice" className={className} aria-hidden="true">
