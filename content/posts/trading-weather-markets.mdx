@@ -1,0 +1,92 @@
+---
+title: "The Oracle: What a Year of Trading Weather Markets Taught Me About Being Wrong"
+date: "2026-06-14"
+excerpt: "A field guide to building a prediction-market trading bot — the strategies that died on measurement, the handful that survived, and why most of the work turned out to be killing good-looking ideas before they cost real money."
+tags: ["trading", "prediction-markets", "quant", "weather", "engineering", "calibration"]
+---
+
+I built a trading bot. I named it The Oracle, which in hindsight was optimistic.
+
+The pitch to myself was simple. Kalshi runs federally-regulated prediction markets on questions like *"will the high temperature in Denver land between 78° and 79° tomorrow,"* settled against the official National Weather Service reading. Weather is forecastable — there are public models that simulate the atmosphere dozens of times over and hand you the results for free. If I could turn those forecasts into better probabilities than the market's, the rest was just plumbing.
+
+The plumbing was the easy part. What I actually spent a year learning is that the market is usually right, that proving otherwise costs real money, and that most of the job isn't finding edges — it's killing your own ideas before they cost you. This is a field guide to that, written mostly from the graveyard.
+
+---
+
+## What I Built
+
+The Oracle is a Python service with three moving parts: a strategy engine that turns forecasts into probabilities, a risk manager that decides how much to bet (fractional Kelly, with hard exposure and loss limits), and an execution engine that places orders — or, more often, logs the order it *would* have placed so I can grade it later without risking a cent.
+
+I picked weather markets on purpose. They're recurring (every city, every day, forever), they settle on an unambiguous public source, and unlike sports or elections there's a genuine physical model underneath. Open-Meteo will hand you a 30-member GFS ensemble and a 50-member ECMWF ensemble — essentially the atmosphere simulated eighty times — and the *spread* across those runs is a real signal about how confident you're allowed to be.
+
+The core bet never changed: **can I price a 1°F temperature bracket better than the resting market can?** Everything else is a footnote to that question.
+
+I ran it in shadow mode for a month — paper trades, real prices, no money — then promoted it to a bounded live pilot on a small cloud VPS, where it's traded in production since. It has a risk manager that halts on a bad day, a Telegram bot that pings me on fills and breaker trips, a watchdog that restarts it if it goes catatonic, and a dead-man's switch that yells if the whole thing goes dark. I'll skip most of that. The scaffolding is table stakes. The interesting part is the graveyard.
+
+---
+
+## The Graveyard
+
+Here is the thing nobody tells you when you start: almost every idea works in backtest. That's not because the ideas are good. It's because a backtest is a machine for confirming whatever you hoped was true, and it will lie to you in a dozen quiet ways — survivorship, look-ahead, fills you'd never actually get, sample sizes too small to mean anything.
+
+<Callout type="warning" title="Every backtest is guilty until proven innocent">
+  The first question I learned to ask isn't "did it make money?" It's <em>"would this fill have actually happened?"</em> Most paper edges evaporate the moment you insist on filling at the price you'd really pay — at the ask, into real depth, after fees — and put a day-clustered confidence interval around the result.
+</Callout>
+
+So I built the discipline of trying to *kill* every idea before believing it. Fill at the ask, never the mid. Cluster the errors by day, because two hundred trades spread over twenty days is really twenty data points wearing a costume. Hold out a test set. And when something survived all that on paper, make it survive *forward* — in shadow, on data it had never seen — before it touched a dollar.
+
+Most things didn't survive. Here's the headstone gallery.
+
+<StrategyGraveyard />
+
+A few of these deserve a fuller eulogy.
+
+The **daily "between" book** is the one that stings, because it *was* the original thesis. The idea was to bet that the day's high would land inside a specific one-degree bracket. It turns out the morning market for those brackets is brutally efficient — by the time I could see a forecast, so could everyone else, and the price already reflected it. The strategy didn't blow up; it *bled*, slowly, at roughly the rate of the exchange's fees. That's almost more damning than a crash. A crash means you found a real risk. A slow bleed at the fee rate means you found nothing at all, and paid rent on it.
+
+The **off-weather sweep** taught a humility of a different shape. I pointed a fleet of research agents at everything else Kalshi lists — sports against the sharp books, crypto, cross-venue arbitrage, entertainment markets. Every lane came back the same way: someone is already there, and they are faster, better-capitalized, and better-informed than a guy with a VPS and a forecast model. The efficient market isn't a theory you read about in school. It's a wall you walk into, repeatedly, in the dark.
+
+---
+
+## The Few That Lived
+
+Not everything died. The survivors share one trait, and it's instructive: none of them are clever. They're all just *honest measurement applied to something boring.*
+
+The first real win was forecast bias correction. Public weather models carry systematic biases — a given model might run consistently warm at a particular airport in a particular season. You can measure that bias and subtract it. The subtlety I got wrong at first: I was correcting toward *reanalysis* data — a best-guess reconstruction of what the weather actually was — when Kalshi settles against the National Weather Service's official daily report, which is a slightly different number. Re-anchoring the correction to the exact source the market settles on dropped my out-of-sample forecast error from 3.30°F to 3.00°F. Three-tenths of a degree sounds like nothing. On a one-degree bracket, it's most of the game.
+
+The second was calibration — the unglamorous question of whether my probabilities are *honest*. When I say 30%, do those events happen 30% of the time? Raw model outputs almost never clear that bar; they're reliably overconfident. So I fit a calibration map (isotonic regression, if you care) that bends the raw number toward what actually happens. The discipline here is to never confuse *being calibrated* with *being profitable* — they are different virtues, and I'll come back to that.
+
+There is one strategy that quietly works in live trading. It's a small behavioral edge, model-free, and I'm not going to detail it — partly because edges are perishable and writing them down is how they die, and partly because it's bounded and boring by design. It makes a little money. I'd rather have one honest little edge I understand than ten clever ones I can't defend.
+
+And there's a frontier I'm still chasing: a nowcast that updates its forecast through the day as the real temperature observations roll in, hour by hour. It's live right now — but in shadow only, placing zero real orders, accruing a track record. It won't risk a dollar until it produces a clean, *forward* reliability table, especially in the one bin where the prototype was miscalibrated. I built that gate specifically so I couldn't talk myself past it later. Which brings me to the lessons.
+
+---
+
+## What It Actually Taught Me
+
+I set out to learn whether I could beat a market. The honest answer is *barely, in one small place, after killing a few dozen ideas that didn't work.* But the bot taught me a handful of things that have outlived any individual strategy.
+
+**The market is a co-author, and it's usually right.** Every price is someone else's best guess, weighted by their willingness to bet on it. When my model disagreed with the market, the smart prior was that *I* was wrong, not that I'd found treasure. The times I forgot that prior map almost exactly onto the entries in the graveyard.
+
+**Measurement is the product.** Not the model, not the strategy — the measurement. The highest-leverage skill I developed wasn't forecasting; it was designing a test that *tries to kill* my idea instead of flatter it. Fill at the ask. Cluster by day. Hold out. Go forward. An idea that survives an honest attempt on its life is worth a hundred that survived a flattering one.
+
+**Calibration is not profitability.** You can have beautifully honest probabilities and still lose money, because the market's probabilities are honest too — and it charges a fee for the privilege of disagreeing with it. I learned to judge a strategy by realized, fee-inclusive P&L on the specific contracts it actually traded, never by an aggregate accuracy score that quietly averages in all the trades it would never make.
+
+**The graveyard is the asset.** This is the one I least expected. I keep a running log of every dead idea and *why* it died — the number, the sample size, the specific reason. It reads like a list of failures. It's the most valuable thing I built, because it's what stops me from re-pitching a corpse to myself six months later under a fresh coat of optimism. Falsification compounds. Write down what's dead.
+
+And one for the engineers: **a live trading bot is a distributed-systems problem wearing a quant costume.** I came in thinking the hard part was the forecasting. The hard part was reconciliation, idempotency, and never letting the bot lie to itself about its own state — the same load-bearing discipline as any system that has to stay correct while running unattended. The math is where the edge lives. The plumbing is where it leaks out.
+
+<SummaryBox>
+  What a year of trading taught me, compressed:
+
+  1. **The market is usually right.** Disagreeing with it is a claim you have to earn, every single time.
+  2. **Build tests that try to kill your idea**, not flatter it — fill at the ask, cluster by day, go forward before you go live.
+  3. **Calibration ≠ profitability.** Honest probabilities still lose to fees. Judge by realized P&L on real fills.
+  4. **Keep a graveyard.** Writing down *why* each idea died is what stops you resurrecting it.
+  5. **Sometimes the optimal bet is zero.** Knowing when *not* to trade is the edge.
+</SummaryBox>
+
+That last one took the longest to accept. There's a result buried in the math of bet-sizing that, for a lot of what I tried, the optimal fraction of your bankroll to wager works out to exactly zero — the correct move is to not play. I spent a year building an elaborate machine partly to discover, market by market, *where* that was true. That sounds like a failure. It isn't. A machine that reliably tells you *don't bet here* is worth a great deal, because the alternative is finding out the expensive way.
+
+The Oracle still runs. It still mostly tells me no. I've made my peace with that — turns out a good oracle spends most of its time saying *the future is already priced in*, and meaning it.
+
+Cheers.

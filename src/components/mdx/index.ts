@@ -9,6 +9,7 @@ import TipGrid from "./TipGrid";
 import MoneyFlow from "./MoneyFlow";
 import SummaryBox from "./SummaryBox";
 import AgentWorkflowLoop from "./AgentWorkflowLoop";
+import StrategyGraveyard from "./StrategyGraveyard";
 
 export const mdxComponents = {
   BackdoorRothSteps,
@@ -22,4 +23,5 @@ export const mdxComponents = {
   MoneyFlow,
   SummaryBox,
   AgentWorkflowLoop,
+  StrategyGraveyard,
 };
