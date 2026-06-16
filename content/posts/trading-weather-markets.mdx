@@ -21,6 +21,8 @@ I picked weather markets on purpose. They're recurring (every city, every day, f
 
 The core bet never changed: **can I price a 1°F temperature bracket better than the resting market can?** Everything else is a footnote to that question.
 
+It's worth being precise about the *regime* I was trading in, because it quietly shaped every decision that followed. The Oracle is not latency-sensitive and not high-frequency. It reasons over forecasts that refresh a few times a day, places a handful of orders, and would behave more or less identically if each one landed a few seconds later. I was never racing anyone to be first to process the newest model run — which ruled out a whole class of speed-based edges and ruled *in* the patient, measurement-heavy kind. I made a deliberate scoping call to match. Collecting and warehousing large volumes of historical data might well have unlocked strategies I never got to test — but standing up a serious ingestion, storage, and processing engine is its own multi-month project, and for a bounded pilot it didn't seem worth it. I optimized for learning fast over scaling out, and given the regime, I'd make that trade again.
+
 I ran it in shadow mode for a month — paper trades, real prices, no money — then promoted it to a bounded live pilot on a small cloud VPS, where it's traded in production since. It has a risk manager that halts on a bad day, a Telegram bot that pings me on fills and breaker trips, a watchdog that restarts it if it goes catatonic, and a dead-man's switch that yells if the whole thing goes dark. I'll skip most of that. The scaffolding is table stakes. The interesting part is the graveyard.
 
 ---
