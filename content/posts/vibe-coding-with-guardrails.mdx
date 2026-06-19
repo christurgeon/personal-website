@@ -209,6 +209,20 @@ One caveat worth naming: this workflow has a shelf life. Agents are getting bett
 
 ---
 
+## Letting the Loop Run Itself
+
+Run this loop by hand enough times and you start to resent the parts that are pure ceremony — spinning up the session, pointing it at the right files, re-running the checks, opening the PR. The *thinking* is the valuable part; the clicking isn't. So I built a tool to do the clicking: [autobuild](https://github.com/christurgeon/autobuild).
+
+It leans on the one property this whole post has been circling — that each session **starts knowing nothing about yesterday**. Earlier I called that a liability to work around. autobuild treats it as the entire design. You write a `GOAL.md` and a backlog of `tasks/`, and it drains that backlog toward the goal by spawning a *fresh* `claude -p` session for each task, each in its own git worktree, so several run in parallel without stepping on one another. No context carries between them — all the state lives in files and git, so a run is disposable. Kill it halfway and re-run; it recovers from the files alone.
+
+Everything the last few sections have been about — context rot, lossy compaction, memory that quietly goes stale — never arises when no context survives a single task.
+
+Each session runs the same loop laid out above, enforced instead of remembered: **plan, self-review, implement, run your checks.** Then a supervisor does the part I least trust the agent to do — it re-runs the checks *itself* before anything lands, and only merges or opens a PR if they pass. *If you're not reading the diff, you need something reading it* — here that something is a second process with no stake in the code it's grading. A task that fails, or hits a wall, is left blocked with its branch intact for me to pick up.
+
+The catch is the one I keep coming back to: it only works if the work is decomposed into right-sized, dependency-ordered tasks with acceptance criteria a machine can check. Writing that backlog *is* the job — the planning tax from the curve, paid up front and in one place instead of bled across a dozen sessions. The harness doesn't think for you; it just runs the loop so you don't have to sit there while it does. (And since each session is a headless agent with real access to your machine, you point it somewhere the blast radius is contained — a sandbox, throwaway credentials — not your main laptop on a Friday night.)
+
+---
+
 ## The Loop
 
 Zoom out and the whole thing is a loop: *research, pushback, plan, second opinion, reconcile, implement, simplify, scan.* Each step is cheap. None of them on its own catches everything. Stacked together, they catch most of what matters, and they do it fast enough that I'm still shipping faster than I would without the agent.
