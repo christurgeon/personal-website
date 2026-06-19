@@ -132,7 +132,7 @@ export default function AboutPage() {
                   href={s.href}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="brutal-lift group flex items-center justify-between gap-3 p-5"
+                  className="brutal-lift group flex min-w-0 items-center justify-between gap-1.5 px-3 py-3.5 sm:gap-3 sm:p-5"
                   style={{
                     background: bg,
                     color: fg,
@@ -141,11 +141,11 @@ export default function AboutPage() {
                     transform: i % 2 === 0 ? "rotate(-0.5deg)" : "rotate(0.5deg)",
                   }}
                 >
-                  <div className="flex items-center gap-3">
-                    <Icon className="h-6 w-6" />
-                    <span className="font-display text-lg tracking-tight uppercase">{s.name}</span>
+                  <div className="flex min-w-0 items-center gap-2 sm:gap-3">
+                    <Icon className="h-5 w-5 flex-shrink-0 sm:h-6 sm:w-6" />
+                    <span className="font-display min-w-0 text-[0.8rem] leading-tight tracking-tight break-words uppercase sm:text-lg">{s.name}</span>
                   </div>
-                  <ArrowRightIcon className="h-5 w-5 transition-transform group-hover:translate-x-1" />
+                  <ArrowRightIcon className="hidden h-5 w-5 flex-shrink-0 transition-transform group-hover:translate-x-1 sm:block" />
                 </a>
               );
             })}
