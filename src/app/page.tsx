@@ -5,22 +5,6 @@ import { siteConfig } from "@/lib/config";
 import { AnimatedHero } from "@/components/AnimatedHero";
 import { PostCard } from "@/components/PostCard";
 import { SectionHead } from "@/components/riso/SectionHead";
-import { Marquee } from "@/components/riso/Marquee";
-
-const marqueeItems: { label: string; color?: "ink" | "yellow" | "red" | "blue" | "green" | "pink" }[] = [
-  { label: "Building", color: "yellow" },
-  { label: "✱", color: "red" },
-  { label: "Writing", color: "ink" },
-  { label: "·", color: "pink" },
-  { label: "Shooting", color: "green" },
-  { label: "✱", color: "yellow" },
-  { label: "Traveling", color: "ink" },
-  { label: "·", color: "blue" },
-  { label: "Reading", color: "pink" },
-  { label: "✱", color: "green" },
-  { label: "Making", color: "ink" },
-  { label: "·", color: "red" },
-];
 
 const categoryTiles = [
   {
@@ -71,11 +55,8 @@ export default function Home() {
         <AnimatedHero name={siteConfig.name} description={siteConfig.description} socials={siteConfig.socials} />
       </div>
 
-      {/* Marquee band — full-bleed */}
-      <Marquee items={marqueeItems} repeat={4} speed="normal" />
-
       {/* Recent Posts */}
-      <section className="mx-auto max-w-[1240px] px-5 pt-20 pb-12 sm:px-7 md:pt-24">
+      <section className="mx-auto max-w-[1240px] px-5 pt-12 pb-12 sm:px-7 md:pt-16">
         <SectionHead number="01" kicker="Writing" title={<>Recent</>} highlight="Posts" more={{ label: "All Posts", href: "/blog" }} />
 
         {posts.length > 0 ? (
