@@ -58,6 +58,14 @@ export const projects: Project[] = [
     github: "https://github.com/christurgeon/tracks4africa-forum-scraper",
     sticker: "CLI",
   },
+  {
+    name: "autobuild",
+    description: "Point it at a backlog and walk away. autobuild drains a task list toward a goal by spawning fresh, isolated Claude Code sessions in parallel git worktrees — each one plans, self-reviews, implements, runs your checks, then opens a PR or auto-merges. All state lives in files and git, so a run is disposable and crash-safe.",
+    language: "Python",
+    tags: ["AI Agents", "Automation", "CLI"],
+    github: "https://github.com/christurgeon/autobuild",
+    sticker: "TOOL",
+  },
 ];
 
 const languageColors: Record<string, string> = {
