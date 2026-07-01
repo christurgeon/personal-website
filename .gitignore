@@ -44,6 +44,10 @@ next-env.d.ts
 # personal documentation
 *.md
 !README.md
+!/docs/superpowers/**/*.md
 
 # design reference
 /design-mockups
+
+# superpowers brainstorming sessions
+/.superpowers
