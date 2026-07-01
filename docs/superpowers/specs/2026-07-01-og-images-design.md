@@ -26,16 +26,16 @@ Approved mockups (visual companion session): `.superpowers/brainstorm/37144-1782
 - **`src/lib/og/card.tsx`** — single source of truth for card rendering:
   - `OG_SIZE = { width: 1200, height: 630 }`
   - `renderOgCard({ title, tag, meta, seed }): ReactElement` — Card-on-Paper JSX consumable by `ImageResponse`. `tag` optional; pill omitted when absent.
-  - `loadOgFonts(): Promise<Font[]>` — reads vendored TTFs from `src/lib/og/fonts/`.
+  - `loadOgFonts(): Promise<Font[]>` — reads vendored TTFs via `path.join(process.cwd(), "src/lib/og/fonts/…")` (same pattern as `src/lib/blog.ts`). All og routes stay on the default Node runtime — do **not** set `runtime = "edge"` (it breaks `fs`). This is safe because every og route is statically prerendered at build; caveat: if a route later becomes dynamic, `src/`-based fs reads won't be traced into the serverless bundle.
   - Seeded variation: reuse `hashString` from `src/lib/riso.ts` on `seed` (post slug or page name) to pick shape colors and one of several corner-shape compositions. Deterministic across rebuilds.
   - Color constants as hex literals (Satori cannot resolve CSS variables), copied from light-mode `globals.css` with a comment pointing there:
     - paper `#fffbe9`, ink `#0a0a0a`, card `#ffffff`, muted `#4a4a4a`
     - yellow `#fde047`, red `#f43f5e`, blue `#3b5bf1`, green `#2cc27a`, pink `#f9a8d4`
 - **`src/lib/og/fonts/ArchivoBlack-Regular.ttf`** and **`src/lib/og/fonts/SpaceMono-Bold.ttf`** — vendored font files (Satori requires TTF/OTF/WOFF, not woff2 and not `next/font`; local files avoid a network dependency at build).
 - **Route files** (each a thin wrapper: gather data → `renderOgCard`; each exports `alt`, `size`, `contentType`):
-  - `src/app/opengraph-image.tsx` — Home; also the automatic fallback for every route without its own (links, referrals, photography categories).
+  - `src/app/opengraph-image.tsx` — Home; also the automatic fallback for top-level routes without their own (`/links`, `/refer-me`, `/referrals`). The cascade picks the nearest ancestor: `/photography/[category]` and `/photography/shuffle` inherit the Photography card, not the root one.
   - `src/app/blog/opengraph-image.tsx`
-  - `src/app/blog/[slug]/opengraph-image.tsx` — exports `generateStaticParams` (same list as the page: `getAllPosts()`), so all post images render at build time.
+  - `src/app/blog/[slug]/opengraph-image.tsx` — exports `generateStaticParams` (same list as the page: `getAllPosts()`), so all post images render at build time. Per-post `alt` requires `generateImageMetadata()` (a static `export const alt` can't read the slug); it returns `[{ id, alt, size, contentType }]` and the default export receives `{ params, id }`.
   - `src/app/photography/opengraph-image.tsx`
   - `src/app/projects/opengraph-image.tsx`
   - `src/app/about/opengraph-image.tsx`
@@ -56,18 +56,19 @@ Approved mockups (visual companion session): `.superpowers/brainstorm/37144-1782
 | Projects | — | Projects | `CHRISTURGEON.COM` |
 | About | — | About | `CHRISTURGEON.COM` |
 
-`alt` export: post title for posts; page name for static pages; site name for Home.
+Alt text: post title for posts (via `generateImageMetadata`, see Architecture); page name for static pages and site name for Home (via `export const alt`).
 
 ## Visual Spec
 
 Canvas 1200×630. All measurements at full scale (mockup was half scale).
 
-- **Paper:** `#fffbe9` background; dot grid of `#0a0a0a` dots (~2.4px radius on an ~18px grid, opacity ~0.22). Satori has no `background-image: radial-gradient` pattern support guarantees — implement dots as a tiled inline SVG `backgroundImage` (data URI), which Satori supports.
+- **Paper:** `#fffbe9` background; dot grid of `#0a0a0a` dots (~2.4px radius on an ~18px grid, opacity ~0.22). Implement dots as a tiled inline SVG `backgroundImage` (data URI) with `background-repeat` — confirmed supported by the bundled Satori. If tile alignment misbehaves, fall back to a single full-canvas 1200×630 SVG data URI (no repeat).
+- **Satori constraint:** any element with 2+ children must set `display: flex` explicitly or the build throws ("Expected <div> to have explicit display: flex"). The layered canvas (paper / shapes / card) and the card stack (pill / title / meta) both hit this.
 - **Frame:** 14px solid `#0a0a0a` border around the full canvas.
 - **Seeded shapes:** 2–3 large shapes (circles ~220–240px diameter, rotated squares ~76px) with 8px ink borders, colors picked by seed from the riso palette, positioned bleeding off paper corners/edges, behind the card.
 - **Card:** white `#ffffff`, 10px solid ink border, hard shadow `20px 20px 0 #0a0a0a` (Satori supports `boxShadow`), padding ~40–48px, max-width ~82% of canvas, centered.
 - **Tag pill:** Space Mono Bold ~22px, letter-spacing 0.12em, uppercase, ink text on pink `#f9a8d4`, 5px ink border, padding ~6px 16px, margin-bottom ~24px.
-- **Title:** Archivo Black, ink, line-height 1.02, letter-spacing -0.02em. Size tiers by character count: <40 chars → 72px; 40–70 → 60px; >70 → 50px. Longest current title (~57 chars) renders at 60px on ~3 lines.
+- **Title:** Archivo Black, ink, line-height 1.02, letter-spacing -0.02em. Size tiers by character count: <40 chars → 72px; 40–70 → 60px; >70 → 50px. The 50px tier is exercised today: the longest current title is 78 chars ("The Oracle: What a Year of Trading Weather Markets Taught Me About Being Wrong"), rendering on ~4 lines at 50px in Archivo Black (~900px usable card width); three more titles sit at 65–70 chars in the 60px tier. Verify the 78-char render leaves room for the meta line and card shadow within the 630px canvas.
 - **Meta line:** Space Mono Bold ~22px, letter-spacing 0.08em, uppercase, muted `#4a4a4a`, margin-top ~24px.
 
 ## Edge Cases
