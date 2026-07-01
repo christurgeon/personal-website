@@ -31,10 +31,13 @@ describe("renderOgCard", () => {
     expect(tree).toContain("CHRISTURGEON.COM · JUN 14, 2026");
   });
 
-  it("renders without a tag (pill omitted, spec no-tags case)", () => {
-    const el = renderOgCard({ title: "About", meta: "christurgeon.com", seed: "about" });
-    const tree = JSON.stringify(el);
-    expect(tree).not.toContain("TRADING");
-    expect(tree).toContain("About");
+  it("omits the tag pill when no tag is given", () => {
+    const withTag = JSON.stringify(renderOgCard({ title: "About", tag: "travel", meta: "christurgeon.com", seed: "about" }));
+    const withoutTag = JSON.stringify(renderOgCard({ title: "About", meta: "christurgeon.com", seed: "about" }));
+    // The pill is the only element with 0.12em letter-spacing.
+    expect(withTag).toContain("TRAVEL");
+    expect(withTag).toContain("0.12em");
+    expect(withoutTag).not.toContain("0.12em");
+    expect(withoutTag).not.toContain("TRAVEL");
   });
 });
