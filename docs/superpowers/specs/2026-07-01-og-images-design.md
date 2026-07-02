@@ -35,7 +35,7 @@ Approved mockups (visual companion session): `.superpowers/brainstorm/37144-1782
 - **Route files** (each a thin wrapper: gather data → `renderOgCard`; each exports `alt`, `size`, `contentType`):
   - `src/app/opengraph-image.tsx` — Home; also the automatic fallback for top-level routes without their own (`/links`, `/refer-me`, `/referrals`). The cascade picks the nearest ancestor: `/photography/[category]` and `/photography/shuffle` inherit the Photography card, not the root one.
   - `src/app/blog/opengraph-image.tsx`
-  - `src/app/blog/[slug]/opengraph-image.tsx` — exports `generateStaticParams` (same list as the page: `getAllPosts()`), so all post images render at build time. Per-post `alt` requires `generateImageMetadata()` (a static `export const alt` can't read the slug); it returns `[{ id, alt, size, contentType }]` and the default export receives `{ params, id }`.
+  - `src/app/blog/[slug]/opengraph-image.tsx` — exports `generateStaticParams` (same list as the page: `getAllPosts()`), so all post images render at build time. Uses a static `export const alt = "Blog post — Chris Turgeon"`. **Deviation (2026-07-01):** the design originally specified per-post alt via `generateImageMetadata()`, but Next.js 16.1.1 has a confirmed upstream bug (vercel/next.js#76323): `generateImageMetadata` on a dynamic segment's opengraph-image route receives empty `params` and fails the build — with or without a co-located `generateStaticParams` (both variants tested and reproduced). Revisit per-post alt when the upstream bug is fixed.
   - `src/app/photography/opengraph-image.tsx`
   - `src/app/projects/opengraph-image.tsx`
   - `src/app/about/opengraph-image.tsx`
@@ -56,7 +56,7 @@ Approved mockups (visual companion session): `.superpowers/brainstorm/37144-1782
 | Projects | — | Projects | `CHRISTURGEON.COM` |
 | About | — | About | `CHRISTURGEON.COM` |
 
-Alt text: post title for posts (via `generateImageMetadata`, see Architecture); page name for static pages and site name for Home (via `export const alt`).
+Alt text: static `"Blog post — Chris Turgeon"` for posts (per-post titles blocked by an upstream Next.js bug — see Architecture); page name for static pages and site name for Home (via `export const alt`).
 
 ## Visual Spec
 
