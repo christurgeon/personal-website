@@ -138,7 +138,7 @@ The per-task loop above is one rhythm. Here's the other: periodic sweeps across 
 
 - **Security scan.** Auth issues, input validation gaps, secrets ending up in logs, injection surfaces, over-permissive IAM, things exposed that shouldn't be.
 - **Bug scan.** Off-by-one errors, null handling gaps, race conditions, resource leaks, retry logic that hammers a downstream when it's already unhappy.
-- **Refactoring scan.** Code smells, duplicated logic, dead code, anything that'll make the codebase harder to maintain in six months.
+- **Refactoring scan.** Code smells, duplicated logic, dead code, comments that have drifted from the code they describe, anything that'll make the codebase harder to maintain in six months.
 
 These are slow and noisy. Most of what they flag isn't worth fixing, but enough of it is that the ratio earns its keep. It's the agentic equivalent of running every linter you own in paranoid mode, except the linter understands semantics.
 
@@ -184,6 +184,23 @@ This compounds with a well-documented property of long contexts. Liu et al.'s [L
 The fix is cheap. Every couple of weeks, ask the agent to dump *everything* it has stored about you and the project. Read it cold. Delete what's wrong, condense what's bloated, rewrite anything that drifted. Ten minutes of pruning beats six months of an agent confidently repeating things that stopped being true on a Tuesday in March.
 
 Treat the memory the way you'd treat a `CLAUDE.md`: it's the agent's source of truth about your world, and a stale source of truth is worse than none.
+
+---
+
+## Your Comments Are Prompts
+
+Memory isn't the only place stale facts hide. The codebase itself is full of natural language — comments, docstrings, commented-out experiments — and the agent reads all of it. The research on how much this matters surprised me in both directions.
+
+The helpful direction first. A [study of comments in code translation](https://arxiv.org/abs/2601.16661) analyzed 80,000+ LLM translations across five languages and found that comments describing *intent* — what the code is for, not what each line does — improved accuracy by **6–51%** in a single pass. Line-by-line annotation was a different story. In one of their examples, the word "grid" repeated through the comments convinced the model that a `grid` variable must exist, so it invented one — a fixed 100×100 array that hit a memory fault the moment real input outgrew it. The model didn't misread the code. It over-trusted the prose.
+
+That's the pattern in the harmful direction too. [CodeCrash](https://arxiv.org/abs/2504.14119) (NeurIPS 2025) planted misleading natural-language cues — comments, hints — in otherwise-working code and watched 17 models drop an average of **23.2%** on output-prediction tasks. Chain-of-thought reasoning softened the blow to 13.8% — better, not fixed. And a [fault-localization study](https://arxiv.org/abs/2504.04372) found that edits which don't change behavior at all — renames, inserted comments, dead code — made models lose track of a bug they'd already found **78%** of the time. Buried in that paper is the detail that reframed the whole topic for me: misleading comments degraded accuracy *more* than misleading variable names (25.6% vs. 29.0%). **The agent trusts your prose more than your identifiers.** A stale comment isn't clutter; it's a confident wrong answer sitting exactly where the model looks first.
+
+Two more findings worth carrying around:
+
+- **Dead code is worse than a lying comment.** In the same fault-localization study, inserting unreachable code cratered accuracy to 20.4% — a bigger hit than the misleading comments themselves. That commented-out block you're keeping "for reference" is actively misleading your reviewer subagents.
+- **Reasoning models are more derailable, not less.** CodeCrash's bleakest finding: a single plausible-but-wrong hint sent QwQ-32B into what the authors call *Reasoning Collapse* — twenty thousand tokens of reasoning followed by twelve thousand tokens of "Hmm." The extra self-reflection amplified the bad hint instead of correcting it.
+
+The practical upshot fits in one line: treat comments as prompts, because that's how the agent reads them. Write docstrings that state intent and invariants — that's the kind that measurably helps. Delete commented-out code; git remembers it so the agent doesn't have to be confused by it. And when the refactoring sweep flags a comment that no longer matches the code under it, fix it with the same urgency as the stale memory from the last section. It's the same bug at a different address.
 
 ---
 
