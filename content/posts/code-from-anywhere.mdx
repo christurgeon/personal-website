@@ -1,0 +1,147 @@
+---
+title: "Code from Anywhere: A Cheap VPS, tmux, and One Shell Function"
+date: "2026-07-02"
+excerpt: "How a $6 Hetzner server, a persistent tmux session, and an SSH client on a phone turn agentic coding into something you can carry anywhere — plus the one-line shell function that ties it all together."
+tags: ["engineering", "claude-code", "agentic-coding", "vps", "tmux", "remote-development"]
+---
+
+My development environment used to die every time I closed my laptop.
+
+For most of my career that was an acceptable arrangement, because coding was synchronous. The work only happened while I was typing. Close the lid, the work stops, open the lid, the work resumes — nothing was lost in between because nothing was happening in between.
+
+Agents broke that contract. A Claude Code session doing real work — researching a codebase, executing a plan, running tests, fixing what the tests caught — runs for twenty, thirty, forty minutes without needing me. The unit of work stopped being the keystroke and became the session. And a laptop is a terrible home for a session: it sleeps, it roams between networks, it gets shoved in a bag mid-task. I kept finding myself hostage to a machine that had to stay open, awake, and online for the work to continue.
+
+The fix wasn't a better laptop. It was making the laptop optional.
+
+Today my actual development environment is a $6 server in a data center that never sleeps, never changes networks, and never gets shoved in a bag. My laptop, my iPad, and my phone are just windows into it. I can kick off a long refactor, put my phone in my pocket, and reattach an hour later from a different device on a different network to read what happened. The session doesn't know I left. It doesn't care.
+
+This post is the full setup — the server, the lockdown, the agent, and the one-line shell function that makes the whole thing feel instant.
+
+---
+
+## The Shape of the Rig
+
+Four pieces, each boring on its own:
+
+- **A small VPS** (mine is on [Hetzner](https://www.hetzner.com/cloud/)) that runs 24/7 and holds the actual workspace — repos, dotfiles, toolchains, Claude Code.
+- **[tmux](https://github.com/tmux/tmux/wiki)**, so terminal sessions survive disconnects. This is the load-bearing piece.
+- **SSH from every device I own** — terminal on the laptop, [Termius](https://termius.com/) on the phone and iPad.
+- **A shell function called `tm`** that drops any device into the same persistent session with two keystrokes.
+
+The mental model matters more than the parts: the server is where the work *lives*, and every device is a viewport. Nothing is "on" my phone. My phone is a 6-inch window into the same terminal my laptop sees — same session, same scrollback, same agent mid-task.
+
+---
+
+## Step 1: Rent the Box
+
+Hetzner's cheapest shared-vCPU cloud server runs about $6 a month (they nudged prices up in mid-2026; it's still the best price-to-performance box I know of). A couple of vCPUs and 4 GB of RAM sounds modest, and it is — but this machine mostly runs a terminal, git, and Claude Code. The heavy inference happens on Anthropic's side. You are renting a desk, not a workshop.
+
+The console walkthrough is short and Hetzner's own [docs](https://docs.hetzner.com/cloud/) cover it, so I'll compress: create a project, add a server, pick **Ubuntu LTS**, pick the region closest to where you usually are (this is your SSH latency for every keystroke — choose accordingly), and — this is the one non-negotiable — **add your SSH public key at creation time**. If the box comes up with key auth from its first boot, password authentication never has to exist on it at all.
+
+## Step 2: Lock It Down
+
+A fresh server with a public IPv4 address starts getting scanned by bots within minutes of boot. Not hours — minutes. The lockdown takes five of them and you only do it once.
+
+First, stop working as root. Create a user, give it sudo, and hand it your key:
+
+```bash
+adduser chris
+usermod -aG sudo chris
+rsync --archive --chown=chris:chris ~/.ssh /home/chris
+```
+
+Then turn off the two doors the bots are knocking on. In `/etc/ssh/sshd_config`:
+
+```text
+PasswordAuthentication no
+PermitRootLogin no
+```
+
+Restart the daemon (`sudo systemctl restart ssh`), then confirm your key still gets you in *from a second terminal before closing the first one* — the oldest rule in remote administration is to never lock the only door you're holding open.
+
+Finally, a firewall and automatic security patches:
+
+```bash
+sudo ufw allow OpenSSH
+sudo ufw enable
+sudo apt install unattended-upgrades
+```
+
+<Callout type="warning" title="This section is not optional">
+  Key-only auth, no root login, a firewall, and automatic patches are the floor, not the ceiling — this box will hold your code and your agent's credentials. If you want to go further, put the server on a <a href="https://tailscale.com/">Tailscale</a> network and don't expose SSH to the public internet at all. That's the setup I'd hand to someone I like.
+</Callout>
+
+## Step 3: Make It Feel Like Home
+
+Here's the part that surprised me: this is the last time you do environment setup.
+
+Every laptop I've ever owned went through the same ritual — install the toolchains, clone the dotfiles, reconfigure git, discover three months later that some tool is missing at the worst possible moment. A persistent server ends the ritual. You set it up once, and it stays set up. New phone? New laptop? Nothing to install but an SSH client.
+
+So take the time: your dotfiles, your shell, your git config, your language toolchains, `tmux` itself (`sudo apt install tmux`). Make it the environment you actually want, because unlike every laptop before it, this one is permanent.
+
+## Step 4: Install Claude
+
+Claude Code ships a native installer now — no Node, no npm, one command:
+
+```bash
+curl -fsSL https://claude.ai/install.sh | bash
+```
+
+Authentication on a headless box is smoother than you'd expect: run `claude`, and it prints a login URL. Open that URL on whatever device is in your hand, authenticate, paste the code back into the terminal. Done — and because the credentials live on the server, every device you connect from is already logged in.
+
+This is also where the architecture quietly pays off. The agent's context, its running tasks, its memory of your project — all of it lives on the box. When you reattach from a different device, you're not resuming an approximation of your session. You're looking at the same one.
+
+## Step 5: One Function to Drop In: `tm`
+
+tmux is the piece that makes everything else work, and it solves a specific problem: when an SSH connection dies, every process it was running dies with it. Your train goes into a tunnel, your agent goes with it. tmux breaks that chain — the session runs on the server, attached to nothing, and your SSH connection is just a viewer that can come and go.
+
+The whole thing is driven by one line in my shell config:
+
+```bash
+tm() { tmux new -As "${1:-main}"; }
+```
+
+Unpacking it, because each character is doing work:
+
+- **`-s "${1:-main}"`** names the session — whatever argument you pass, defaulting to `main` if you pass nothing.
+- **`-A`** is the trick: *attach* to that session if it already exists, create it only if it doesn't.
+
+Which means `tm` is idempotent. It's not "start a terminal" — it's "take me to my workspace," and it doesn't matter whether that workspace exists yet or which device asked. Type `tm` on the laptop, you're in `main`. Type `tm` on the phone an hour later, you're in the *same* `main`, same scrollback, same Claude Code session mid-thought. Named sessions give you parallel workspaces for free: `tm website` for this blog, `tm trading` for the thing that loses me money.
+
+Detaching is `Ctrl-b d` — or nothing at all. Close the app, lose the signal, walk away. The session genuinely cannot tell the difference between a deliberate detach and a dropped connection, and that indifference is the entire feature. Flaky airport wifi and intentionally closing your laptop become the same non-event.
+
+The interaction with agents is where it compounds. Start Claude on a long task. Type `Ctrl-b d`. Live your life. Reattach from whatever device is nearby and scroll up through everything it did while you were gone. The agent never noticed you left, because from its side of the terminal, nothing changed.
+
+## Step 6: Put It in Your Pocket
+
+Termius is the SSH client I settled on for iPhone and iPad. Setup is three moves: generate a key in the app (or import one — I keep a **separate key per device**, so losing a phone means revoking one line in `authorized_keys`, not rotating everything), add the host, connect.
+
+Two settings worth finding immediately:
+
+- **The extra keyboard row.** Termius puts `Esc`, `Ctrl`, `Tab`, and arrow keys above the on-screen keyboard. On glass, this row is the difference between tmux being usable and tmux being a hostage situation — `Ctrl-b d` needs a Ctrl key.
+- **Font size.** Turn it down. A phone in landscape at a small font shows a surprisingly respectable amount of terminal.
+
+Then type `tm`, and your phone is standing in the same room as your laptop was an hour ago.
+
+The iPad deserves a special mention: with a keyboard case and a terminal running full screen, it stops being "coding on a tablet" and just becomes coding. It's the sleeper hit of this whole setup.
+
+---
+
+## What It's Actually Like
+
+Honesty section, because "I code from my phone" conjures an image of someone typing function bodies on glass, and that's not what happens. Typing prose-length text on a phone is fine; typing code is miserable, and I don't do it.
+
+What changed is that agentic coding made most of the work *reading and deciding* rather than typing. The workflow I laid out in [Vibe Coding with Guardrails](/blog/vibe-coding-with-guardrails) — research, plan, invite pushback, review the diff — is mostly conversation. And conversation is phone-shaped. Reviewing a plan, answering the agent's clarifying question, reading a diff, telling it to proceed — a phone handles every one of those comfortably. The keyboard-shaped work happens when I'm at a keyboard; the judgment-shaped work happens wherever I am.
+
+In practice it looks like this: I kick off a task after breakfast and check the plan from my phone while out running errands. I approve it, pocket the phone, and read the diff twenty minutes later from the iPad. The session ran on the server the whole time — I just visited it from three different screens. The old constraint — *the work happens where the laptop is* — is simply gone, and its absence changes when and where work happens at all. Small windows of time that used to be dead air are now enough to unblock an agent and keep a task moving.
+
+## The Honest Tradeoffs
+
+- **It costs money.** About $7 a month all-in. I spend more than that on a single cocktail, so I've made my peace — but it's a subscription, and subscriptions deserve scrutiny.
+- **Latency is real.** Every keystroke round-trips to the server. From the same continent it's imperceptible; from across an ocean you'll feel it. Pick your region well, and if you're often on garbage connections, [mosh](https://mosh.org/) layers local echo and roaming on top of SSH and is worth the ten minutes.
+- **Your code lives on someone else's computer.** For personal projects I'm comfortable with a locked-down box at a reputable provider. Work code is a different question with a different owner — check your employer's policy before cloning anything you don't personally own onto a personal server.
+- **This has a shelf life.** I said the same thing about the workflow post, and it applies double here: Anthropic is actively building official ways to run Claude Code away from your desk — on the web, on mobile. Some of this rig will eventually be obsoleted by a product. But a general-purpose Linux box you fully control is a useful thing to own regardless of which direction the tooling goes, and $7 a month is cheap rent for the freedom in the meantime.
+
+The pattern underneath the parts is the durable bit: work that lives in a persistent place, viewed through whatever glass happens to be nearby. The specific tools will churn. The shape is the future.
+
+Stay portable, keep password auth off, and may your sessions outlive your connections.
