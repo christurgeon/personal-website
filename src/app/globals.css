@@ -199,14 +199,13 @@ footer {
   box-shadow: 2px 2px 0 var(--border);
 }
 
-/* Rotate-safe lift: composes a per-element rotation (via --tile-rotate) with
-   a translate so the :hover transform doesn't clobber the rotation. */
+/* Hard-shadow lift: card translates up-left on hover while the shadow grows,
+   and presses down flat on :active. */
 .lane-tile {
-  --tile-rotate: 0deg;
   --tile-dx: 0px;
   --tile-dy: 0px;
   --tile-shadow: 6px;
-  transform: rotate(var(--tile-rotate)) translate(var(--tile-dx), var(--tile-dy));
+  transform: translate(var(--tile-dx), var(--tile-dy));
   box-shadow: var(--tile-shadow) var(--tile-shadow) 0 var(--border);
   transition:
     transform 0.14s ease,

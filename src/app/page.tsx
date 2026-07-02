@@ -1,47 +1,39 @@
-import type { CSSProperties } from "react";
 import Link from "next/link";
 import { getAllPosts } from "@/lib/blog";
 import { siteConfig } from "@/lib/config";
 import { AnimatedHero } from "@/components/AnimatedHero";
 import { PostCard } from "@/components/PostCard";
 import { SectionHead } from "@/components/riso/SectionHead";
+import { COLOR_PAIRS, type RisoColor } from "@/lib/riso";
 
-const categoryTiles = [
+const categoryTiles: { href: string; number: string; title: string; tagline: string; color: RisoColor }[] = [
   {
     href: "/blog",
-    kicker: "01 / Writing",
-    title: "Essays & Notes",
-    tagline: "Long-form thinking on engineering, travel, and the stuff in between.",
-    bg: "var(--yellow)",
-    fg: "var(--ink)",
-    rotate: "-1deg",
+    number: "01",
+    title: "Writing",
+    tagline: "Essays and notes on engineering, travel, and the stuff in between.",
+    color: "yellow",
   },
   {
     href: "/projects",
-    kicker: "02 / Projects",
-    title: "Things I've Shipped",
+    number: "02",
+    title: "Projects",
     tagline: "Side projects, open-source tinkering, and experiments that stuck.",
-    bg: "var(--pink)",
-    fg: "var(--ink)",
-    rotate: "0.8deg",
+    color: "pink",
   },
   {
     href: "/photography",
-    kicker: "03 / Photography",
-    title: "A Visual Diary",
+    number: "03",
+    title: "Photography",
     tagline: "A visual diary I keep instead of a written one.",
-    bg: "var(--blue)",
-    fg: "var(--paper)",
-    rotate: "-0.6deg",
+    color: "blue",
   },
   {
     href: "/about",
-    kicker: "04 / About",
-    title: "Who Is This Guy?",
+    number: "04",
+    title: "About",
     tagline: "A little about me, what I'm working on, and how to get in touch.",
-    bg: "var(--green)",
-    fg: "var(--ink)",
-    rotate: "1.1deg",
+    color: "green",
   },
 ];
 
@@ -80,37 +72,36 @@ export default function Home() {
         )}
       </section>
 
-      {/* Pick Your Lane */}
+      {/* Around the Site */}
       <section className="mx-auto max-w-[1240px] px-5 pt-12 pb-24 sm:px-7 md:pb-32">
-        <SectionHead number="02" kicker="Explore" title={<>Pick Your</>} highlight="Lane" />
+        <SectionHead number="02" kicker="Explore" title={<>Around the</>} highlight="Site" />
 
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {categoryTiles.map((tile) => (
             <Link
               key={tile.href}
               href={tile.href}
-              className="lane-tile group relative block"
-              style={
-                {
-                  background: tile.bg,
-                  color: tile.fg,
-                  border: "3px solid var(--border)",
-                  padding: "22px 22px 24px",
-                  "--tile-rotate": tile.rotate,
-                } as CSSProperties
-              }
+              className="lane-tile group relative flex flex-col"
+              style={{
+                background: "var(--card)",
+                color: "var(--ink)",
+                border: "3px solid var(--border)",
+                padding: "22px 22px 24px",
+              }}
             >
-              <div
-                className="font-mono-label mb-3"
-                style={{
-                  color: tile.fg,
-                  opacity: 0.8,
-                }}
-              >
-                [ {tile.kicker} ]
+              <div className="mb-4">
+                <span
+                  className="pill"
+                  style={{
+                    background: COLOR_PAIRS[tile.color].bg,
+                    color: COLOR_PAIRS[tile.color].fg,
+                  }}
+                >
+                  {tile.number}
+                </span>
               </div>
               <h3
-                className="font-display mb-3"
+                className="font-display mb-3 uppercase transition-colors group-hover:text-[color:var(--accent)]"
                 style={{
                   fontSize: "clamp(1.35rem, 2vw, 1.6rem)",
                   lineHeight: 1.02,
@@ -119,10 +110,8 @@ export default function Home() {
               >
                 {tile.title}
               </h3>
-              <p style={{ fontSize: "0.92rem", lineHeight: 1.45, opacity: 0.92 }}>{tile.tagline}</p>
-              <div className="font-mono-label mt-5 inline-flex items-center gap-1" style={{ color: tile.fg }}>
-                Enter →
-              </div>
+              <p style={{ color: "var(--muted)", fontSize: "0.92rem", lineHeight: 1.45 }}>{tile.tagline}</p>
+              <div className="font-mono-label mt-auto inline-flex items-center gap-1 pt-5">→</div>
             </Link>
           ))}
         </div>
