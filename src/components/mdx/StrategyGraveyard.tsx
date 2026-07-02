@@ -21,7 +21,8 @@ const graves: Grave[] = [
   {
     name: "The Daily “Between” Book",
     was: "The core bet: that the day's high lands inside a specific 1°F bracket.",
-    cause: "No demonstrated edge against the efficient morning market. Every rescue I tried — adverse-selection, directional residue, a suppressive filter — falsified.",
+    cause:
+      "No demonstrated edge against the efficient morning market. Every rescue I tried — adverse-selection, directional residue, a suppressive filter — falsified.",
     epitaph: "bleed ≈ the fee rate",
   },
   {
@@ -57,7 +58,8 @@ const graves: Grave[] = [
   {
     name: "HRRR Intraday Nowcast",
     was: "Feed a high-resolution short-range model into the same-day posterior.",
-    cause: "The apparent accuracy win was an artifact of a max() floor. The real defect — a settlement-source gap — was something no model could fix.",
+    cause:
+      "The apparent accuracy win was an artifact of a max() floor. The real defect — a settlement-source gap — was something no model could fix.",
     epitaph: "NO-GO at re-cut",
   },
 ];
@@ -65,10 +67,7 @@ const graves: Grave[] = [
 export default function StrategyGraveyard() {
   return (
     <div className="not-prose" style={{ margin: "2rem 0" }}>
-      <div
-        className="font-mono-label mb-4"
-        style={{ fontSize: "0.72rem", color: "var(--muted)", letterSpacing: "0.14em" }}
-      >
+      <div className="font-mono-label mb-4" style={{ fontSize: "0.72rem", color: "var(--muted)", letterSpacing: "0.14em" }}>
         [ THE GRAVEYARD ]
       </div>
 
@@ -90,10 +89,7 @@ export default function StrategyGraveyard() {
               }}
             >
               <div className="flex items-baseline justify-between gap-2">
-                <span
-                  className="font-mono-label"
-                  style={{ fontSize: "0.64rem", color: "var(--muted)", letterSpacing: "0.16em" }}
-                >
+                <span className="font-mono-label" style={{ fontSize: "0.64rem", color: "var(--muted)", letterSpacing: "0.16em" }}>
                   R.I.P.
                 </span>
                 <span
@@ -112,10 +108,7 @@ export default function StrategyGraveyard() {
                 </span>
               </div>
 
-              <div
-                className="font-display"
-                style={{ fontSize: "1.15rem", lineHeight: 1.1, letterSpacing: "-0.01em", textTransform: "none" }}
-              >
+              <div className="font-display" style={{ fontSize: "1.15rem", lineHeight: 1.1, letterSpacing: "-0.01em", textTransform: "none" }}>
                 {g.name}
               </div>
 
@@ -124,10 +117,7 @@ export default function StrategyGraveyard() {
               <div style={{ borderTop: "2px dashed var(--border)", opacity: 0.4, margin: "0.1rem 0" }} />
 
               <div>
-                <div
-                  className="font-mono-label mb-1"
-                  style={{ fontSize: "0.62rem", color: "var(--muted)", letterSpacing: "0.14em" }}
-                >
+                <div className="font-mono-label mb-1" style={{ fontSize: "0.62rem", color: "var(--muted)", letterSpacing: "0.14em" }}>
                   CAUSE OF DEATH
                 </div>
                 <div style={{ fontSize: "0.9rem", lineHeight: 1.55, color: "var(--ink)" }}>{g.cause}</div>

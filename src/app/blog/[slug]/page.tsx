@@ -42,7 +42,6 @@ export async function generateMetadata({ params }: PostPageProps): Promise<Metad
       description: post.excerpt,
       type: "article",
       publishedTime: post.date,
-      images: post.coverImage ? [post.coverImage] : ["/images/profile.jpg"],
     },
   };
 }

@@ -20,7 +20,8 @@ export const projects: Project[] = [
   },
   {
     name: "Shortlist",
-    description: "Quantitative stock pre-screener that scores quality, moat, growth, momentum/value, and insider activity across FMP, Finnhub, SEC EDGAR, and Yahoo into a ranked shortlist for a human deep dive. Config-driven, sector-aware, and free-tier friendly.",
+    description:
+      "Quantitative stock pre-screener that scores quality, moat, growth, momentum/value, and insider activity across FMP, Finnhub, SEC EDGAR, and Yahoo into a ranked shortlist for a human deep dive. Config-driven, sector-aware, and free-tier friendly.",
     language: "Python",
     tags: ["CLI", "Finance", "Quant"],
     github: "https://github.com/christurgeon/shortlist",
@@ -60,7 +61,8 @@ export const projects: Project[] = [
   },
   {
     name: "autobuild",
-    description: "Point it at a backlog and walk away. autobuild drains a task list toward a goal by spawning fresh, isolated Claude Code sessions in parallel git worktrees — each one plans, self-reviews, implements, runs your checks, then opens a PR or auto-merges. All state lives in files and git, so a run is disposable and crash-safe.",
+    description:
+      "Point it at a backlog and walk away. autobuild drains a task list toward a goal by spawning fresh, isolated Claude Code sessions in parallel git worktrees — each one plans, self-reviews, implements, runs your checks, then opens a PR or auto-merges. All state lives in files and git, so a run is disposable and crash-safe.",
     language: "Python",
     tags: ["AI Agents", "Automation", "CLI"],
     github: "https://github.com/christurgeon/autobuild",

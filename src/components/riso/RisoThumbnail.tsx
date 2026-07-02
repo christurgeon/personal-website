@@ -55,13 +55,40 @@ export function RisoThumbnail({ seed, className = "", slim = false }: RisoThumbn
             <ellipse cx="200" cy="48" rx="78" ry="38" fill={palette.shapes[0]} stroke="var(--border)" strokeWidth="3" />
             <path d="M160 48 Q200 18 240 48 Q200 78 160 48 Z" fill={palette.shapes[1]} stroke="var(--border)" strokeWidth="3" />
             <rect x="30" y="28" width="36" height="36" fill={palette.shapes[2]} stroke="var(--border)" strokeWidth="3" transform="rotate(15 48 46)" />
-            <rect x="334" y="32" width="34" height="34" fill={palette.shapes[2]} stroke="var(--border)" strokeWidth="3" transform="rotate(-12 351 49)" />
+            <rect
+              x="334"
+              y="32"
+              width="34"
+              height="34"
+              fill={palette.shapes[2]}
+              stroke="var(--border)"
+              strokeWidth="3"
+              transform="rotate(-12 351 49)"
+            />
           </>
         )}
         {variant === 3 && (
           <>
-            <rect x="22" y="20" width="120" height="64" fill={palette.shapes[0]} stroke="var(--border)" strokeWidth="3" transform="rotate(-5 82 52)" />
-            <rect x="150" y="14" width="140" height="70" fill={palette.shapes[1]} stroke="var(--border)" strokeWidth="3" transform="rotate(4 220 49)" />
+            <rect
+              x="22"
+              y="20"
+              width="120"
+              height="64"
+              fill={palette.shapes[0]}
+              stroke="var(--border)"
+              strokeWidth="3"
+              transform="rotate(-5 82 52)"
+            />
+            <rect
+              x="150"
+              y="14"
+              width="140"
+              height="70"
+              fill={palette.shapes[1]}
+              stroke="var(--border)"
+              strokeWidth="3"
+              transform="rotate(4 220 49)"
+            />
             <circle cx="346" cy="48" r="30" fill={palette.shapes[2]} stroke="var(--border)" strokeWidth="3" />
           </>
         )}

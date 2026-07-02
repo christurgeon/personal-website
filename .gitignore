@@ -47,3 +47,6 @@ next-env.d.ts
 
 # design reference
 /design-mockups
+
+# superpowers brainstorming sessions
+/.superpowers
