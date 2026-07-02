@@ -74,7 +74,7 @@ export function renderOgCard({ title, tag, meta, seed }: OgCardProps): ReactElem
             backgroundColor: shape.color,
             border: `8px solid ${OG_COLORS.ink}`,
             borderRadius: shape.kind === "circle" ? 9999 : 0,
-            transform: shape.rotate ? `rotate(${shape.rotate}deg)` : undefined,
+            ...(shape.rotate !== undefined && { transform: `rotate(${shape.rotate}deg)` }),
           }}
         />
       ))}
