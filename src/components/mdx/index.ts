@@ -10,6 +10,7 @@ import MoneyFlow from "./MoneyFlow";
 import SummaryBox from "./SummaryBox";
 import AgentWorkflowLoop from "./AgentWorkflowLoop";
 import StrategyGraveyard from "./StrategyGraveyard";
+import RadiationTypes from "./RadiationTypes";
 
 export const mdxComponents = {
   BackdoorRothSteps,
@@ -24,4 +25,5 @@ export const mdxComponents = {
   SummaryBox,
   AgentWorkflowLoop,
   StrategyGraveyard,
+  RadiationTypes,
 };
