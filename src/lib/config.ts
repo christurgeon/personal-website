@@ -23,6 +23,14 @@ export const siteConfig = {
     resume: "/chris_turgeon_resume.pdf",
   },
 
+  // Newsletter (Buttondown)
+  newsletter: {
+    username: "christurgeon",
+    url: "https://buttondown.com/christurgeon",
+    archiveUrl: "https://buttondown.com/christurgeon/archive",
+    subscribeEndpoint: "https://buttondown.com/api/emails/embed-subscribe/christurgeon",
+  },
+
   // Navigation links
   nav: [
     { name: "Home", href: "/" },
