@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { siteConfig } from "@/lib/config";
 import { GitHubIcon, LinkedInIcon, XTwitterIcon, GoodreadsIcon, SoundCloudIcon } from "./Icons";
+import { SubscribeForm } from "./SubscribeForm";
 
 const siteLinks = [
   { name: "Home", href: "/" },
@@ -12,6 +13,7 @@ const siteLinks = [
 
 const extrasLinks = [
   { name: "Links", href: "/links" },
+  { name: "Subscribe", href: "/subscribe" },
   { name: "Resume", href: siteConfig.documents.resume },
 ];
 
@@ -28,6 +30,10 @@ export function Footer() {
       }}
     >
       <div className="mx-auto max-w-[1240px] px-6 py-12 sm:px-7">
+        <div className="mb-10">
+          <SubscribeForm variant="compact" />
+        </div>
+
         <div className="grid grid-cols-1 gap-8 pb-8 sm:grid-cols-3" style={{ borderBottom: "3px solid var(--border)" }}>
           <FooterColumn title="Site">
             {siteLinks.map((l) => (
@@ -61,6 +67,9 @@ export function Footer() {
                 {l.name}
               </FooterLink>
             ))}
+            <FooterLink href="/blog/feed.xml" external>
+              RSS
+            </FooterLink>
           </FooterColumn>
         </div>
 
