@@ -8,6 +8,7 @@ import { mdxComponents } from "@/components/mdx";
 import { getPostBySlug, getAllPosts } from "@/lib/blog";
 import { siteConfig } from "@/lib/config";
 import { ShareButtons } from "@/components/ShareButtons";
+import { SubscribeForm } from "@/components/SubscribeForm";
 import { RisoThumbnail } from "@/components/riso/RisoThumbnail";
 import { TAG_COLORS, TAG_FGS, pickByIndex } from "@/lib/riso";
 import type { Metadata } from "next";
@@ -144,6 +145,10 @@ export default async function PostPage({ params }: PostPageProps) {
 
         <div className="mx-auto max-w-[68ch]">
           <ShareButtons title={post.title} slug={slug} />
+        </div>
+
+        <div className="mx-auto mt-14 max-w-[68ch]">
+          <SubscribeForm variant="card" />
         </div>
 
         {upNext.length > 0 && (
