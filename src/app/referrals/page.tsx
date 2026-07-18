@@ -100,6 +100,11 @@ const categories: Category[] = [
         description: "An app I use to save restaurants, write reviews, share recommendations, and remember where I want to eat",
         href: "https://beliapp.co/IAPVrHgmeLb?utm_source=in__s",
       },
+      {
+        name: "Buttondown",
+        description: "The newsletter platform behind my mailing list — markdown-native, developer-friendly, and refreshingly simple",
+        href: "https://buttondown.com/refer/christurgeon",
+      },
     ],
   },
 ];
