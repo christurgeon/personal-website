@@ -21,7 +21,7 @@ export const projects: Project[] = [
   {
     name: "Shortlist",
     description:
-      "Quantitative stock pre-screener that scores quality, moat, growth, momentum/value, and insider activity across FMP, Finnhub, SEC EDGAR, and Yahoo into a ranked shortlist for a human deep dive. Config-driven, sector-aware, and free-tier friendly.",
+      "Quantitative stock pre-screener that scores quality, moat, growth, value, momentum, insider activity, and risk across FMP, Finnhub, SEC EDGAR, and Yahoo into a gate-filtered, ranked shortlist for a human deep dive. Config-driven, sector-aware, and free-tier friendly.",
     language: "Python",
     tags: ["CLI", "Finance", "Quant"],
     github: "https://github.com/christurgeon/shortlist",
