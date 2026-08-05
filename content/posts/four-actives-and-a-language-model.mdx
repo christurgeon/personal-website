@@ -1,0 +1,233 @@
+---
+title: "Four Actives and a Language Model: How I Optimized My Skincare Routine"
+date: "2026-08-05"
+excerpt: "A three-step skincare routine built on four evidence-backed actives, and the process of using an AI research assistant to separate real clinical evidence from marketing, mechanism stories, and forum folklore."
+tags: ["health", "skincare", "ai", "research", "self-experimentation"]
+---
+
+For most of my twenties, my skincare routine was whatever bar soap happened to be in the shower plus a low background guilt that I should probably be doing more. I'm 27, oily and acne-prone, with skin sensitive enough to react to about half of what gets marketed at it, and a patch of redness beside my nose that has been showing up and disappearing for years without my ever knowing what it was.
+
+So at some point I did what everyone does and started reading. That went badly, which I'll get to.
+
+What actually worked was spending a few evenings using Claude as a research assistant — not to pick products, but to grade evidence. The output was a routine with four actives in it: three steps in the morning, three at night. The surprise was how much of the model's value turned out to be subtraction. I went in expecting it to build me a routine. Most of what it did was talk me out of one.
+
+I'm not a dermatologist and none of this is medical advice. It's one person's routine and the reasoning behind it. If you have cystic acne or any scarring, skip to the escalation section at the bottom and go see someone.
+
+---
+
+## The information problem
+
+Skincare is an adversarial information environment. Nearly every claim you encounter is attached to something for sale, and the claims are engineered to be unfalsifiable: *brightening*, *renewing*, *supports the skin barrier*. The forums are better than the marketing, but they run on folklore that gets repeated until it acquires the texture of fact — the mandatory 60-second wait between steps, the ten-step routine, the conviction that a $90 serum must be doing something a $10 tube isn't.
+
+The primary literature exists, and it's more readable than you'd expect. The problem is volume and gradient. A lot of small, short, industry-funded trials measuring surrogate endpoints sit right next to a handful of genuinely good randomized trials, and from the outside there's no obvious way to tell which is which.
+
+That's the exact shape of problem a language model is good at: high-volume, moderately technical reading, low stakes per individual query, in a domain where I can verify the answer. Trial designs, drug labels, and mechanisms are all checkable. If the model tells me adapalene's label reports no phototoxicity, I can go read the label.
+
+---
+
+## Using the model as a research assistant, not an oracle
+
+Four moves did nearly all of the work.
+
+**Ask for the evidence class, not the answer.** "Does niacinamide work?" gets you a paragraph of yes. "What's the strongest study design run on topical niacinamide — in what population, at what concentration, over what duration, measuring what endpoint?" gets you something you can act on. That single reframing is most of the value, and it's what surfaced that the studied range is roughly 2–5% while the serums on the shelf are 10%.
+
+**Ask for the mechanism.** The redness beside my nose turned out to be [seborrheic dermatitis](https://en.wikipedia.org/wiki/Seborrhoeic_dermatitis), which is treated with antifungal shampoo. That seems bizarre until you ask *why*: it's an inflammatory reaction to [Malassezia](https://en.wikipedia.org/wiki/Malassezia), a yeast that lives on everyone's skin. Not an infection, not acne. Once that landed, a pile of things fell out of it at once — why it's chronic and recurring rather than curable, why antifungals control it instead of clearing it, why it likes the beard, and which oils I should keep away from my face.
+
+**Make it argue against the thing.** I wrote [a whole post](/blog/vibe-coding-with-guardrails) about doing this with coding agents, and it works just as well on research. "Here's my routine. What's the strongest case that I'm wasting a step?" That prompt is how vitamin C left the routine.
+
+**Ask where the field actually disagrees.** Models default to a confident consensus voice. Ask "does diet affect acne" and you get a tidy summary that reflects neither the strength nor the messiness of the evidence. Ask "where do the intervention trials and the observational data disagree, and why" and the picture changes: randomized trials support low-glycemic-load diets reducing lesion counts with a modest effect size, while a 2025 meta-analysis of observational data found no significant pooled association. Contested — and knowing that it's contested is the actual finding.
+
+<Callout type="warning" title="The model wants to agree with you">
+  Ask "should I add a vitamin C serum?" and you'll get a yes with a plausible mechanism attached, because that's the shape of answer the question invites. Ask "what's the case against adding one?" and you get something useful. Citations are the other trap — a confidently formatted reference to a study that doesn't exist is the classic failure mode, and the fix is boring: go find the paper.
+</Callout>
+
+---
+
+## The design constraint
+
+Before any of the products, the constraint that shaped all of it: **every step added is a step that gets skipped on a rushed Tuesday.** Three-step routines survive. Six-step routines don't.
+
+This is an uptime argument, and it's the same tradeoff as anything else you have to operate. A worse routine you run 90% of days beats a better routine you run 50% of days, and it isn't close — because everything here works on a timescale of months, and none of it works intermittently.
+
+Four actives total: azelaic acid, adapalene, benzoyl peroxide (spot only), and ketoconazole. Everything else in what follows is cleanser, moisturizer, or sunscreen.
+
+---
+
+## Morning
+
+1. **Gentle cleanser** — CeraVe Hydrating or Cetaphil. Lukewarm water, no actives.
+2. **Azelaic acid 10%** — thin layer over the whole face. Every other day at first, building to daily.
+3. **CeraVe AM Facial Moisturizing Lotion SPF 50** — moisturizer and sunscreen in one step.
+
+No extended waiting between steps. The 60-second absorption rules are folklore; just let each layer spread evenly before the next one goes on.
+
+Sunscreen technique matters more than the product does. Two finger-lengths for face and neck, roughly a quarter teaspoon. The failure mode of a combo product is dispensing a moisturizer-sized amount and getting a third of the labeled SPF. Reapply if you're outdoors more than two hours, which for trail running means actually carrying it.
+
+<Callout type="tip" title="The consumption check">
+  A 3 oz bottle is about 89 mL, and a correct face-and-neck dose is about 1.25 mL — so daily use alone should empty it in roughly ten weeks. If yours is lasting four months, you haven't found a long-lasting sunscreen. You're under-applying by half. The fix is to split the step: a dedicated sunscreen (La Roche-Posay Anthelios, Beauty of Joseon, EltaMD) over a plain moisturizer.
+</Callout>
+
+**A note on the vehicle:** [azelaic acid](https://en.wikipedia.org/wiki/Azelaic_acid) is the right morning active — it works on inflammatory acne, redness, and pigmentation at once — but The Ordinary's 10% suspension pills badly under sunscreen, rolling up into flecks and taking the sunscreen with it. Paula's Choice 10% Booster and Naturium's 10% layer far better. 15% is prescription (Finacea) if 10% stalls out.
+
+---
+
+## Night
+
+1. **Gentle cleanser** in the shower — same one. Lukewarm, don't over-strip.
+2. **Adapalene 0.1%** — Differin or any generic, about $10. A pea-sized amount for the entire face, not per zone. Apply to fully dry skin, and avoid eyelids, lips, and the nasal creases.
+3. **Moisturizer** — CeraVe PM or Beauty of Joseon.
+
+Adapalene is the long-term driver of the whole routine: acne, texture, post-inflammatory marks, and the appearance of pores. It's also the thing most people quit, because it gets worse before it gets better.
+
+The ramp: 2x/week for two weeks → 3x/week for two weeks → every other night → nightly. If it stings, sandwich it — moisturizer, adapalene, moisturizer. Back off the frequency before you consider quitting. Irritation typically peaks inside the first two weeks and then settles.
+
+<Callout type="warning" title="Purging vs. reacting">
+  Purging shows up in the areas you already break out, and it starts within the first few weeks of a retinoid. Breakouts in entirely new locations, or worsening that keeps going for months, is not purging — it's irritation, or something else. Stop and reassess. <em>"It's just purging"</em> is how people spend six months making their skin worse.
+</Callout>
+
+Lips: plain petrolatum before adapalene nights. The vermilion border and the nasal creases are the two places that get irritated first, and an occlusive barrier stops the product migrating into them.
+
+No scrubs, cleansing brushes, or harsh exfoliants while you're adjusting. If you want exfoliation later, a salicylic acid (BHA) product is the option — but only once the core routine is comfortably tolerated.
+
+One more note on sunscreen, since it's the step people cut: adapalene itself is photostable, and its label reports no phototoxicity or photoallergy. But early treatment disrupts the barrier, and the marks this entire routine exists to prevent are sun-aggravated. Daily sunscreen isn't optional here.
+
+---
+
+## The nose thing
+
+Seborrheic dermatitis is chronic and recurring, so it gets treated in two phases — and the second phase is the one people get wrong.
+
+- **Clearing:** ketoconazole 1% shampoo, 2–3x/week for 2–4 weeks, until the redness and flaking resolve.
+- **Maintenance:** once weekly or every other week, indefinitely. Do not stop on clearance. Stopping entirely is the single most common reason it's back within a month.
+
+I run it on nights I skip adapalene. The application details matter more than the brand:
+
+- **Face:** lather on the affected area beside the nose, leave 3–5 minutes, rinse. Short contact only.
+- **Scalp:** 2–3x/week, same dwell time. Once a week isn't enough given the pattern.
+- **Beard:** seb derm frequently lives under facial hair. Include the beard area if it flakes.
+
+1% is the OTC ceiling in the US; 2% is prescription. Buy generic — Equate or Amazon Basic Care is half the price of Nizoral with the same active. Zinc pyrithione is the substitute if ketoconazole irritates, and rotating is reasonable if either stops working.
+
+Keep adapalene and benzoyl peroxide off the flaring patches. Both can worsen redness and irritation exactly where you least want it.
+
+---
+
+## Ad hoc: benzoyl peroxide
+
+2.5% on individual lesions only — Neutrogena On-the-Spot or PanOxyl. 2.5% works nearly as well as 5% or 10% with meaningfully less irritation, which is one of those findings that should have reorganized the shelf and didn't. It bleaches fabric, so use old or white pillowcases and towels, and change the pillowcase twice a week.
+
+And don't pick or squeeze. Picking is the main cause of the marks that then take months of azelaic acid to fade.
+
+---
+
+## Body and beard
+
+This is where the mechanism payoff showed up a second time.
+
+- **Beard oil** — squalane (an inert hydrocarbon) or jojoba (a wax ester) are the safe picks; neither is a usable substrate for Malassezia. Avoid coconut (predominantly C12 lauric acid) and olive (predominantly C18 oleic acid, which independently disrupts the barrier). Both sit inside the C11–C24 range the organism metabolizes. I would never have gotten there from product reviews — it falls straight out of the biology.
+- **Beard hygiene** — cleanse down to the skin, not just the hair, and towel the area properly after showering. Keep heavy occlusives off it while it's flaring; the beard already supplies warmth, sebum, and moisture retention, which is precisely the environment the yeast prefers.
+- **Body moisturizer** — plain ceramide lotion. CeraVe or Vanicream.
+- **Body wash** — fragrance-free. Dove Sensitive or CeraVe.
+- **Showers** — lukewarm. Hot water damages the barrier. Physical exfoliant once or twice a week at most, if at all.
+
+---
+
+## The barrier reset
+
+Tightness, stinging, flaking, or a burning sensation on application means the barrier is compromised. It's the stack — adapalene plus azelaic plus cleansing, accumulating — not a missing product. The answer is never another product.
+
+The instinct in a degraded system is to add something. It's wrong here for the same reason it's wrong in production: you're putting load on something that's already failing. Take load off, then bring it back gradually.
+
+1. **Stop all actives for 5–7 days.** Cleanser and moisturizer twice daily, plus sunscreen. That's the whole routine.
+2. **Petrolatum over the moisturizer at night** for the first few days if it's bad.
+3. **Restart one active at the last frequency you tolerated** — not where you left off.
+4. **If it recurs at the same point twice, that's your ceiling.** Hold there for a month before trying again.
+
+Step three is the one people skip, and it's the entire procedure. Coming back at the frequency that broke you just breaks you again.
+
+---
+
+## Judge nothing early
+
+The hard part of this system isn't the products. It's the feedback loop. You're running an underpowered experiment on yourself with a three-month lag, no control group, and a dozen confounders — sleep, stress, sun, season, the pillowcase.
+
+Which makes the timelines load-bearing:
+
+- **Ketoconazole** — first signs in 3–7 days, real assessment at 2 weeks.
+- **Benzoyl peroxide** — days, per lesion. The only thing here with fast feedback.
+- **Azelaic acid (redness)** — first signs around 4 weeks, real assessment at 8.
+- **Azelaic acid (dark marks)** — 8 weeks for first signs, 12–16 weeks for a real read.
+- **Adapalene** — worse before better, 12 weeks for a real assessment, full effect around 6 months.
+- **Sunscreen** — never visible. You're paying now for a photograph taken in twenty years.
+
+The rules that follow from a feedback loop that slow:
+
+- Introduce adapalene and azelaic acid at least two weeks apart, so a flare is attributable to one of them.
+- One new product at a time. Ever.
+- Thinnest to thickest, actives before moisturizer, sunscreen last in the morning.
+- Stinging past twenty minutes, or raw skin, means reduce frequency — not abandon.
+
+---
+
+## What I dropped, and why
+
+This is the section where the research paid for itself. Every one of these was in a routine I'd have built on my own.
+
+- **Vitamin C** — real but modest evidence. A handful of small human RCTs support improvement in wrinkling and pigmentation, several with biopsy correlates, but the total literature is thin and inconsistent on dermal collagen specifically. Adapalene occupies that slot with far stronger data, and azelaic inhibits tyrosinase, so the brightening overlaps. Not wrong — just low marginal value for an extra morning step. Worth reconsidering if post-inflammatory marks stall after three months on azelaic.
+- **Tea tree oil** — weak, poorly standardized antimicrobial, and oxidized tea tree is a known contact allergen. Benzoyl peroxide does the job better.
+- **Granactive Retinoid 2%** — substantially less clinical evidence than adapalene or tretinoin. Adapalene also stays stable next to benzoyl peroxide, which not every retinoid does.
+- **Niacinamide serum** — 10% exceeds the studied range of roughly 2–5%, and higher concentrations may increase irritation without clearly improving results. The CeraVe AM already contains it.
+- **Full-body coconut oil** — comedogenic for acne-prone skin, and a usable lipid source for Malassezia. Two independent reasons.
+
+Notice the pattern: nothing on that list is a scam. Every one has a real mechanism and some evidence behind it. They're just *dominated* — either by something already in the routine, or by the cost of the extra step. **The question that clears a routine isn't "does this work?" It's "does this add anything the four things I'm already doing don't?"**
+
+---
+
+## Diet, fourth-order
+
+Behind the topicals by a wide margin, and worth touching only if you're still breaking out at month three on a fully ramped routine.
+
+Glycemic load has the better evidence — randomized intervention trials support low-GL diets reducing lesion counts with a modest effect size — though the 2025 meta-analysis of observational data muddies it. The intervention data is stronger than the correlational data, which is an unusual and interesting place for a nutrition question to land. Dairy and whey are mostly associative and inconsistent, possibly varying by sex and dietary pattern; a 2024 double-blind RCT in men left it unresolved.
+
+If you're going to test it: 8–12 weeks minimum, one variable at a time. Whey is the cheapest single swap if you lift. Shorter experiments tell you nothing, for the reasons in the timelines above.
+
+---
+
+## When to escalate
+
+- **OTC adapalene plateaus after ~3 months** → generic tretinoin via telederm, around $25/month. Same slot, same ramp, stronger results.
+- **Nodular or cystic lesions, or any scarring** → see a dermatologist now, not in three months. Scarring is the one failure mode that isn't reversible, and preventing it is what oral therapy exists for.
+- **Seb derm not controlled by 1% ketoconazole after a month** → prescription 2%, or a topical calcineurin inhibitor.
+- **Better UVA coverage** → US filters are dated. Avobenzone is the only approved UVA1 filter and it's photounstable without stabilizers. The EU and Asian markets have Tinosorb S and Uvinul A Plus, which are both broader and photostable. Importing is a real upgrade for UVA specifically. Not urgent.
+
+---
+
+## The TL;DR
+
+<SummaryBox>
+
+**The routine:**
+
+1. **Four actives, total.** Azelaic acid, adapalene, benzoyl peroxide (spot only), ketoconazole. Everything else is cleanser, moisturizer, or sunscreen.
+2. **Three steps morning, three steps night.** The routine you run 90% of days beats the better one you run 50% of days.
+3. **Ramp slowly, one active at a time**, two weeks apart, so a flare is attributable.
+4. **Dose sunscreen properly.** A quarter teaspoon, and a 3 oz bottle should last about ten weeks.
+5. **Treat seb derm in two phases** — clearing, then maintenance forever. Don't stop on clearance.
+6. **When the barrier fails, subtract.** Stop everything for a week, restart at the last frequency you tolerated.
+7. **Judge nothing before twelve weeks.** The feedback loop is the hardest part of the system.
+
+**The research method:**
+
+8. **Ask for the evidence class, not the answer.** Study design, population, duration, endpoint.
+9. **Ask for the mechanism.** It generalizes; a product recommendation doesn't.
+10. **Make the model argue against you**, and ask where the field disagrees with itself.
+
+</SummaryBox>
+
+The thing I keep coming back to is that the model was most useful where it was least flattering. Asked to build, it builds — it will happily hand you a nine-step routine with a mechanism story for every step. Asked to grade evidence, name what's contested, and find the step that's already dominated by something in your cabinet, it's a genuinely good research assistant. Same tool, different question.
+
+Ask for the evidence rather than the answer, keep the routine short enough that you'll actually run it, and may your barrier stay intact.
+
+---
+
+*Disclaimer: I'm not a dermatologist or any kind of medical professional. This is my own routine and my own reasoning, not medical advice. Actives interact with medications and with each other, sensitivities vary enormously, and persistent or severe acne — especially anything nodular, cystic, or scarring — warrants a real dermatologist rather than a blog post.*
