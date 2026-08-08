@@ -1,3 +1,4 @@
+import { parseISO } from "date-fns";
 import { siteConfig } from "@/lib/config";
 import { getAllPosts } from "@/lib/blog";
 import { PostCard } from "@/components/PostCard";
@@ -14,7 +15,7 @@ export default function BlogPage() {
   const posts = getAllPosts();
 
   // Derive year range for the sticker (deterministic — purely from data)
-  const years = posts.map((p) => new Date(p.date).getFullYear()).filter((y) => !Number.isNaN(y));
+  const years = posts.map((p) => parseISO(p.date).getFullYear()).filter((y) => !Number.isNaN(y));
   const yearRange = years.length > 0 ? (years[0] === years[years.length - 1] ? `${years[0]}` : `${Math.min(...years)}–${Math.max(...years)}`) : "";
 
   return (

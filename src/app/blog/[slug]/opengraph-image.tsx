@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { ImageResponse } from "next/og";
-import { format } from "date-fns";
+import { format, parseISO } from "date-fns";
 import { getAllPosts, getPostBySlug } from "@/lib/blog";
 import { OG_SIZE, loadOgFonts, renderOgCard } from "@/lib/og/card";
 
@@ -25,7 +25,7 @@ export default async function Image({ params }: ImageProps) {
     renderOgCard({
       title: post.title,
       tag: post.tags?.[0],
-      meta: `christurgeon.com · ${format(new Date(post.date), "MMM d, yyyy")}`,
+      meta: `christurgeon.com · ${format(parseISO(post.date), "MMM d, yyyy")}`,
       seed: slug,
     }),
     { ...OG_SIZE, fonts: await loadOgFonts() }
