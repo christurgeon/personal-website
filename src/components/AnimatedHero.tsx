@@ -19,7 +19,7 @@ export function AnimatedHero({ name, description, socials }: AnimatedHeroProps) 
 
   return (
     <section className="relative pt-12 pb-20 md:pt-16 md:pb-24">
-      <div className="relative max-w-2xl md:mx-auto">
+      <div className="relative max-w-2xl">
         <h1
           className="font-display animate-fade-in-delay-1 mb-7"
           style={{
