@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
-import { format } from "date-fns";
+import { format, parseISO } from "date-fns";
 import { MDXRemote } from "next-mdx-remote/rsc";
 import rehypeSlug from "rehype-slug";
 import { mdxComponents } from "@/components/mdx";
@@ -116,7 +116,7 @@ export default async function PostPage({ params }: PostPageProps) {
           </h1>
 
           <div className="font-mono-label flex flex-wrap items-center gap-x-2 gap-y-1" style={{ color: "var(--muted)", fontSize: "0.78rem" }}>
-            <span>{format(new Date(post.date), "MMM d, yyyy")}</span>
+            <span>{format(parseISO(post.date), "MMM d, yyyy")}</span>
             <span aria-hidden="true">·</span>
             <span>{post.readingTime}</span>
             <span aria-hidden="true">·</span>
@@ -196,7 +196,7 @@ export default async function PostPage({ params }: PostPageProps) {
                         {p.title}
                       </h3>
                       <div className="font-mono-label" style={{ color: "var(--muted)", fontSize: "0.7rem" }}>
-                        {format(new Date(p.date), "MMM d, yyyy")} · {p.readingTime}
+                        {format(parseISO(p.date), "MMM d, yyyy")} · {p.readingTime}
                       </div>
                     </div>
                   </Link>

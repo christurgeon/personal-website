@@ -1,6 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
-import { format } from "date-fns";
+import { format, parseISO } from "date-fns";
 import { PostMeta } from "@/lib/blog";
 import { pickByIndex, TAG_COLORS, TAG_FGS } from "@/lib/riso";
 import { RisoThumbnail } from "./riso/RisoThumbnail";
@@ -62,7 +62,7 @@ export function PostCard({ post, featured = false }: PostCardProps) {
             </>
           )}
           <span className="font-mono-label" style={{ color: "var(--muted)", fontSize: "0.72rem" }}>
-            {format(new Date(post.date), "MMM d · yyyy")}
+            {format(parseISO(post.date), "MMM d · yyyy")}
           </span>
           <span className="font-mono-label" style={{ color: "var(--muted)", fontSize: "0.72rem" }}>
             · {post.readingTime}
