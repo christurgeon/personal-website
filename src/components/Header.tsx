@@ -45,7 +45,7 @@ export function Header() {
         </Link>
 
         <nav className="hidden md:block" aria-label="Primary">
-          <ul className="flex items-center gap-1">
+          <ul className="flex items-center gap-1.5">
             {siteConfig.nav.map((item) => {
               const active = isActive(item.href);
               return (
@@ -60,17 +60,7 @@ export function Header() {
         </nav>
 
         <div className="flex items-center gap-2">
-          <button
-            onClick={toggleTheme}
-            className="brutal-lift-sm grid h-10 w-10 place-items-center"
-            style={{
-              background: "var(--yellow)",
-              color: "var(--ink)",
-              border: "3px solid var(--border)",
-              boxShadow: "3px 3px 0 var(--border)",
-            }}
-            aria-label="Toggle color mode"
-          >
+          <button onClick={toggleTheme} className="theme-toggle grid h-10 w-10 place-items-center" aria-label="Toggle color mode">
             <SunIcon className="hidden h-5 w-5 dark:block" />
             <MoonIcon className="block h-5 w-5 dark:hidden" />
           </button>

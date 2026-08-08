@@ -289,6 +289,46 @@ export default function ProjectsPage() {
           })}
         </div>
       </section>
+
+      {/* Closing CTA */}
+      <section className="animate-fade-in-delay-3 mt-14">
+        <div
+          className="relative flex flex-col items-start gap-5 border-[3px] p-8 sm:flex-row sm:items-center sm:justify-between md:p-10"
+          style={{
+            background: "var(--card)",
+            color: "var(--ink)",
+            borderColor: "var(--border)",
+            boxShadow: "8px 8px 0 var(--border)",
+          }}
+        >
+          <div>
+            <div className="font-mono-label mb-3" style={{ color: "var(--muted)" }}>
+              [ MORE / GITHUB ]
+            </div>
+            <h2 className="font-display leading-[0.95] tracking-[-0.03em] uppercase" style={{ fontSize: "clamp(1.8rem, 3.5vw, 2.6rem)" }}>
+              That&apos;s everything here.
+            </h2>
+            <p className="mt-3 text-lg" style={{ color: "var(--muted)" }}>
+              More on GitHub.
+            </p>
+          </div>
+          <a
+            href={siteConfig.socials.github}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="brutal-lift-sm font-mono-label inline-flex shrink-0 items-center gap-2 border-[3px] px-5 py-3"
+            style={{
+              background: "var(--ink)",
+              color: "var(--paper)",
+              borderColor: "var(--border)",
+              boxShadow: "4px 4px 0 var(--border)",
+            }}
+          >
+            <GitHubIcon className="h-4 w-4" />
+            View GitHub Profile
+          </a>
+        </div>
+      </section>
     </div>
   );
 }

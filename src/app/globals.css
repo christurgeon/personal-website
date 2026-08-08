@@ -390,7 +390,7 @@ footer {
 /* Header nav link — brutalist pill hover */
 .nav-link {
   display: inline-block;
-  padding: 0.5rem 0.875rem;
+  padding: 0.5rem 0.65rem;
   border: 2.5px solid transparent;
   font-family: var(--font-mono), monospace;
   font-size: 0.78rem;
@@ -411,6 +411,15 @@ footer {
   border-color: var(--border);
   box-shadow: 2px 2px 0 var(--border);
   transform: translate(-1px, -1px);
+}
+
+/* Header theme toggle — plain icon button, no card chrome */
+.theme-toggle {
+  color: var(--ink);
+  transition: color 0.15s ease;
+}
+.theme-toggle:hover {
+  color: var(--accent);
 }
 .nav-link--active {
   background: var(--red);

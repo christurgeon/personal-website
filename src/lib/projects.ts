@@ -52,14 +52,6 @@ export const projects: Project[] = [
     sticker: "CLI",
   },
   {
-    name: "Tracks4Africa Forum Scraper",
-    description: "Search Tracks4Africa forums for road and track condition reports by place name.",
-    language: "Python",
-    tags: ["Scraping", "Travel", "CLI"],
-    github: "https://github.com/christurgeon/tracks4africa-forum-scraper",
-    sticker: "CLI",
-  },
-  {
     name: "autobuild",
     description:
       "Point it at a backlog and walk away. autobuild drains a task list toward a goal by spawning fresh, isolated Claude Code sessions in parallel git worktrees — each one plans, self-reviews, implements, runs your checks, then opens a PR or auto-merges. All state lives in files and git, so a run is disposable and crash-safe.",
