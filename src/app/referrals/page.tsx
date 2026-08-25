@@ -107,6 +107,20 @@ const categories: Category[] = [
       },
     ],
   },
+  {
+    name: "Insurance",
+    kicker: "COVERAGE",
+    number: "04",
+    description: "Coverage I trust for the stuff that matters",
+    referrals: [
+      {
+        name: "Lemonade",
+        description:
+          "Renters, home, pet, and life insurance with an AI-driven claims process and a Giveback program that donates unused premiums to charity",
+        href: "https://lemonade.com/r/christopherturgeon",
+      },
+    ],
+  },
 ];
 
 const fullBonusByHref: Record<string, string> = {
