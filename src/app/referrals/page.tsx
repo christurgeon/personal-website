@@ -105,6 +105,11 @@ const categories: Category[] = [
         description: "The newsletter platform behind my mailing list — markdown-native, developer-friendly, and refreshingly simple",
         href: "https://buttondown.com/refer/christurgeon",
       },
+      {
+        name: "Capital One Shopping",
+        description: "A free browser extension that automatically finds coupon codes and compares prices while you shop online",
+        href: "https://capitaloneshopping.com/r/e0060511-dcb9-4259-86c5-1530ef9a4c48",
+      },
     ],
   },
   {
