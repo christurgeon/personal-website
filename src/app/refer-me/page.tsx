@@ -76,7 +76,7 @@ export default function ReferMePage() {
         </div>
 
         <h1 className="font-display text-[clamp(2.4rem,7vw,4.25rem)] leading-[0.92] tracking-[-0.04em]">
-          HELP ME LAND MY{" "}
+          GET REFERRED TO{" "}
           <span
             className="inline-block border-[3px] px-[0.12em]"
             style={{
@@ -87,7 +87,7 @@ export default function ReferMePage() {
               transform: "rotate(-1.5deg)",
             }}
           >
-            NEXT ROLE
+            POINT72
           </span>
         </h1>
 
