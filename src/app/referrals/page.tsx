@@ -61,6 +61,11 @@ const categories: Category[] = [
         description: "Earn points on rent with no transaction fee — plus 3x on dining, 2x on travel, 1x everywhere else",
         href: "https://www.bilt.com/card?invite=7U3G683Y",
       },
+      {
+        name: "Amex Platinum",
+        description: "A premium travel card with airport lounge access, travel credits, and top-tier rewards on flights and hotels",
+        href: "https://americanexpress.com/en-us/referral/platinum-card?ref=CHRISTrR1G&XL=MIPNS",
+      },
     ],
   },
   {
