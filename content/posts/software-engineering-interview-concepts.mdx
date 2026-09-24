@@ -647,3 +647,102 @@ When a Linux box is misbehaving, a quick pass over the main resources usually po
 The full procedures, including scenarios for memory leaks, OOM kills, and failed mounts, are in [Lessons for Production Engineering](/blog/production-engineering-lessons), and my command toolkit is on [GitHub](https://github.com/christurgeon/Troubleshooting-Tools).
 
 **Interview angle:** start broad (CPU, memory, disk, network) before digging into any one process.
+
+## Networking
+
+### Layers and packet traversal
+
+Networking stacks are built in layers, and each layer only talks to the ones directly above and below it. The TCP/IP model has four: application (HTTP, SMTP, DNS), transport (TCP, UDP), network (IP), and link (Ethernet, Wi-Fi). The seven-layer OSI model splits the top into application, presentation, and session, and the bottom into data link and physical, but interviews mostly use its numbers as shorthand: "layer 4" for transport, "layer 7" for application.
+
+Sending data wraps it once per layer on the way down. Say a laptop is sending an email to a mail server. The mail client hands the message to TCP, which adds a header with source and destination ports; the result is a segment. IP wraps the segment with source and destination addresses; now it's a packet. The link layer wraps the packet in a frame addressed to the next hop's hardware (MAC) address, adds a checksum, and puts bits on the wire.
+
+Along the way, each router strips the frame, reads the destination IP, decrements the packet's time-to-live, and wraps it in a new frame for the next hop. The IP packet travels end to end; frames only live for one hop. At the mail server, everything unwinds in reverse. The network card checks the frame's checksum, the IP layer confirms the address is its own, and TCP uses the destination port to hand the bytes to the process listening on it.
+
+<PacketEncapsulation />
+
+**Interview angle:** know the unit at each layer (segment, packet, frame) and that routers work at the network layer.
+
+### TCP vs UDP
+
+TCP gives you a reliable, ordered byte stream over a connection. It numbers every byte, retransmits what gets lost, reorders what arrives out of order, slows the sender when the receiver falls behind (flow control), and backs off when the network is congested (congestion control). All of that costs a connection handshake and extra latency whenever a packet is lost.
+
+UDP sends individual datagrams with no connection, no retransmission, and no ordering. It's a thin layer over IP that adds ports and a checksum. What it lacks is the point: nothing waits on a lost packet.
+
+Pick by what hurts more, a delay or a gap. File transfers, web pages, and APIs use TCP because every byte must arrive. DNS lookups, games, voice calls, and video calls use UDP because a late packet is worthless and the application can conceal or skip a gap. On-demand video streaming mostly runs over TCP (HTTP) or QUIC, since buffering hides the latency. QUIC itself is the modern twist: it builds reliability, ordering, and encryption on top of UDP, in user space, so it can evolve faster than kernel TCP.
+
+**Interview angle:** choose based on whether the application prefers late or lost, and mention QUIC as the in-between.
+
+### The TCP and TLS handshakes
+
+A TCP connection opens with three messages. The client sends SYN with a randomly chosen initial sequence number. The server replies SYN-ACK, acknowledging that number and sending its own. The client replies ACK. Both sides now agree on sequence numbers, and one round trip has passed before any application data moves.
+
+HTTPS adds TLS on top, after the TCP handshake. In TLS 1.3, the client's first message (ClientHello) lists the versions and cipher suites it supports and includes a key share, so both sides can derive encryption keys right away. The server answers with its own key share, its certificate, a signature proving it holds the certificate's private key, and a Finished message. Everything after the ServerHello is already encrypted. The client checks the certificate chain and signature, sends its own Finished, and can send the first HTTP request in the same flight. That's one round trip for TLS 1.3, down from two in TLS 1.2. Resumed sessions can go further with 0-RTT data, at the cost of that early data being replayable, so it should only be used for safe, idempotent requests.
+
+<HandshakeSequence />
+
+"SSL" is the name of TLS's predecessor. It's been obsolete for years, but the name stuck, so people still say SSL certificate and SSL handshake.
+
+**Interview angle:** count round trips. A new HTTPS connection costs two before the first byte of the request, which is why connection reuse matters.
+
+### HTTP/1.1 vs HTTP/2 vs HTTP/3
+
+HTTP/1.1 is text-based, and persistent connections (keep-alive) let one TCP connection carry many requests, but only one at a time. A slow response blocks everything queued behind it. Browsers work around that by opening several connections per host, about six.
+
+HTTP/2 switched to a binary framing layer and multiplexes many concurrent streams over a single TCP connection, with HPACK compressing the repetitive headers. That fixed head-of-line blocking at the HTTP level but not below it: TCP delivers bytes in order, so one lost packet stalls every stream on the connection until it's retransmitted.
+
+HTTP/3 runs over QUIC on UDP. Each stream is independent at the transport level, so a lost packet only delays its own stream. The transport and TLS 1.3 handshakes are combined, which saves a round trip on new connections. And connections are identified by an ID instead of the IP and port pair, so a phone switching from Wi-Fi to cellular can keep its connection.
+
+**Interview angle:** each version fixed the previous one's head-of-line blocking one layer lower.
+
+### DNS
+
+DNS turns names into addresses. A lookup checks caches first: the browser's, then the operating system's. On a miss, the OS's stub resolver asks a recursive resolver, usually run by the ISP or a public service. If the recursive resolver doesn't have the answer cached, it walks the hierarchy: a root server points it to the servers for `.com`, those point to the authoritative servers for the domain, and the authoritative server answers. Every answer carries a TTL, and every layer caches it for that long.
+
+The common record types:
+
+- **A:** a name to an IPv4 address
+- **AAAA:** a name to an IPv6 address
+- **CNAME:** a name that's an alias for another name
+- **MX:** the mail servers for a domain
+- **TXT:** arbitrary text, used for domain verification and email authentication
+- **NS:** the authoritative name servers for a zone
+
+DNS usually runs over UDP port 53, falling back to TCP for large responses and zone transfers. Classic DNS queries are plaintext, so anyone on the path can see and tamper with them. DNS over HTTPS (DoH) and DNS over TLS (DoT) encrypt them.
+
+**Interview angle:** walk the resolution chain, and remember that TTLs make DNS changes slow to take effect.
+
+### Sockets
+
+A socket is the kernel's endpoint for communication, and like a file, a process uses it through a file descriptor it can `read` and `write`. Unix domain sockets connect processes on the same machine; TCP and UDP sockets connect processes across the network.
+
+A TCP server calls `socket` to create one, `bind` to attach it to an address and port, `listen` to mark it as accepting connections, and then `accept` in a loop. Each `accept` returns a new socket for that one connection, while the listening socket keeps waiting for more. A client calls `socket` and then `connect`. After that, both sides exchange data with `send` and `recv`. A connection is uniquely identified by its 4-tuple: source IP, source port, destination IP, destination port. That's how one server port can hold thousands of connections at once, and why a client machine can run out of ephemeral ports when it opens too many connections to the same destination.
+
+**Interview angle:** know the server call sequence, and that `accept` hands back a new socket per connection.
+
+### What happens when you type a URL
+
+This question has no bottom, so pick a depth and signal where you could go further.
+
+1. The browser parses the URL and checks whether the host is on its HSTS list, which forces HTTPS.
+2. DNS resolves the hostname to an IP address, going through the caches and resolvers described above.
+3. The browser opens a TCP connection to that address on port 443, or a QUIC connection for HTTP/3.
+4. TLS negotiates keys and verifies the server's certificate.
+5. The browser sends the HTTP request, with headers and cookies.
+6. On the server side, the request typically hits a CDN or load balancer, then an application server, which may consult caches and databases before building a response.
+7. The response comes back with a status code, headers, and a body.
+8. The browser parses the HTML into the DOM and fetches the CSS, JavaScript, and images it references, often in parallel. It builds the CSS object model, runs scripts, computes layout, and paints pixels.
+
+**Interview angle:** give the full outline quickly, then ask which step they'd like you to go deep on.
+
+### Debugging slow responses for a subset of users
+
+"Some users see slow responses" is a question about narrowing before guessing.
+
+1. **Define the subset.** Which users, exactly? Slice latency by region, ISP, device, app version, account, endpoint, and time of day until one dimension explains it.
+2. **Compare percentiles, not averages.** Look at p50, p95, and p99 for the affected slice against everyone else. A healthy median with a terrible p99 points to something intermittent.
+3. **Split client side from server side.** Client-side causes: long network round trips, slow DNS, TLS handshakes over a bad link, an unhealthy CDN point of presence. Server-side causes: one bad host or shard, a hot key, cache misses concentrated on certain accounts, accounts with unusually large data, a noisy neighbor on shared hardware.
+4. **Trace the slow requests.** Distributed traces show which hop the time goes to, and it's rarely where you'd guess.
+5. **Check recent changes.** Deploys, config changes, and feature flags rolled out to exactly that subset are the usual culprits.
+6. **Reproduce it.** Replay a request with the affected user's parameters and watch it go slow.
+
+**Interview angle:** narrow first, then hypothesize. Interviewers want the method more than the answer.
