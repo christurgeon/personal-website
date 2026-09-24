@@ -16,7 +16,7 @@ describe("titleFontSize", () => {
     expect(titleFontSize("a".repeat(71))).toBe(50);
   });
 
-  it("puts the longest real post title in the 50px tier", () => {
+  it("puts a title over 70 chars in the 50px tier", () => {
     const title = "The Oracle: What a Year of Trading Weather Markets Taught Me About Being Wrong";
     expect(title.length).toBeGreaterThan(70);
     expect(titleFontSize(title)).toBe(50);
