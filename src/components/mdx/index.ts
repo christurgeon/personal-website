@@ -13,6 +13,7 @@ import StrategyGraveyard from "./StrategyGraveyard";
 import RadiationTypes from "./RadiationTypes";
 import ConsistentHashRing from "./ConsistentHashRing";
 import TokenBucket from "./TokenBucket";
+import LruCache from "./LruCache";
 
 export const mdxComponents = {
   BackdoorRothSteps,
@@ -30,4 +31,5 @@ export const mdxComponents = {
   RadiationTypes,
   ConsistentHashRing,
   TokenBucket,
+  LruCache,
 };
