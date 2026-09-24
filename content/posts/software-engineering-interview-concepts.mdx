@@ -383,3 +383,90 @@ A common bug: a service updates its database and then publishes an event to a qu
 The outbox pattern moves the event into the database. In the same transaction as the business change, insert a row into an outbox table describing the event. A separate relay reads new outbox rows (by polling, or by tailing the database's change log) and publishes them, marking each one sent. The database transaction guarantees the change and the event exist together; the relay guarantees the event eventually goes out. It can go out more than once, so consumers must be idempotent.
 
 **Interview angle:** whenever a design says "write to the DB, then publish," ask what happens if it crashes in between. The outbox is the standard answer.
+
+## Concurrency
+
+### Concurrency vs parallelism
+
+Concurrency means several tasks are in progress during the same stretch of time. Parallelism means several tasks are executing at the same instant. A single core can be concurrent by switching between tasks, running one while another waits on the network, but it can't be parallel. Parallelism needs multiple cores or machines. Every parallel program is concurrent; not every concurrent program is parallel.
+
+They solve different problems. Concurrency is how you stay productive while waiting: a web server handling thousands of connections that spend most of their time idle, or a UI that stays responsive while a download runs. It pays off for I/O-bound work. Parallelism is how you finish CPU-heavy work sooner by splitting it across cores: rendering, compression, number crunching.
+
+**Interview angle:** ask whether the workload is I/O-bound or CPU-bound, then pick concurrency (async I/O, event loops, lots of cheap threads) or parallelism (worker processes or threads per core) to match.
+
+### Threads vs processes
+
+Both are independent sequences of execution. The difference is what they share.
+
+<table>
+  <thead>
+    <tr>
+      <th>Owned by each process</th>
+      <th>Owned by each thread</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Address space (code, heap, globals)</td>
+      <td>Program counter</td>
+    </tr>
+    <tr>
+      <td>Open files and sockets</td>
+      <td>Registers</td>
+    </tr>
+    <tr>
+      <td>Child processes</td>
+      <td>Stack</td>
+    </tr>
+    <tr>
+      <td>Signal handlers and pending signals</td>
+      <td>Scheduling state</td>
+    </tr>
+    <tr>
+      <td>Accounting information</td>
+      <td></td>
+    </tr>
+  </tbody>
+</table>
+
+Threads in the same process share the address space, heap, globals, and open file descriptors; each thread has its own stack and registers. Because there's less to set up, creating and switching threads is cheaper than doing the same with processes, and threads can share data just by reading the same memory. That's also the danger: shared memory without synchronization produces race conditions and corrupted data.
+
+Processes get their own virtual address space, so one process can't scribble on another's memory, and a crash usually stays contained. Communicating takes explicit mechanisms: pipes, sockets, message queues, or shared memory set up on purpose.
+
+**Interview angle:** threads for cheap sharing within one program, processes for isolation. Chrome runs each tab in its own process for exactly that reason.
+
+### Locks, mutexes, and deadlocks
+
+A race condition happens when the result depends on the timing of threads touching shared data. The fix is to make the critical section, the code that touches shared state, run one thread at a time. A mutex does that: a thread locks it, does its work, and unlocks it; anyone else trying to lock it waits. A read-write lock relaxes the rule so many readers can hold it at once, while a writer needs it exclusively.
+
+Locks bring deadlock. It requires four conditions at once: mutual exclusion (a resource is held by one thread), hold and wait (a thread holds one lock while waiting for another), no preemption (nobody can take a lock away), and circular wait (A waits on B, B waits on A). Break any one and deadlock is impossible. The practical fixes are acquiring locks in a single global order and using timeouts or try-lock so a thread can back off. Two relatives are worth naming. In a livelock, threads keep reacting to each other and make no progress. In starvation, a thread never gets its turn.
+
+**Interview angle:** name the four conditions and the lock-ordering fix.
+
+### Atomics and compare-and-swap
+
+`count++` looks like one operation, but it's three: load the value, add one, store it back. Two threads can both load 5, both store 6, and one increment is lost. That's a read-modify-write race.
+
+Atomic types fix it with CPU instructions that do the whole read-modify-write indivisibly. Fetch-and-add increments in one step. Compare-and-swap (CAS) says "set this to the new value only if it still holds the value I expect," and reports whether it worked. Lock-free code builds on CAS loops: read the current value, compute the new one, attempt the CAS, and retry if another thread got there first. A subtle trap is the ABA problem: the value changes from A to B and back to A between your read and your CAS, so the CAS succeeds even though the world changed underneath you.
+
+Use atomics for a single variable, such as counters, flags, or sequence numbers. When an invariant spans several variables (move money from one balance to another), use a lock.
+
+**Interview angle:** explain why `count++` isn't safe, then offer an atomic increment instead of a mutex for a lone counter.
+
+### Semaphores
+
+A semaphore is a counter of permits. Acquiring takes a permit, or blocks until one is free; releasing gives one back. Where a mutex allows one holder, a semaphore allows N, which makes it the natural tool for limiting access to a finite resource: at most 20 database connections, at most 5 concurrent calls to a fragile downstream service.
+
+A binary semaphore (one permit) looks like a mutex but isn't quite one. A mutex has an owner, and only the thread that locked it may unlock it. Any thread can release a semaphore. Rate limiters are the same idea with time added: a token bucket is a semaphore whose permits refill at a fixed rate.
+
+**Interview angle:** reach for a semaphore when the question is "at most N at a time."
+
+### Bounded blocking queues and backpressure
+
+The producer-consumer pattern connects the two sides with a queue. Make the queue bounded and blocking. When it's full, producers block on `put`. That's backpressure: a slow consumer pushes back on the source instead of letting the queue grow until memory runs out. When it's empty, consumers block on `take` and sleep until work arrives, instead of polling in a busy loop.
+
+Blocking forever is fine for a background pipeline but not on a request path, where a caller is waiting. There, use a timed offer: try to enqueue for a few milliseconds, and if the queue is still full, shed the load with a `429` or `503` rather than letting requests pile up. Plan for shutdown too: stop accepting new work, let consumers drain what's left, and wake any threads still blocked, either by sending a poison-pill message that tells consumers to exit or by interrupting them.
+
+A connection pool is the same structure. Fill a blocking queue with N open connections. Borrowing a connection is `take`, returning it is `put`, and the size of the queue acts as the semaphore. Always return connections in a `finally` block, or one exception leaks a connection and the pool slowly empties.
+
+**Interview angle:** a bounded queue is backpressure; an unbounded one is a memory leak waiting for a traffic spike.
