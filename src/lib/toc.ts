@@ -15,10 +15,12 @@ const FENCE_OPEN = /^ {0,3}(`{3,}|~{3,})/;
 const FENCE_CLOSE = /^ {0,3}(`{3,}|~{3,})\s*$/;
 const ATX_HEADING = /^ {0,3}(#{1,6})[ \t]+(.+?)(?:[ \t]+#+)?[ \t]*$/;
 
+// Link text may itself contain code spans, so links and images are unwrapped before code spans are split out.
+const IMAGE = /!\[(?:[^\]`]|`[^`]*`)*\]\([^)]*\)/g;
+const LINK = /\[((?:[^\]`]|`[^`]*`)*)\]\([^)]*\)/g;
+
 function stripMarks(text: string): string {
   return text
-    .replace(/!\[[^\]]*\]\([^)]*\)/g, "")
-    .replace(/\[([^\]]*)\]\([^)]*\)/g, "$1")
     .replace(/(\*\*|__)(.+?)\1/g, "$2")
     .replace(/\*(.+?)\*/g, "$1")
     .replace(/(^|[^\w])_(.+?)_(?=[^\w]|$)/g, "$1$2")
@@ -26,7 +28,8 @@ function stripMarks(text: string): string {
 }
 
 // Mirrors what hast-util-to-string yields for a heading: text content with code spans kept verbatim.
-function headingText(raw: string): string {
+function headingText(heading: string): string {
+  const raw = heading.replace(IMAGE, "").replace(LINK, "$1");
   const pieces: string[] = [];
   const code = /(`+)([\s\S]*?[^`])\1(?!`)/g;
   let last = 0;
@@ -80,6 +83,8 @@ export function groupToc(entries: TocEntry[]): TocPart[] {
 export function activeHeadingId(positions: { id: string; top: number }[], offset: number): string | null {
   let current: string | null = null;
   for (const { id, top } of positions) {
+    // A heading missing from the page reports Infinity; skip it rather than ending the scan early.
+    if (!Number.isFinite(top)) continue;
     if (top > offset) break;
     current = id;
   }

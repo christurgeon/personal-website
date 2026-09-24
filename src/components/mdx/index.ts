@@ -11,6 +11,18 @@ import SummaryBox from "./SummaryBox";
 import AgentWorkflowLoop from "./AgentWorkflowLoop";
 import StrategyGraveyard from "./StrategyGraveyard";
 import RadiationTypes from "./RadiationTypes";
+import ConsistentHashRing from "./ConsistentHashRing";
+import TokenBucket from "./TokenBucket";
+import LruCache from "./LruCache";
+import QuorumReplicas from "./QuorumReplicas";
+import LoadBalancerRace from "./LoadBalancerRace";
+import PageTableWalk from "./PageTableWalk";
+import HandshakeSequence from "./HandshakeSequence";
+import LsmTree from "./LsmTree";
+import PacketEncapsulation from "./PacketEncapsulation";
+import ShardedVsReplicatedCache from "./ShardedVsReplicatedCache";
+import CapPartition from "./CapPartition";
+import SnowflakeIdLayout from "./SnowflakeIdLayout";
 
 export const mdxComponents = {
   BackdoorRothSteps,
@@ -26,4 +38,16 @@ export const mdxComponents = {
   AgentWorkflowLoop,
   StrategyGraveyard,
   RadiationTypes,
+  ConsistentHashRing,
+  TokenBucket,
+  LruCache,
+  QuorumReplicas,
+  LoadBalancerRace,
+  PageTableWalk,
+  HandshakeSequence,
+  LsmTree,
+  PacketEncapsulation,
+  ShardedVsReplicatedCache,
+  CapPartition,
+  SnowflakeIdLayout,
 };

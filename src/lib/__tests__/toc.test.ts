@@ -44,9 +44,15 @@ describe("extractToc", () => {
       "### R + W > N: *why*?",
       "### `O_DIRECT` and snake_case_name",
       "### TCP vs. UDP (and QUIC)",
+      "### [`kill`](https://example.com) and signals",
+      "### See [the `fork` docs](/x)",
       "## Closing ##",
     ].join("\n\n");
     expect(tocHeadings(source)).toEqual(await compiledHeadings(source));
+  });
+
+  it("strips links whose text contains inline code", () => {
+    expect(extractToc("### See [the `fork` docs](/x)")[0].text).toBe("See the fork docs");
   });
 
   it("matches rehype-slug on every real post", async () => {
@@ -86,6 +92,11 @@ describe("activeHeadingId", () => {
         120
       )
     ).toBeNull();
+  });
+
+  it("skips headings missing from the page instead of stopping at them", () => {
+    const withMissing = [positions[0], { id: "gone", top: Infinity }, positions[1], positions[2]];
+    expect(activeHeadingId(withMissing, 120)).toBe("c");
   });
 
   it("returns the last heading after scrolling past everything", () => {
