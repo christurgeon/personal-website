@@ -1,0 +1,72 @@
+---
+title: "Software Engineering Interview Concepts"
+date: "2026-09-23"
+excerpt: "A study guide to the system design, storage, distributed systems, concurrency, operating systems, and networking concepts that come up in software engineering interviews, with interactive diagrams."
+tags: ["interviews", "system-design", "distributed-systems", "operating-systems", "networking"]
+layout: "guide"
+---
+
+This is the page I wish I'd had the last few times I prepared for interviews: every concept that kept coming up, in one place, organized so I can come back to a single section the night before instead of rereading a book. Use the contents to jump around. Each entry explains the idea in a few paragraphs and ends with an **Interview angle** — the tradeoff or follow-up question an interviewer is most likely to push on.
+
+Several entries have interactive diagrams. Press play, step through them, break things. If you want the hands-on Linux debugging side of this material, that lives in [Lessons for Production Engineering](/blog/production-engineering-lessons); this page sticks to concepts.
+
+## Running the interview
+
+### How to run a system design interview
+
+Don't start drawing boxes. The first five minutes decide most of the interview, and they should be spent asking questions. Who are the users? What are the core features, and which ones can we ignore? How many requests per second, how much data, how fast does it need to be, and what happens if it's briefly wrong? Functional requirements tell you what to build; the non-functional ones (scale, latency, consistency, availability) tell you how.
+
+Once the problem is pinned down, sketch a high-level blueprint: clients, an entry point, a few services, the data stores. Then stop and check it with the interviewer. Treat them like a teammate reviewing your design doc, not an examiner. Ask whether they want back-of-the-envelope numbers before you spend five minutes on arithmetic nobody asked for.
+
+With the blueprint agreed, go deep on the parts that matter most, usually the data model and whichever component carries the hardest requirement. Save the last stretch for operations: what you'd monitor, what you'd alert on, what happens when a server dies or the network splits, and where the bottlenecks will show up first. Ask for feedback early and keep asking.
+
+**Interview angle:** the most common failure is designing before understanding. A mediocre design for the right problem beats a clever design for a problem you invented.
+
+### Back-of-the-envelope estimates
+
+A few rules carry most of the weight. Memory is fast and disk seeks are slow, so avoid seeks where you can. Simple compression is cheap, and compressing before sending over the network is usually worth it. Crossing a datacenter is cheap; crossing an ocean is not.
+
+These numbers are approximate and change with hardware, but the orders of magnitude are what matter:
+
+<table>
+  <thead>
+    <tr>
+      <th>Operation</th>
+      <th>Rough latency</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>L1 cache reference</td>
+      <td>~1 ns</td>
+    </tr>
+    <tr>
+      <td>Main memory reference</td>
+      <td>~100 ns</td>
+    </tr>
+    <tr>
+      <td>Compress 1 KB with a fast codec</td>
+      <td>~2 µs</td>
+    </tr>
+    <tr>
+      <td>SSD random read</td>
+      <td>~16–100 µs</td>
+    </tr>
+    <tr>
+      <td>Round trip within a datacenter</td>
+      <td>~0.5 ms</td>
+    </tr>
+    <tr>
+      <td>Spinning disk seek</td>
+      <td>~2–10 ms</td>
+    </tr>
+    <tr>
+      <td>Round trip across the Atlantic</td>
+      <td>~150 ms</td>
+    </tr>
+  </tbody>
+</table>
+
+For traffic and storage, a day has about 86,400 seconds; call it 10^5. Average QPS is daily active users × actions per user ÷ 86,400, and peak is usually two to three times the average. Storage is items × size × retention × replication factor. If a service gets 100 million writes a day of 1 KB each, that's roughly 1,200 writes per second on average and about 100 GB a day before replication.
+
+**Interview angle:** say every assumption out loud and round aggressively. Nobody cares whether it's 1,157 or 1,200 QPS; they care whether it's a thousand or a million.
