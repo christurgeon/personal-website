@@ -15,6 +15,7 @@ import ConsistentHashRing from "./ConsistentHashRing";
 import TokenBucket from "./TokenBucket";
 import LruCache from "./LruCache";
 import QuorumReplicas from "./QuorumReplicas";
+import LoadBalancerRace from "./LoadBalancerRace";
 
 export const mdxComponents = {
   BackdoorRothSteps,
@@ -34,4 +35,5 @@ export const mdxComponents = {
   TokenBucket,
   LruCache,
   QuorumReplicas,
+  LoadBalancerRace,
 };
