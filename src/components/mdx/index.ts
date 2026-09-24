@@ -21,6 +21,8 @@ import HandshakeSequence from "./HandshakeSequence";
 import LsmTree from "./LsmTree";
 import PacketEncapsulation from "./PacketEncapsulation";
 import ShardedVsReplicatedCache from "./ShardedVsReplicatedCache";
+import CapPartition from "./CapPartition";
+import SnowflakeIdLayout from "./SnowflakeIdLayout";
 
 export const mdxComponents = {
   BackdoorRothSteps,
@@ -46,4 +48,6 @@ export const mdxComponents = {
   LsmTree,
   PacketEncapsulation,
   ShardedVsReplicatedCache,
+  CapPartition,
+  SnowflakeIdLayout,
 };
