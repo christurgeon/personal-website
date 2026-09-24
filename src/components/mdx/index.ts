@@ -16,6 +16,7 @@ import TokenBucket from "./TokenBucket";
 import LruCache from "./LruCache";
 import QuorumReplicas from "./QuorumReplicas";
 import LoadBalancerRace from "./LoadBalancerRace";
+import PageTableWalk from "./PageTableWalk";
 
 export const mdxComponents = {
   BackdoorRothSteps,
@@ -36,4 +37,5 @@ export const mdxComponents = {
   LruCache,
   QuorumReplicas,
   LoadBalancerRace,
+  PageTableWalk,
 };
