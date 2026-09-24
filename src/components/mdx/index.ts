@@ -20,6 +20,7 @@ import PageTableWalk from "./PageTableWalk";
 import HandshakeSequence from "./HandshakeSequence";
 import LsmTree from "./LsmTree";
 import PacketEncapsulation from "./PacketEncapsulation";
+import ShardedVsReplicatedCache from "./ShardedVsReplicatedCache";
 
 export const mdxComponents = {
   BackdoorRothSteps,
@@ -44,4 +45,5 @@ export const mdxComponents = {
   HandshakeSequence,
   LsmTree,
   PacketEncapsulation,
+  ShardedVsReplicatedCache,
 };
