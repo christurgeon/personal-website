@@ -50,7 +50,7 @@ export default function ConsistentHashRing() {
   return (
     <DiagramFrame
       title="Consistent hashing ring"
-      caption="Each key belongs to the next server clockwise. Adding or removing a server only moves the keys in one arc. Virtual nodes scatter each server around the ring so the load evens out."
+      caption="Each key belongs to the next server clockwise. Adding or removing a server only moves the keys in the arcs that server takes over or gives up. Virtual nodes scatter each server around the ring so the load evens out."
       controls={
         <>
           <DiagramButton onClick={() => resize(count + 1)} disabled={count >= SERVERS.length}>

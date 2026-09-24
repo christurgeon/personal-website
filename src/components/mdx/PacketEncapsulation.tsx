@@ -6,8 +6,8 @@ import { useDiagramPlayback, useStepper } from "./diagram/useDiagramPlayback";
 import { liveRegion } from "@/lib/diagrams/playback";
 
 const LAYERS = [
-  { name: "Application", label: "email body", background: "var(--yellow)", color: "var(--on-yellow)" },
-  { name: "Transport", label: "TCP header · ports 49152 → 587", background: "var(--green)", color: "var(--on-green)" },
+  { name: "Application", label: "HTTPS request (encrypted by TLS)", background: "var(--yellow)", color: "var(--on-yellow)" },
+  { name: "Transport", label: "TCP header · ports 49152 → 443", background: "var(--green)", color: "var(--on-green)" },
   { name: "Network", label: "IP header · 198.51.100.7 → 203.0.113.9", background: "var(--blue)", color: "var(--on-blue)" },
   { name: "Link", label: "Ethernet header + trailer · MAC addresses, checksum", background: "var(--pink)", color: "var(--on-pink)" },
 ];
@@ -16,7 +16,7 @@ type Host = "Sender" | "Network" | "Receiver";
 const HOSTS: Host[] = ["Sender", "Network", "Receiver"];
 
 const STEPS: { host: Host; depth: number; note: string }[] = [
-  { host: "Sender", depth: 1, note: "The mail client hands the message to the transport layer." },
+  { host: "Sender", depth: 1, note: "The browser hands its encrypted HTTPS request to the transport layer." },
   { host: "Sender", depth: 2, note: "Transport adds a TCP header with source and destination ports. The unit is now a segment." },
   { host: "Sender", depth: 3, note: "Network adds an IP header with source and destination addresses. The unit is now a packet." },
   { host: "Sender", depth: 4, note: "Link wraps the packet in a frame addressed to the next hop's MAC address and sends the bits." },

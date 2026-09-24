@@ -3,10 +3,12 @@
 import { useState } from "react";
 import DiagramFrame, { DiagramButton } from "./diagram/DiagramFrame";
 
-const NODES = 10;
-const NODE_GB = 10;
-const DATASET_GB = 200;
-const NODE_RPS = 100;
+const NODES = 12;
+const NODE_GB = 8;
+const DATASET_GB = 240;
+const NODE_RPS = 150;
+// Below NODES * NODE_RPS so either layout can lose a node and still carry the load.
+const TRAFFIC_RPS = 1500;
 const PALETTE = [
   { background: "var(--red)", color: "var(--on-red)" },
   { background: "var(--blue)", color: "var(--on-blue)" },
@@ -25,7 +27,7 @@ export default function ShardedVsReplicatedCache() {
   return (
     <DiagramFrame
       title="Replicated vs sharded cache"
-      caption="Both layouts serve the same traffic. Replicas each hold the same hot set, so memory goes to redundancy. Shards each hold different keys, so the cache covers ten times more of the dataset, but losing one node loses a tenth of the cache."
+      caption="Both layouts serve the same traffic. Replicas each hold the same hot set, so memory goes to redundancy. Shards each hold different keys, so the cache covers twelve times more of the dataset, but losing one node loses a twelfth of the cache."
       controls={
         <>
           <DiagramButton onClick={() => setMode("replicated")} pressed={mode === "replicated"}>
@@ -38,10 +40,10 @@ export default function ShardedVsReplicatedCache() {
       }
     >
       <p className="mb-4 text-[0.95rem]">
-        {NODES} nodes · {NODE_GB} GB of RAM and {NODE_RPS} requests/second each · {DATASET_GB} GB of possible results · serves {NODES * NODE_RPS} RPS
-        in both layouts.
+        {NODES} nodes · {NODE_GB} GB of RAM and {NODE_RPS} requests/second each · {DATASET_GB} GB of possible results ·{" "}
+        {TRAFFIC_RPS.toLocaleString("en-US")} RPS of traffic, which both layouts can carry even with one node down.
       </p>
-      <ol className="grid grid-cols-5 gap-2" aria-label="Cache nodes">
+      <ol className="grid grid-cols-4 gap-2 sm:grid-cols-6" aria-label="Cache nodes">
         {Array.from({ length: NODES }, (_, i) => {
           const tone = mode === "replicated" ? PALETTE[1] : PALETTE[i % PALETTE.length];
           return (
@@ -64,8 +66,8 @@ export default function ShardedVsReplicatedCache() {
       </div>
       <p className="mt-4 text-[0.95rem]">
         {mode === "replicated"
-          ? "Lose a node: the other nine hold the same data, so the hit rate barely moves."
-          : "Lose a node: a tenth of the keys miss until the shard returns or the keys are rebalanced."}
+          ? `Lose a node: the other ${NODES - 1} hold the same data, so the hit rate holds, and ${NODES - 1} × ${NODE_RPS} RPS still covers the load.`
+          : "Lose a node: a twelfth of the keys miss until the shard returns or the keys are rebalanced."}
       </p>
     </DiagramFrame>
   );
