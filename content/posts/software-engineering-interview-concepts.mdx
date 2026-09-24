@@ -6,7 +6,7 @@ tags: ["interviews", "system-design", "distributed-systems", "operating-systems"
 layout: "guide"
 ---
 
-This is the page I wish I'd had the last few times I prepared for interviews: every concept that kept coming up, in one place, organized so I can come back to a single section the night before instead of rereading a book. Use the contents to jump around. Each entry explains the idea in a few paragraphs and ends with an **Interview angle** — the tradeoff or follow-up question an interviewer is most likely to push on.
+This guide grew out of my interview prep notes: the concepts that kept coming up, in one place, organized so you can come back to a single section the night before instead of rereading a book. Use the contents to jump around. Each entry explains the idea in a few paragraphs and ends with an **Interview angle** — the tradeoff or follow-up question an interviewer is most likely to push on.
 
 Several entries have interactive diagrams. Press play, step through them, break things. If you want the hands-on Linux debugging side of this material, that lives in [Lessons for Production Engineering](/blog/production-engineering-lessons); this page sticks to concepts.
 
@@ -75,11 +75,11 @@ For traffic and storage, a day has about 86,400 seconds; call it 10^5. Average Q
 
 ### Load balancers
 
-A load balancer sits in front of a pool of servers and decides which one handles each request. Clients only ever see its public address or DNS name; the servers behind it live on private addresses and can come and go without anyone outside noticing. That indirection is most of the point. You can add capacity, drain a server for a deploy, or lose a machine entirely, and clients keep connecting to the same place.
+A load balancer sits in front of a pool of servers and decides which one handles each request. Clients only ever see its public address or DNS name; the servers behind it live on private addresses and can come and go without anyone outside noticing. You can add capacity, drain a server for a deploy, or lose a machine entirely, and clients keep connecting to the same place.
 
 Load balancers work at one of two levels. A layer 4 balancer looks at TCP or UDP connections and forwards packets without reading them, which makes it fast and protocol-agnostic. A layer 7 balancer speaks HTTP: it can terminate TLS, read the path and headers, and route on them, so `/images` goes to one pool and `/api` to another. That flexibility costs CPU per request.
 
-Whatever the layer, the job has the same parts. Spread requests using a strategy such as round robin, least connections, or weighted variants of either. Health-check every backend and stop sending traffic to the ones that fail. Optionally terminate TLS so the servers behind it don't each need certificates and the CPU to handle handshakes.
+Whatever the layer, the core job is the same: spread requests with a strategy such as round robin, least connections, or weighted variants of either, and health-check every backend so traffic stops flowing to the ones that fail.
 
 <LoadBalancerRace />
 
@@ -89,7 +89,7 @@ Whatever the layer, the job has the same parts. Spread requests using a strategy
 
 The two get confused because both sit at the front door. A load balancer's job is distribution: keep traffic flowing to healthy servers. An API gateway's job is policy. It's a layer 7 entry point for APIs that routes each request to the right service and handles the cross-cutting concerns no individual service wants to reimplement: authentication and authorization (API keys, JWTs, OAuth), rate limits and quotas, request and response transformation such as converting XML to JSON, response caching, and logging, metrics, and tracing.
 
-Gateways earn their keep when you expose internal services to the outside world or need to control access from mobile apps and third parties. In practice the two are often stacked: a load balancer spreads traffic across gateway instances, and each gateway routes to services that have their own load balancing behind them.
+Gateways matter most when you expose internal services to the outside world or control access from mobile apps and third parties. In practice the two are often stacked: a load balancer spreads traffic across gateway instances, and each gateway routes to services that have their own load balancing behind them.
 
 **Interview angle:** be able to say which concern lives where. Auth and rate limits in the gateway, health checks and distribution in the load balancer.
 
@@ -119,7 +119,7 @@ You rarely want a single bucket. Different endpoints get different limits, and i
 
 A stateful server remembers something about a client between requests, typically session data held in memory. That forces every request from that client back to the same server, which load balancers handle with sticky sessions. Sticky sessions work until a server dies and takes its sessions with it, or until you want to scale in and discover you can't remove a machine without logging people out.
 
-A stateless tier keeps no client state on the web servers at all. Session data moves to a shared store such as Redis or a database, and any server can handle any request. Adding capacity means starting more servers; removing it means stopping them. Autoscaling becomes a matter of watching load.
+A stateless tier keeps no client state on the web servers at all. Session data moves to a shared store such as Redis or a database, and any server can handle any request. Adding capacity means starting more servers; removing it means stopping them.
 
 **Interview angle:** if your design has web servers, make them stateless and say where the state went.
 
@@ -149,7 +149,7 @@ Operationally, hit rate is the number to optimize. Load test the system with and
 
 ### Replicated vs sharded services
 
-There are two ways to spread a service across machines, and they solve different problems. Replication runs identical copies behind a load balancer. It adds request throughput and survives the loss of any single copy, which makes it the natural shape for stateless services. Sharding splits the data so each machine owns a different slice. It adds capacity for state, and it's what you reach for when the data no longer fits on one machine.
+There are two ways to spread a service across machines. Replication runs identical copies behind a load balancer. It adds request throughput and survives the loss of any single copy, which makes it the natural shape for stateless services. Sharding splits the data so each machine owns a different slice. It adds capacity for state, and it's what you reach for when the data no longer fits on one machine.
 
 Sharding can also help stateless services, as an isolation boundary. Some failures come from the input: a malformed or pathological "poison" request that crashes whatever processes it. In a replicated service, enough of those requests can take down every replica, because every replica handles everything. In a sharded service, the poison request only reaches its shard. You lose a fraction of traffic instead of all of it.
 
@@ -213,7 +213,7 @@ The hard part is data. For traffic to move to another data center during a large
 
 Relational databases store rows in tables with a declared schema, join across tables, and wrap changes in transactions. That model handles most applications well and has fifty years of tooling behind it. "NoSQL" is an umbrella for everything else, and the families differ more from each other than from SQL. Key-value stores (Redis, DynamoDB) look up a value by key and little else. Document stores (MongoDB) keep nested JSON-like records. Wide-column stores (Cassandra, Bigtable) spread huge sparse tables across many machines. Graph databases (Neo4j) make relationships first-class.
 
-The real difference is in how you model data. Relational design normalizes first and lets queries join things back together. NoSQL design usually starts from the queries and denormalizes so each one reads a single record or partition, trading storage and write complexity for predictable reads at scale.
+The bigger difference is modeling. Relational design normalizes first and lets queries join things back together. NoSQL design usually starts from the queries and denormalizes so each one reads a single record or partition, trading storage and write complexity for predictable reads at scale.
 
 **Interview angle:** default to a relational database and switch only for a named reason: a scale or access pattern it can't serve, or a data shape it fits badly.
 
@@ -311,7 +311,7 @@ For real scale, distribute it. Partition keys across nodes with consistent hashi
 
 ### The CAP theorem
 
-CAP says a distributed data store can't guarantee all three of consistency (every read sees the latest write), availability (every request gets a non-error response), and partition tolerance (the system keeps working when the network drops messages between nodes). The useful reading is narrower than "pick two." Networks do partition, so partition tolerance isn't optional. The real question is what a node does during a partition when it can't reach the others: refuse to answer and stay consistent (CP), or answer with what it has and stay available (AP).
+CAP says a distributed data store can't guarantee all three of consistency (every read sees the latest write), availability (every request gets a non-error response), and partition tolerance (the system keeps working when the network drops messages between nodes). The popular "pick two" reading misleads. Networks do partition, so partition tolerance isn't optional; what matters is what a node does during a partition when it can't reach the others: refuse to answer and stay consistent (CP), or answer with what it has and stay available (AP).
 
 <CapPartition />
 
@@ -345,7 +345,7 @@ Systems that detect conflicts this way usually keep both versions ("siblings") a
 
 ### Quorum reads and writes
 
-In a leaderless store, each key lives on N replicas. A write counts as successful once W replicas acknowledge it; a read asks R replicas and takes the newest value among the answers. If R + W > N, every read set and every write set share at least one replica, so a read always reaches someone who saw the latest successful write. A common setting is N = 3, W = 2, R = 2. Setting W = 1 makes writes fast and reads must work harder; R = 1 does the reverse.
+In a leaderless store, each key lives on N replicas. A write counts as successful once W replicas acknowledge it; a read asks R replicas and takes the newest value among the answers. If R + W > N, every read set and every write set share at least one replica, so a read always reaches someone who saw the latest successful write. A common setting is N = 3, W = 2, R = 2. W = 1 makes writes fast, but keeping R + W > N then means reading every replica; R = 1 does the reverse.
 
 <QuorumReplicas />
 
@@ -370,7 +370,7 @@ Snowflake-style IDs are numeric, roughly time-ordered, and need no coordination.
 
 ### Idempotency
 
-An operation is idempotent if doing it twice has the same effect as doing it once. That property is what makes retries safe, and in a distributed system retries happen constantly: a timeout doesn't tell you whether the request failed or only the response did. By HTTP's definitions, `GET`, `PUT`, and `DELETE` are idempotent; `POST` is not.
+An operation is idempotent if doing it twice has the same effect as doing it once. That's what makes retries safe, and distributed systems retry constantly: a timeout doesn't tell you whether the request failed or only the response did. By HTTP's definitions, `GET`, `PUT`, and `DELETE` are idempotent; `POST` is not.
 
 For operations that aren't naturally idempotent, such as charging a card, use an idempotency key. The client generates a unique key per logical operation and sends it with every retry. The server records the key with the result of the first attempt and returns that stored result for any repeat. Keep the records in a deduplication table with a TTL long enough to cover realistic retries.
 
@@ -396,7 +396,7 @@ They solve different problems. Concurrency is how you stay productive while wait
 
 ### Threads vs processes
 
-Both are independent sequences of execution. The difference is what they share.
+Both are independent sequences of execution; the difference is what they share.
 
 <table>
   <thead>
@@ -419,7 +419,7 @@ Both are independent sequences of execution. The difference is what they share.
       <td>Stack</td>
     </tr>
     <tr>
-      <td>Signal handlers and pending signals</td>
+      <td>Signal handlers</td>
       <td>Scheduling state</td>
     </tr>
     <tr>
@@ -680,7 +680,7 @@ HTTPS adds TLS on top, after the TCP handshake. In TLS 1.3, the client's first m
 
 <HandshakeSequence />
 
-"SSL" is the name of TLS's predecessor. It's been obsolete for years, but the name stuck, so people still say SSL certificate and SSL handshake.
+"SSL" is TLS's long-obsolete predecessor. The name stuck, which is why people still say SSL certificate.
 
 **Interview angle:** count round trips. A new HTTPS connection costs two before the first byte of the request, which is why connection reuse matters.
 
