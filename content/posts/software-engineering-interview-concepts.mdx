@@ -1,0 +1,774 @@
+---
+title: "Software Engineering Interview Concepts"
+date: "2026-09-23"
+excerpt: "A study guide to the system design, storage, distributed systems, concurrency, operating systems, and networking concepts that come up in software engineering interviews, with interactive diagrams."
+tags: ["interviews", "system-design", "distributed-systems", "operating-systems", "networking"]
+layout: "guide"
+---
+
+This guide grew out of my interview prep notes: the concepts that kept coming up, in one place, organized so you can come back to a single section the night before instead of rereading a book. Use the contents to jump around. Each entry explains the idea in a few paragraphs and ends with an **Interview angle** — the tradeoff or follow-up question an interviewer is most likely to push on.
+
+Several entries have interactive diagrams. Press play, step through them, break things. If you want the hands-on Linux debugging side of this material, that lives in [Lessons for Production Engineering](/blog/production-engineering-lessons); this page sticks to concepts.
+
+## Running the interview
+
+### How to run a system design interview
+
+Don't start drawing boxes. The first five minutes decide most of the interview, and they should be spent asking questions. Who are the users? What are the core features, and which ones can we ignore? How many requests per second, how much data, how fast does it need to be, and what happens if it's briefly wrong? Functional requirements tell you what to build; the non-functional ones (scale, latency, consistency, availability) tell you how.
+
+Once the problem is pinned down, sketch a high-level blueprint: clients, an entry point, a few services, the data stores. Then stop and check it with the interviewer. Treat them like a teammate reviewing your design doc, not an examiner. Ask whether they want back-of-the-envelope numbers before you spend five minutes on arithmetic nobody asked for.
+
+With the blueprint agreed, go deep on the parts that matter most, usually the data model and whichever component carries the hardest requirement. Save the last stretch for operations: what you'd monitor, what you'd alert on, what happens when a server dies or the network splits, and where the bottlenecks will show up first. Ask for feedback early and keep asking.
+
+**Interview angle:** the most common failure is designing before understanding. A mediocre design for the right problem beats a clever design for a problem you invented.
+
+### Back-of-the-envelope estimates
+
+A few rules carry most of the weight. Memory is fast and disk seeks are slow, so avoid seeks where you can. Simple compression is cheap, and compressing before sending over the network is usually worth it. Crossing a datacenter is cheap; crossing an ocean is not.
+
+These numbers are approximate and change with hardware, but the orders of magnitude are what matter:
+
+<table>
+  <thead>
+    <tr>
+      <th>Operation</th>
+      <th>Rough latency</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>L1 cache reference</td>
+      <td>~1 ns</td>
+    </tr>
+    <tr>
+      <td>Main memory reference</td>
+      <td>~100 ns</td>
+    </tr>
+    <tr>
+      <td>Compress 1 KB with a fast codec</td>
+      <td>~2 µs</td>
+    </tr>
+    <tr>
+      <td>SSD random read</td>
+      <td>~16–100 µs</td>
+    </tr>
+    <tr>
+      <td>Round trip within a datacenter</td>
+      <td>~0.5 ms</td>
+    </tr>
+    <tr>
+      <td>Spinning disk seek</td>
+      <td>~2–10 ms</td>
+    </tr>
+    <tr>
+      <td>Round trip, California to Europe and back</td>
+      <td>~150 ms</td>
+    </tr>
+  </tbody>
+</table>
+
+For traffic and storage, a day has about 86,400 seconds; call it 10^5. Average QPS is daily active users × actions per user ÷ 86,400, and peak is usually two to three times the average. Storage is items × size × retention × replication factor. If a service gets 100 million writes a day of 1 KB each, that's roughly 1,200 writes per second on average and about 100 GB a day before replication.
+
+**Interview angle:** say every assumption out loud and round aggressively. Nobody cares whether it's 1,157 or 1,200 QPS; they care whether it's a thousand or a million.
+
+## Scaling building blocks
+
+### Load balancers
+
+A load balancer sits in front of a pool of servers and decides which one handles each request. Clients only ever see its public address or DNS name; the servers behind it live on private addresses and can come and go without anyone outside noticing. You can add capacity, drain a server for a deploy, or lose a machine entirely, and clients keep connecting to the same place.
+
+Load balancers work at one of two levels. A layer 4 balancer looks at TCP or UDP connections and routes on addresses and ports without looking inside the payload, which makes it fast and protocol-agnostic. A layer 7 balancer speaks HTTP: it can terminate TLS, read the path and headers, and route on them, so `/images` goes to one pool and `/api` to another. That flexibility costs CPU per request.
+
+Whatever the layer, the core job is the same: spread requests with a strategy such as round robin, least connections, or weighted variants of either, and health-check every backend so traffic stops flowing to the ones that fail.
+
+<LoadBalancerRace />
+
+**Interview angle:** the load balancer is itself a single point of failure, so say how you'd make it redundant (an active-passive pair or a managed service). And know why least connections beats round robin when servers or requests are uneven.
+
+### API gateway vs load balancer
+
+The two get confused because both sit at the front door. A load balancer's job is distribution: keep traffic flowing to healthy servers. An API gateway's job is policy. It's a layer 7 entry point for APIs that routes each request to the right service and handles the cross-cutting concerns no individual service wants to reimplement: authentication and authorization (API keys, JWTs, OAuth), rate limits and quotas, request and response transformation such as converting XML to JSON, response caching, and logging, metrics, and tracing.
+
+Gateways matter most when you expose internal services to the outside world or control access from mobile apps and third parties. In practice the two are often stacked: a load balancer spreads traffic across gateway instances, and each gateway routes to services that have their own load balancing behind them.
+
+**Interview angle:** be able to say which concern lives where. Auth and rate limits in the gateway, health checks and distribution in the load balancer.
+
+### API styles: REST, SOAP, gRPC
+
+SOAP is a protocol. Every message is an XML envelope with a strict structure, and a family of WS-* standards adds security, reliable delivery, and transactions on top. It can run over HTTP, SMTP, or raw TCP. The rigidity is the feature: two enterprises can agree on a contract and hold each other to it. The cost is verbosity and tooling weight.
+
+REST is an architectural style, not a protocol. You model resources, address them with URLs, and act on them with standard HTTP methods: `GET`, `POST`, `PUT`, `DELETE`. Payloads are usually JSON. Requests are stateless, so each one carries everything the server needs, and responses can be cached by ordinary HTTP machinery. It's the default for public and browser-facing APIs because every client already speaks it.
+
+gRPC uses Protocol Buffers over HTTP/2. You define the service in a schema, generate client and server code in most languages, and get compact binary messages, streaming in both directions, and strict types. It shines for internal service-to-service calls with high throughput. Browsers can't speak it natively, so public APIs usually put a REST or gRPC-Web layer in front.
+
+**Interview angle:** choose by who calls it. Public or browser clients get REST; internal high-throughput calls get gRPC; SOAP is mostly for existing enterprise contracts you have to honor.
+
+### Rate limiting
+
+A rate limiter protects a service from being overwhelmed, whether by a buggy client in a retry loop, a scraper, or a deliberate denial-of-service attempt, and it keeps costs predictable. Put it on the server side. A client-side limit is a suggestion that any client can ignore. The usual home is middleware in front of the service, often the API gateway, which already handles related jobs such as TLS termination and IP allowlisting.
+
+The classic algorithm is the token bucket. A bucket holds up to N tokens and refills at a fixed rate. Each request takes a token; no token, no request. Short bursts up to the bucket size go through, but sustained traffic is capped at the refill rate. The leaky bucket is its sibling: requests queue and drain at a constant rate, which smooths output but adds delay. A fixed window counter (at most 100 requests per minute, reset on the minute) is the simplest option, but it allows up to twice the limit across a window boundary: 100 requests at 12:00:59 and another 100 at 12:01:00. Sliding window logs or counters fix that edge at the cost of more bookkeeping.
+
+One global bucket is rarely enough. Limits are usually keyed, per endpoint and per caller, so a login endpoint can be stricter than a read endpoint and one noisy client can't spend everyone's budget. Across many servers the counters must be shared, typically in Redis with atomic increments and an expiry, or two servers will each let the same client through. When you reject a request, return `429 Too Many Requests` with a `Retry-After` header so well-behaved clients back off.
+
+<TokenBucket />
+
+**Interview angle:** token bucket is the default answer. Be ready to explain the fixed-window boundary burst and how you'd share counters across instances without a race.
+
+### Stateless web tier
+
+A stateful server remembers something about a client between requests, typically session data held in memory. That forces every request from that client back to the same server, which load balancers handle with sticky sessions. Sticky sessions work until a server dies and takes its sessions with it, or until you want to scale in and discover you can't remove a machine without logging people out.
+
+A stateless tier keeps no client state on the web servers at all. Session data moves to a shared store such as Redis or a database, and any server can handle any request. Adding capacity means starting more servers; removing it means stopping them.
+
+**Interview angle:** if your design has web servers, make them stateless and say where the state went.
+
+### CDNs
+
+A content delivery network is a fleet of cache servers spread around the world that serve static content (images, video, CSS, JavaScript) from a location near each user. On a cache miss, the edge server fetches the file from your origin, stores it, and serves later requests itself. The origin controls how long edges keep a file through headers such as `Cache-Control`.
+
+Invalidation is the part to plan for. You can purge objects through the CDN's API, but the more reliable pattern is versioned file names: when `app.js` changes, publish `app.3f9a1c.js` and update the reference, so old and new never collide. Also plan for the CDN itself failing. Clients should be able to fall back to the origin, and the origin should survive that traffic for a while. CDNs are run by third parties and bill by traffic, so cache what benefits from it rather than everything.
+
+CDNs aren't only for static files anymore. They can cache dynamic responses for short periods, run small bits of code at the edge, and keep warm connections open to your origin, which speeds up even uncached requests by skipping repeated TCP and TLS handshakes over long distances.
+
+**Interview angle:** mention versioned URLs for invalidation and say what happens when the CDN is down.
+
+### Caching strategies and eviction
+
+The default pattern is cache-aside. On a read, check the cache; on a miss, read the database, write the result into the cache, and return it. Writes go to the database and either invalidate or update the cached entry. The alternatives change who writes to the cache and when. Write-through writes to the cache and the database together, which keeps the cache fresh at the cost of slower writes. Write-back writes to the cache and flushes to the database later, which is fast but can lose data if the cache dies. Write-around skips the cache on writes entirely, which suits data that is rarely read back.
+
+Caching helps most when data is read often and changes rarely. The cache also scales separately from the database, so it absorbs read load that would otherwise need more database replicas. Give entries a time to live: too short and you miss constantly, too long and you serve stale data. Add random jitter to TTLs so a batch of keys written together doesn't expire at the same instant. When a hot key expires and a thousand requests miss at once, they all hit the database together. That's a cache stampede. Jitter, request coalescing (one request refills the key while the rest wait), a short lock per key, or refreshing popular keys before they expire all help.
+
+When the cache is full, the eviction policy picks what goes. LRU evicts the least recently used key, LFU the least frequently used, FIFO the oldest insert, and ARC adapts between recency and frequency. Implementations are a favorite follow-up. FIFO is a hash map plus a queue. LRU is a hash map from key to a node in a doubly linked list ordered by recency: move a node to the head on every access, evict from the tail. LFU keeps key → (value, frequency, node) plus a map from each frequency to a doubly linked list, and breaks ties within a frequency by recency.
+
+<LruCache />
+
+Operationally, hit rate is the number to optimize. Load test the system with and without the cache so you know the traffic level at which the backend starts returning 500s on its own, because that is what happens when the cache fails. Over-provision cache capacity, spread cache servers across datacenters so one outage doesn't take out the whole cache, and put rate limiting somewhere that survives losing a few cache nodes.
+
+**Interview angle:** name the pattern (cache-aside), the TTL tradeoff, and stampede protection. If they ask you to build one, it's LRU with a hash map and a doubly linked list.
+
+### Replicated vs sharded services
+
+There are two ways to spread a service across machines. Replication runs identical copies behind a load balancer. It adds request throughput and survives the loss of any single copy, which makes it the natural shape for stateless services. Sharding splits the data so each machine owns a different slice. It adds capacity for state, and it's what you reach for when the data no longer fits on one machine.
+
+Sharding can also help stateless services, as an isolation boundary. Some failures come from the input: a malformed or pathological "poison" request that crashes whatever processes it. In a replicated service, enough of those requests can take down every replica, because every replica handles everything. In a sharded service, the poison request only reaches its shard. You lose a fraction of traffic instead of all of it.
+
+Caches make the difference concrete. Picture twelve cache nodes with 8 GB of memory each, sized so that even eleven of them can carry the traffic. Run them as replicas and every node ends up caching the same popular results: the fleet holds 8 GB of distinct data. Run them as shards and each node holds different keys: the fleet holds 96 GB. Same hardware, same traffic, twelve times the cache.
+
+<ShardedVsReplicatedCache />
+
+**Interview angle:** replicate for throughput, shard for size. Then say what losing one node costs in each layout.
+
+### Consistent hashing and virtual nodes
+
+The naive way to pick a shard is `hash(key) % N`. It works until N changes. Going from 10 servers to 11 changes the answer for about 90% of keys, and for a cache that means a wave of misses hitting the database all at once.
+
+Consistent hashing puts servers and keys on the same ring of hash values. Each key belongs to the first server clockwise from it. Adding a server only takes over the keys in the arc just before it; removing one only hands its arc to the next server. On average only about 1/N of the keys move.
+
+With a handful of servers, the arcs come out uneven, and one server can end up owning far more of the ring than the others. Virtual nodes fix that: place each server on the ring many times, at different hashed positions, so each one owns many small arcs whose total evens out. Virtual nodes also let you weight servers. Give a machine with twice the memory twice as many virtual nodes, and it takes about twice the keys.
+
+<ConsistentHashRing />
+
+The shard key matters as much as the hashing scheme. For HTTP caches, hashing the request path plus the query parameters is a good general-purpose key. Leave out the URL fragment, the part after `#`: browsers never send it to the server. The exception is when geography matters more than spread, and you'd rather route users to a nearby shard.
+
+**Interview angle:** explain why modulo hashing fails on resize, how the ring fixes it, and what virtual nodes add.
+
+### Cache warm-up and replicated shards
+
+A new cache shard starts empty. It only fills as real requests miss and get cached, so right after a deploy or a replacement, that shard's slice of traffic goes straight to the backend. Roll out a sharded cache all at once and you've briefly thrown away most of your cache. Deploy gradually, pre-warm shards from a snapshot or recent traffic, or accept the dip and size the backend for it.
+
+The stronger fix is to make each shard a replicated service of its own. Every shard becomes several identical nodes behind their own load balancer, so a single node failure or a rolling deploy never empties a shard. That buys three things: failures stop being cache misses, deploys can happen at peak traffic as long as you've over-provisioned, and a hot shard can get more replicas without touching the others. The cost is more machines and more moving parts.
+
+**Interview angle:** mention warm-up whenever you add a cache to a design. It's the detail that shows you've operated one.
+
+### Ambassador vs shard router
+
+Once data is sharded, something has to know which shard holds a key. One option is the ambassador pattern: a small proxy that runs next to each client, in the same pod or on the same host. The application talks to `localhost`; the ambassador knows the shard map and forwards each request to the right shard. No extra network hop, and the application stays ignorant of sharding. The catch is that the proxy ships with every client, so you deploy and update it everywhere.
+
+The other option is a shard router: a shared service, itself replicated behind a load balancer, that every client calls. Clients stay simple and the routing logic lives in one place. But the router has to scale with total demand, and every request pays for an extra network hop through it.
+
+**Interview angle:** ambassador trades deployment sprawl for latency; a router trades latency and capacity for simplicity.
+
+### Message queues and pub/sub
+
+A queue lets a producer hand off work without waiting for whoever does it. That decoupling absorbs bursts (the queue grows, consumers catch up), lets producers and consumers scale on their own, and makes retries possible because a message stays around until someone acknowledges it.
+
+Two models come up. In a work queue, each message goes to exactly one consumer, which is how you spread jobs across workers. In publish/subscribe, every subscriber group gets every message, which is how several independent systems react to the same event. Log-based systems such as Kafka keep messages in partitions: order is preserved within a partition, consumers track their own offset, and they can replay from an earlier point.
+
+Delivery guarantees are the classic follow-up. At-most-once never redelivers and can lose messages. At-least-once never loses them and can deliver duplicates, so consumers must be idempotent. "Exactly-once" in practice means at-least-once delivery plus idempotent processing or transactions that tie the consume and the side effect together. Messages that keep failing go to a dead-letter queue so they stop blocking everything behind them.
+
+**Interview angle:** say which delivery guarantee you're relying on and how consumers handle duplicates.
+
+### Multiple data centers and geoDNS
+
+Servers die and disks die; at scale, entire data centers occasionally do too. Running in more than one location keeps the service up when one goes dark. GeoDNS resolves the same domain name to different addresses depending on where the query comes from (the user's resolver, or a client-subnet hint when the resolver sends one), which sends people to the nearest healthy location and cuts latency.
+
+The hard part is data. For traffic to move to another data center during a large-scale outage, that data center needs the data, so replication across locations has to be planned: what's synchronous, what lags, and what users see during failover. Test the failover before you need it. And monitor at several levels (hosts, services, the whole region) so you can tell a bad machine from a bad day.
+
+**Interview angle:** multi-region is easy to draw and hard to run. Talk about data replication and failover testing, not just the second box on the diagram.
+
+## Databases and storage
+
+### SQL vs NoSQL
+
+Relational databases store rows in tables with a declared schema, join across tables, and wrap changes in transactions. That model handles most applications well and has fifty years of tooling behind it. "NoSQL" is an umbrella for everything else, and the families differ more from each other than from SQL. Key-value stores (Redis, DynamoDB) look up a value by key and little else. Document stores (MongoDB) keep nested JSON-like records. Wide-column stores (Cassandra, Bigtable) spread huge sparse tables across many machines. Graph databases (Neo4j) make relationships first-class.
+
+The bigger difference is modeling. Relational design normalizes first and lets queries join things back together. NoSQL design usually starts from the queries and denormalizes so each one reads a single record or partition, trading storage and write complexity for predictable reads at scale.
+
+**Interview angle:** default to a relational database and switch only for a named reason: a scale or access pattern it can't serve, or a data shape it fits badly.
+
+### ACID and isolation levels
+
+ACID is four promises about transactions. Atomicity: all of a transaction's changes happen or none do. Consistency: a transaction moves the database from one valid state to another, respecting constraints. Isolation: concurrent transactions don't see each other's partial work. Durability: once committed, a change survives a crash.
+
+Isolation is where the tradeoffs live, because full isolation is expensive. The anomalies each level allows:
+
+- **Dirty read:** reading another transaction's uncommitted change.
+- **Non-repeatable read:** reading the same row twice and getting different values because someone committed in between.
+- **Phantom read:** rerunning a query and getting new rows that another transaction inserted.
+- **Lost update:** two read-modify-write cycles race, and one overwrites the other.
+- **Write skew:** two transactions each check a condition, both pass, and their combined writes break it (two people each see one free seat left on a flight and both book it).
+
+Read uncommitted allows nearly everything. Read committed stops dirty reads. Repeatable read also stops non-repeatable reads. Serializable makes transactions behave as if they ran one at a time. Most databases implement these with MVCC (multi-version concurrency control): writers create new row versions, and readers see a consistent snapshot without blocking writers. Defaults vary. PostgreSQL defaults to read committed, and its repeatable read is snapshot isolation. MySQL's InnoDB defaults to repeatable read.
+
+**Interview angle:** know which anomalies your chosen level still allows, and reach for `SELECT ... FOR UPDATE` or serializable isolation when a check-then-write must be safe.
+
+### Indexes and their write cost
+
+An index is a separate structure, usually a B-tree, that lets the database find rows without scanning the table. It makes reads dramatically faster and makes every write slower, because each insert, update, or delete must also update every index on the table. Indexes also take disk and memory. That's why databases don't index everything automatically: the application developer knows the query patterns and chooses which columns are worth it.
+
+Two details come up often. A composite index on `(a, b)` helps queries that filter on `a`, or on `a` and `b`, but generally not on `b` alone. That's the leftmost-prefix rule; some databases can "skip scan" around it when `a` has few distinct values. A covering index contains every column a query needs, so the database answers from the index without touching the table at all.
+
+**Interview angle:** justify each index by a query, and mention what it costs writes.
+
+### Replication: single-leader, multi-leader, leaderless
+
+With single-leader replication, one node takes all writes and streams changes to followers. The leader can serve reads too; followers serve reads to spread load. If a follower dies, reads shift elsewhere. If the leader dies, a follower is promoted. Replication is usually asynchronous, which keeps writes fast but introduces lag: a user writes, immediately reads from a follower, and doesn't see their own change. Routing a user's reads to the leader for a short while after they write is a common fix. Synchronous replication removes the lag and makes every write wait for the synchronous replicas, which is why many setups keep one follower synchronous and the rest asynchronous.
+
+Multi-leader replication lets several nodes accept writes, typically one per region, so users write locally. The price is conflicts: two regions can change the same record at the same time. Resolution options are last-write-wins (simple and lossy), application-level merge logic, or data types built to merge (CRDTs).
+
+Leaderless replication, the Dynamo style, has no leader at all. Clients write to several replicas and read from several, and quorums decide what counts as success. That's covered below in quorum reads and writes.
+
+**Interview angle:** for any replicated design, say whether replication is sync or async and what users see during lag or failover.
+
+### Sharding and the celebrity problem
+
+Scale vertically first: a bigger machine with more CPU, memory, and faster disks is the simplest fix. It has a ceiling, it gets expensive fast, and it's still a single point of failure. Horizontal scaling means sharding: split the data across machines by a shard key. Hashing the key (say `user_id`) spreads data evenly but makes range queries touch every shard. Range sharding keeps adjacent keys together, which suits range scans and risks hot spots when everyone writes to the newest range.
+
+Even hashing can't save you from one key that gets a huge share of traffic. That's the celebrity problem: one account with millions of followers overwhelms whichever shard owns it. Fixes include splitting that key across several shards with a suffix, giving it a dedicated shard, or caching it aggressively. Adding shards later means moving data, and consistent hashing keeps that movement small. Joins and transactions that span shards become hard or impossible, so choose the shard key to keep related data together.
+
+**Interview angle:** pick the shard key explicitly and say what happens to a hot key.
+
+### Append-only logs and compaction
+
+The cheapest possible write is appending to the end of a file. A surprising number of storage engines build on that. The simplest version is a log of key-value records plus an in-memory hash map from each key to the byte offset of its latest record. A write appends and updates the map. A read looks up the offset and does one seek.
+
+The log grows forever, so it's split into segments. When a segment reaches a size limit, the engine closes it and starts a new one. A background process compacts closed segments, dropping every record for a key except the newest, and merges small segments together. Having a single writer append to the active segment keeps concurrency simple, crash recovery is mostly a matter of finding where the last complete record ends, and nothing is overwritten in place, so there's no fragmentation.
+
+The limits are real: every key must fit in memory, and range queries are poor because keys are scattered in write order.
+
+**Interview angle:** this is the mental model behind LSM-trees, and it explains why so many databases write sequentially.
+
+### LSM-trees
+
+A log-structured merge-tree keeps the append-only idea and adds sorting. Writes go into a memtable, an in-memory sorted structure such as a balanced tree. When it grows past a threshold, it's written to disk as an SSTable (sorted string table), a file of key-value pairs in sorted order, and a fresh memtable takes its place. A write-ahead log records each write before it enters the memtable, so a crash doesn't lose data that hadn't been flushed yet.
+
+Reads check the memtable first, then SSTables from newest to oldest, stopping at the first match. For a key that doesn't exist, that means touching every file, so each SSTable carries a bloom filter that can say "definitely not here" and skip the file. In the background, compaction merges SSTables, drops overwritten values, and keeps the number of files manageable.
+
+The design gets its reputation from write throughput: every disk write is sequential. Because files are sorted, range scans are efficient too, and the approach keeps working when the dataset is far larger than memory.
+
+<LsmTree />
+
+**Interview angle:** LSM-trees favor writes; reads and compaction pay for it. Know where the bloom filter fits.
+
+### Bloom filters
+
+A bloom filter answers "is this item in the set?" using a bit array and a few hash functions. Adding an item sets the bit at each of its hash positions. Checking an item looks at those positions: if any bit is 0, the item was never added. If all are 1, it probably was, because other items might have set those bits. So there are no false negatives, but false positives exist, and their rate rises as the filter fills. Plain bloom filters can't delete, since clearing a bit might erase evidence of another item. Counting bloom filters, which keep small counters instead of bits, allow deletes.
+
+They're everywhere a cheap "no" saves an expensive lookup: LSM-tree reads, checking whether a URL was already crawled, or skipping a cache or database round trip for keys that don't exist.
+
+**Interview angle:** state the guarantee exactly. "Definitely not" or "maybe" — never "definitely yes."
+
+### B-trees
+
+B-trees are the other major storage engine family and the structure behind most relational indexes. Data lives in fixed-size pages, traditionally 4 KB (PostgreSQL uses 8 KB, MySQL's InnoDB 16 KB), sized to match how disks read and write blocks. Each page holds many keys and pointers to child pages, so the branching factor is in the hundreds, and the tree stays shallow. Depth grows as O(log n), so it stays tiny: if each page points to about 500 children, four levels reach 500⁴, roughly 62 billion leaf pages. At 4 KB apiece that's around 250 TB, reachable in four page reads.
+
+Unlike an LSM-tree, a B-tree updates pages in place. A write-ahead log records each change before the page is modified, so a crash mid-update can be repaired on restart.
+
+The rule of thumb: B-trees give predictable read latency and suit read-heavy workloads; LSM-trees give higher write throughput and suit write-heavy ones. Both suffer from write amplification, meaning one logical write becomes several physical ones, in different ways.
+
+**Interview angle:** compare B-trees and LSM-trees by workload, not by which is "better."
+
+### Designing a key-value store
+
+This question pulls most of this section together. Start small: on a single machine, a hash map in memory solves it. Shorter keys and compressed values let more fit in memory, and once it doesn't all fit, keep hot data in memory and the rest on disk.
+
+For real scale, distribute it. Partition keys across nodes with consistent hashing, with virtual nodes so bigger machines take more keys. Replicate each key to N nodes, the next N distinct servers clockwise on the ring. Make consistency tunable with write and read quorums W and R. Detect failed nodes with gossip. Resolve concurrent writes with vector clocks, or accept last-write-wins where losing a write is tolerable. Store data on each node with an LSM-tree to keep writes fast.
+
+**Interview angle:** walk from one machine to many, and name the tradeoff each step adds.
+
+## Distributed systems
+
+### The CAP theorem
+
+CAP says a distributed data store can't guarantee all three of consistency (every read sees the latest write), availability (every request gets a non-error response), and partition tolerance (the system keeps working when the network drops messages between nodes). The popular "pick two" reading misleads. Networks do partition, so partition tolerance isn't optional; what matters is what a node does during a partition when it can't reach the others: refuse to answer and stay consistent (CP), or answer with what it has and stay available (AP).
+
+<CapPartition />
+
+A CA system, one that assumes the network never partitions, only exists on a single machine. PACELC extends the idea to normal operation: if there's a Partition, choose Availability or Consistency; Else, choose between Latency and Consistency. Even with a healthy network, waiting for replicas to agree costs time.
+
+**Interview angle:** don't recite the acronym. Say which way your design leans during a partition and why that's right for this product.
+
+### Consistency models
+
+Strong consistency (formally, linearizability) means every read returns the most recent write, as if there were a single copy of the data. It demands coordination between replicas, which costs latency and, during partitions, availability. Eventual consistency promises only that if writes stop, all replicas converge on the same value eventually. Until then, different readers can see different answers. Weak consistency promises even less: after a write, a read may or may not see it, and there's no bound on when it will. Real-time systems such as live video or game state updates accept that because stale data is worthless anyway.
+
+Between the extremes sit session guarantees that match what users notice. Read-your-writes: after you change something, you see your change. Monotonic reads: you never see data go backwards in time.
+
+**Interview angle:** strong consistency where money or uniqueness is involved, eventual everywhere else, and session guarantees so users don't see their own edits vanish.
+
+### Failure detection and gossip
+
+In a cluster, nodes need to know which of their peers are alive. Having every node heartbeat every other node doesn't scale, so many systems use gossip. Each node keeps a membership list with a heartbeat counter per peer, increments its own counter, and periodically sends its list to a few random peers, who merge it with theirs. Information spreads through the cluster like a rumor. If a peer's counter stops increasing for a while, it's suspected dead, and the suspicion spreads the same way.
+
+One node's opinion isn't enough. A node that looks dead to me might be fine and just unreachable from where I sit, so a failure should be confirmed by at least one other independent source before the cluster acts on it. The deeper problem is that a slow node and a dead node look identical from outside. Every failure detector is a timeout guess.
+
+**Interview angle:** mention gossip for membership and admit the uncertainty. You can't distinguish slow from dead, only choose how long to wait.
+
+### Vector clocks and conflict resolution
+
+When replicas accept writes independently, they need a way to tell whether two versions of a value are ordered or concurrent. A vector clock attaches a list of (node, counter) pairs to each value. When a node updates the value, it increments its own counter. Compare two clocks entry by entry. If every counter in one is at least as large as in the other, it descends from it, and the newer version wins cleanly. If each clock has some counter larger than the other, say `[A:2, B:1]` against `[A:1, B:2]`, the writes were concurrent. Neither saw the other, and that's the conflict.
+
+Systems that detect conflicts this way usually keep both versions ("siblings") and hand them to the client or the application to merge, the way a shopping cart can union two concurrent edits. The alternative is last-write-wins: keep whichever write has the later timestamp. It's simple, but it silently drops the other write and relies on clocks that can disagree across machines.
+
+**Interview angle:** vector clocks detect conflicts; they don't resolve them. Say who resolves them.
+
+### Quorum reads and writes
+
+In a leaderless store, each key lives on N replicas. A write counts as successful once W replicas acknowledge it; a read asks R replicas and takes the newest value among the answers. If R + W > N, every read set and every write set share at least one replica, so a read always reaches someone who saw the latest successful write. A common setting is N = 3, W = 2, R = 2. W = 1 makes writes fast, but keeping R + W > N then means reading every replica; R = 1 does the reverse.
+
+<QuorumReplicas />
+
+Quorums aren't a perfect guarantee. Sloppy quorums, which accept writes on stand-in nodes when the real replicas are unreachable, break the overlap. Concurrent writes can still conflict. And a write that failed on some replicas may still have landed on others.
+
+**Interview angle:** state the R + W > N rule, then name a caveat. It shows you know the rule is a starting point.
+
+### Unique ID generation
+
+A single database's auto-increment stops working once you have many writers. The common options:
+
+- **Ticket server:** one service hands out IDs. Simple, but it's a single point of failure and an extra network call per ID. Running two that hand out odd and even numbers helps.
+- **UUID:** 128 random-looking bits generated anywhere with no coordination and a negligible chance of collision. They're long: 128 bits won't fit in a 64-bit integer column. Random version 4 UUIDs don't sort by time, which hurts index locality; version 7 puts a timestamp first to fix that.
+- **Per-server offsets:** with N servers, server k hands out k, k + N, k + 2N, and so on. No coordination, but changing N is painful: every server must switch to the new step at the same moment, or two of them will hand out the same ID.
+- **Snowflake-style IDs:** divide a 64-bit number into fields for a timestamp, a datacenter, a machine, and a per-millisecond sequence.
+
+<SnowflakeIdLayout />
+
+Snowflake-style IDs fit in 64 bits, sort roughly by time, and need no coordination per ID; each machine only needs its datacenter and machine numbers assigned once. They depend on the clock. If a machine's clock jumps backwards, the generator must wait or refuse, or it will reuse IDs.
+
+**Interview angle:** Snowflake-style is usually the expected answer; the follow-up is clock skew.
+
+### Idempotency
+
+An operation is idempotent if doing it twice has the same effect as doing it once. That's what makes retries safe, and distributed systems retry constantly: a timeout doesn't tell you whether the request failed or only the response did. By HTTP's definitions, `GET`, `PUT`, and `DELETE` are idempotent; `POST` is not.
+
+For operations that aren't naturally idempotent, such as charging a card, use an idempotency key. The client generates a unique key per logical operation and sends it with every retry. The server records the key with the result of the first attempt and returns that stored result for any repeat. Keep the records in a deduplication table with a TTL long enough to cover realistic retries.
+
+**Interview angle:** any time your design retries or uses at-least-once delivery, say how duplicates are made harmless.
+
+### The outbox pattern
+
+A common bug: a service updates its database and then publishes an event to a queue. If the process crashes between the two, the database changed and nobody heard about it. Publish first and crash, and you announced a change that never happened. There's no transaction that spans a database and a message broker. That's the dual-write problem.
+
+The outbox pattern moves the event into the database. In the same transaction as the business change, insert a row into an outbox table describing the event. A separate relay reads new outbox rows (by polling, or by tailing the database's change log) and publishes them, marking each one sent. The database transaction guarantees the change and the event exist together; the relay guarantees the event eventually goes out. It can go out more than once, so consumers must be idempotent.
+
+**Interview angle:** whenever a design says "write to the DB, then publish," ask what happens if it crashes in between. The outbox is the standard answer.
+
+## Concurrency
+
+### Concurrency vs parallelism
+
+Concurrency means several tasks are in progress during the same stretch of time. Parallelism means several tasks are executing at the same instant. A single core can be concurrent by switching between tasks, running one while another waits on the network, but it can't be parallel. Parallelism needs multiple cores or machines. Every parallel program is concurrent; not every concurrent program is parallel.
+
+They solve different problems. Concurrency is how you stay productive while waiting: a web server handling thousands of connections that spend most of their time idle, or a UI that stays responsive while a download runs. It pays off for I/O-bound work. Parallelism is how you finish CPU-heavy work sooner by splitting it across cores: rendering, compression, number crunching.
+
+**Interview angle:** ask whether the workload is I/O-bound or CPU-bound, then pick concurrency (async I/O, event loops, lots of cheap threads) or parallelism (worker processes or threads per core) to match.
+
+### Threads vs processes
+
+Both are independent sequences of execution; the difference is what they share.
+
+<table>
+  <thead>
+    <tr>
+      <th>Owned by each process</th>
+      <th>Owned by each thread</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Address space (code, heap, globals)</td>
+      <td>Program counter</td>
+    </tr>
+    <tr>
+      <td>Open files and sockets</td>
+      <td>Registers</td>
+    </tr>
+    <tr>
+      <td>Child processes</td>
+      <td>Stack</td>
+    </tr>
+    <tr>
+      <td>Signal handlers</td>
+      <td>Scheduling state</td>
+    </tr>
+    <tr>
+      <td>Accounting information</td>
+      <td></td>
+    </tr>
+  </tbody>
+</table>
+
+Threads in the same process share the address space, heap, globals, and open file descriptors; each thread has its own stack and registers. Because there's less to set up, creating and switching threads is cheaper than doing the same with processes, and threads can share data just by reading the same memory. That's also the danger: shared memory without synchronization produces race conditions and corrupted data.
+
+Processes get their own virtual address space, so one process can't scribble on another's memory, and a crash usually stays contained. Communicating takes explicit mechanisms: pipes, sockets, message queues, or shared memory set up on purpose.
+
+**Interview angle:** threads for cheap sharing within one program, processes for isolation. Browsers put tabs and sites in separate processes for exactly that reason: one crashing page shouldn't take the others with it.
+
+### Locks, mutexes, and deadlocks
+
+A race condition happens when the result depends on the timing of threads touching shared data. The fix is to make the critical section, the code that touches shared state, run one thread at a time. A mutex does that: a thread locks it, does its work, and unlocks it; anyone else trying to lock it waits. A read-write lock relaxes the rule so many readers can hold it at once, while a writer needs it exclusively.
+
+Locks bring deadlock. It requires four conditions at once: mutual exclusion (a resource is held by one thread), hold and wait (a thread holds one lock while waiting for another), no preemption (nobody can take a lock away), and circular wait (A waits on B, B waits on A). Break any one and deadlock is impossible. The practical fixes are acquiring locks in a single global order and using timeouts or try-lock so a thread can back off. Two relatives are worth naming. In a livelock, threads keep reacting to each other and make no progress. In starvation, a thread never gets its turn.
+
+**Interview angle:** name the four conditions and the lock-ordering fix.
+
+### Atomics and compare-and-swap
+
+`count++` looks like one operation, but it's three: load the value, add one, store it back. Two threads can both load 5, both store 6, and one increment is lost. That's a read-modify-write race.
+
+Atomic types fix it with CPU instructions that do the whole read-modify-write indivisibly. Fetch-and-add increments in one step. Compare-and-swap (CAS) says "set this to the new value only if it still holds the value I expect," and reports whether it worked. Lock-free code builds on CAS loops: read the current value, compute the new one, attempt the CAS, and retry if another thread got there first. A subtle trap is the ABA problem: the value changes from A to B and back to A between your read and your CAS, so the CAS succeeds even though the world changed underneath you.
+
+Use atomics for a single variable, such as counters, flags, or sequence numbers. When an invariant spans several variables (move money from one balance to another), use a lock.
+
+**Interview angle:** explain why `count++` isn't safe, then offer an atomic increment instead of a mutex for a lone counter.
+
+### Semaphores
+
+A semaphore is a counter of permits. Acquiring takes a permit, or blocks until one is free; releasing gives one back. Where a mutex allows one holder, a semaphore allows N, which makes it the natural tool for limiting access to a finite resource: at most 20 database connections, at most 5 concurrent calls to a fragile downstream service.
+
+A binary semaphore (one permit) looks like a mutex but isn't quite one. A mutex has an owner, and only the thread that locked it may unlock it. Any thread can release a semaphore. Rate limiters are the same idea with time added: a token bucket is a semaphore whose permits refill at a fixed rate.
+
+**Interview angle:** reach for a semaphore when the question is "at most N at a time."
+
+### Bounded blocking queues and backpressure
+
+The producer-consumer pattern connects the two sides with a queue. Make the queue bounded and blocking. When it's full, producers block on `put`. That's backpressure: a slow consumer pushes back on the source instead of letting the queue grow until memory runs out. When it's empty, consumers block on `take` and sleep until work arrives, instead of polling in a busy loop.
+
+Blocking forever is fine for a background pipeline but not on a request path, where a caller is waiting. There, use a timed offer: try to enqueue for a few milliseconds, and if the queue is still full, shed the load with a `429` or `503` rather than letting requests pile up. Plan for shutdown too: stop accepting new work, let consumers drain what's left, and wake any threads still blocked, either by sending a poison-pill message that tells consumers to exit or by interrupting them.
+
+A connection pool is the same structure. Fill a blocking queue with N open connections. Borrowing a connection is `take`, returning it is `put`, and the size of the queue acts as the semaphore. Always return connections in a `finally` block, or one exception leaks a connection and the pool slowly empties.
+
+**Interview angle:** a bounded queue is backpressure; an unbounded one is a memory leak waiting for a traffic spike.
+
+## Operating systems and Linux
+
+### The process lifecycle
+
+New processes on Linux come from existing ones. A process calls `fork`, and the kernel creates a near-identical child with a new process ID (PID); the original becomes its parent, recorded as the child's PPID. Memory isn't copied up front. Parent and child share pages copy-on-write until one of them modifies a page. Usually the child then calls `execve`, which throws away its memory image and loads a new program in its place. That two-step split is why a shell can set up redirections and environment in the child before the new program starts.
+
+Every user-space process has a parent, all the way up to PID 1, `init` (on most modern systems, `systemd`), which the kernel starts at boot. Process details live under `/proc` as files, one directory per PID. Daemons are background processes that keep the system running; they're detached from any terminal, which is why `ps` shows `?` in their TTY column.
+
+A process is always in one of a few states:
+
+- **R:** running or runnable, waiting only for a CPU.
+- **S:** interruptible sleep, waiting for an event such as input.
+- **D:** uninterruptible sleep, usually waiting on I/O. Signals, even `SIGKILL`, usually don't take effect until the wait ends.
+- **Z:** zombie, finished but not yet reaped by its parent.
+- **T:** stopped, for example by `SIGSTOP` (a process stopped by a debugger shows as lowercase `t`).
+
+Processes communicate with the kernel and each other through signals. The ones worth knowing:
+
+<table>
+  <thead>
+    <tr>
+      <th>Signal</th>
+      <th>Number</th>
+      <th>Meaning</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>SIGHUP</td>
+      <td>1</td>
+      <td>Terminal hung up; daemons often treat it as "reload config"</td>
+    </tr>
+    <tr>
+      <td>SIGINT</td>
+      <td>2</td>
+      <td>Interrupt from the keyboard (Ctrl+C)</td>
+    </tr>
+    <tr>
+      <td>SIGKILL</td>
+      <td>9</td>
+      <td>Terminate immediately; cannot be caught or ignored</td>
+    </tr>
+    <tr>
+      <td>SIGSEGV</td>
+      <td>11</td>
+      <td>Invalid memory access</td>
+    </tr>
+    <tr>
+      <td>SIGTERM</td>
+      <td>15</td>
+      <td>Polite request to terminate; the default for `kill`</td>
+    </tr>
+    <tr>
+      <td>SIGSTOP</td>
+      <td>19 on x86 Linux</td>
+      <td>Pause the process; cannot be caught or ignored</td>
+    </tr>
+  </tbody>
+</table>
+
+Scheduling priority is nudged with niceness, from −20 (least nice, highest priority) to 19 (nicest, lowest priority).
+
+**Interview angle:** explain fork then exec, and why the split exists.
+
+### Zombie processes
+
+When a process exits, the kernel keeps a small entry in the process table holding its exit status, so the parent can find out how it ended. The parent collects that status with `wait` or `waitpid`, and only then does the entry disappear. Until it does, the finished process is a zombie. It uses no CPU and almost no memory, but it still holds a PID, and a parent that never reaps can pile up enough zombies to exhaust the PID space.
+
+You can't kill a zombie; it's already dead. Fix the parent so it reaps its children, or kill the parent. The orphaned zombies are then adopted by PID 1 (or a designated subreaper process), which reaps them. Zombies show up with state `Z`:
+
+```bash
+ps -eo pid,ppid,stat,cmd | awk '$3 ~ /^Z/'
+```
+
+An orphan is different: a live process whose parent died. It gets adopted by PID 1, or by a subreaper if one is set, and carries on normally.
+
+**Interview angle:** zombie means "parent didn't call wait." The fix is the parent, not the zombie.
+
+### How kill works
+
+`kill` is named for its most common use, but it's really "send a signal." The command calls the `kill(pid, sig)` system call. The kernel checks that the sender has permission (in short: the same user, or a privileged process), then marks the signal as pending on the target. Delivery happens the next time the target returns from kernel mode to user mode. At that point it runs its handler for the signal, takes the default action, or ignores it.
+
+The default signal is `SIGTERM`, which a process can catch to clean up (flush buffers, close connections) before exiting, or can ignore. `SIGKILL` and `SIGSTOP` can't be caught, blocked, or ignored; the kernel handles them itself. Even `SIGKILL` has to wait if the target is in uninterruptible sleep (state `D`), stuck in a system call such as I/O to a hung network filesystem. It dies when that call returns.
+
+**Interview angle:** send `SIGTERM` first and give the process time to shut down cleanly; `SIGKILL` is the last resort.
+
+### Syscalls
+
+User programs run in a restricted CPU mode that can't touch hardware or kernel memory directly. That isolation keeps one buggy program from crashing the machine. When a program needs something only the kernel can do, it makes a system call: it puts a syscall number and arguments in registers and executes a special instruction (`syscall` on x86-64) that switches the CPU into kernel mode at a fixed entry point.
+
+Common ones:
+
+- Files: `open`, `read`, `write`, `close`
+- Processes: `fork`, `execve`, `wait`
+- Memory: `mmap`, `brk`
+- Networking: `socket`, `connect`, `sendto`, `recvfrom`
+
+A syscall costs far more than a function call because of the mode switch and the kernel's checks, which is why buffered I/O batches many small writes into a few large ones. `strace` shows every syscall a process makes, and it's often the fastest way to see what a stuck program is waiting on.
+
+**Interview angle:** know that a syscall is the only door into the kernel, and why crossing it is expensive.
+
+### File descriptors vs file descriptions
+
+A file descriptor is a small non-negative integer that the kernel hands a process when it opens something. It's an index into that process's file descriptor table. By convention 0 is standard input, 1 is standard output, and 2 is standard error; files, sockets, and pipes you open get 3 and up.
+
+Each descriptor points to an open file description, a kernel object that holds the state of that open: the current offset, the access mode (read, write, or both), status flags such as append mode, and a reference to the file's inode. The distinction matters because the mapping isn't one-to-one. `dup` and `fork` create new descriptors that point to the same description, so they share one offset: a write through either one advances it for both. Calling `open` twice on the same file creates two separate descriptions with independent offsets.
+
+**Interview angle:** this is why a parent and child that both write to an inherited log file don't overwrite each other: they share the offset. Their lines can still interleave, which is what `O_APPEND` and one `write` per record are for.
+
+### Inodes
+
+A filesystem keeps a table of inodes (index nodes), one per file. An inode holds everything about a file except its name and its contents:
+
+- **Where the data is:** pointers to the data blocks, plus the file's size and how many blocks it uses
+- **What it is:** the file type (regular file, directory, symlink, device)
+- **Who can touch it:** owner, group, and permission bits
+- **When it changed:** `mtime` for content, `ctime` for metadata, `atime` for the last read
+- **How many names it has:** the hard link count
+
+Names live in directories, which are just lists of name-to-inode-number entries. That's why hard links work: two names in the directory tree pointing to one inode. The file's data is freed only when the link count drops to zero and no process still has it open.
+
+Some filesystems, including ext4, create a fixed number of inodes when the filesystem is made, so you can run out of them with plenty of free space, usually from millions of tiny files. The symptom is "No space left on device" while `df -h` shows free space. Check with `df -i`, and use `ls -i` or `stat` to see a file's inode.
+
+**Interview angle:** "disk full but df shows space" is a classic, and inode exhaustion is the answer.
+
+### Disks and partitions
+
+Linux names block devices under `/dev`. `/dev/sda` is a whole disk, and `/dev/sda1` and `/dev/sda2` are partitions on it; NVMe drives look like `/dev/nvme0n1` with partitions such as `/dev/nvme0n1p1`. A partition table describes the layout, either the older MBR format or GPT, which supports more partitions and larger disks. Each partition typically holds its own filesystem, which is how one disk can hold a boot partition, a root filesystem, and swap without them interfering. `lsblk` prints the tree of disks, partitions, and mount points.
+
+**Interview angle:** know the naming, and that separate partitions isolate filesystems. A runaway log filling `/var` shouldn't fill `/`.
+
+### Virtual memory and address translation
+
+Every process sees its own private address space, as if it had the machine's memory to itself. The addresses a program uses, every pointer it dereferences, are virtual. On each access, the CPU's memory management unit translates the virtual address into a physical one using page tables that the kernel maintains for that process.
+
+The page tables are a tree indexed by pieces of the virtual address. The address is split into several index fields plus an offset within a page. Each index selects an entry at one level of the tree, and the last level's entry (the page table entry) gives the physical frame number along with flags: present, writable, user or kernel only, accessed, dirty, and caching behavior. The physical address is that frame number joined to the untouched offset. The page tables never store the virtual address; its pieces are the lookup keys. On x86-64 with 4 KB pages, that's four levels for 48-bit addresses, or five on newer hardware.
+
+<PageTableWalk />
+
+Walking four levels on every memory access would be ruinous, so the CPU caches recent translations in the TLB (translation lookaside buffer). If a page isn't present, the MMU raises a page fault. The kernel then loads the page from disk, maps a fresh one, or, if the access was simply invalid, sends the process `SIGSEGV`.
+
+**Interview angle:** virtual → page table walk → frame + offset, with the TLB as the cache and page faults as the slow path.
+
+### Page thrashing
+
+Thrashing is what happens when the memory processes actively need, their working set, is larger than physical RAM. Pages get evicted to disk to make room, then are needed again almost immediately, so the system spends its time moving pages back and forth instead of running programs. Everything slows to a crawl while the disks stay busy.
+
+The signs are a high rate of major page faults, non-zero `si` and `so` (swap in and out) columns in `vmstat`, heavy disk I/O on the swap device, and, counterintuitively, low CPU utilization because processes are always waiting. The naive fix is more RAM. The others are shrinking the working set (smaller caches, fixing a leak), running fewer memory-hungry processes at once, and tuning how eagerly the kernel swaps.
+
+**Interview angle:** thrashing looks like "the machine is slow but the CPU is idle." Check swap activity.
+
+### Reading flame graphs
+
+A flame graph summarizes thousands of sampled stack traces in one picture. Each box is a function. The box's width is the share of samples in which that function was on the stack. The y-axis is stack depth: callers sit below the functions they call. The x-axis is not time. Frames at each level are sorted alphabetically so identical stacks merge into one wide box, and left-to-right position means nothing.
+
+To read one, look for wide boxes near the top of each tower. A wide plateau with nothing above it is a function spending time in its own code, the hot spot. A wide box with a busy tower above it is a function that's expensive because of what it calls. Colors are usually just for contrast and carry no meaning unless the tool says otherwise.
+
+On Linux, `perf record -g` plus the FlameGraph scripts is the classic pipeline; profilers such as `py-spy` for Python produce them directly. A regular flame graph shows time on the CPU. An off-CPU flame graph shows time spent blocked, on locks, I/O, or sleep, which is where latency problems often hide.
+
+**Interview angle:** width is cost, the x-axis isn't time, and the hot spot is the widest box with nothing on top.
+
+### A first-pass triage checklist
+
+When a Linux box is misbehaving, a quick pass over the main resources usually points somewhere:
+
+- **CPU:** `top` or `htop`. Compare load average to the core count, and check the split between user, system, and I/O wait time.
+- **Memory:** `free -h`. Is available memory low? Is the machine swapping?
+- **Disk:** `iostat -x`. High utilization and rising `await` mean the disks are the bottleneck.
+- **Network:** `ss -s` for connection counts, and retransmit counters for a lossy path.
+- **Logs:** `dmesg` for kernel messages such as the OOM killer, and `journalctl` for services.
+
+The full procedures, including scenarios for memory leaks, OOM kills, and failed mounts, are in [Lessons for Production Engineering](/blog/production-engineering-lessons), and my command toolkit is on [GitHub](https://github.com/christurgeon/Troubleshooting-Tools).
+
+**Interview angle:** start broad (CPU, memory, disk, network) before digging into any one process.
+
+## Networking
+
+### Layers and packet traversal
+
+Networking stacks are built in layers, and each layer only talks to the ones directly above and below it. The TCP/IP model has four: application (HTTP, SMTP, DNS), transport (TCP, UDP), network (IP), and link (Ethernet, Wi-Fi). The seven-layer OSI model splits the top into application, presentation, and session, and the bottom into data link and physical, but interviews mostly use its numbers as shorthand: "layer 4" for transport, "layer 7" for application.
+
+Sending data wraps it once per layer on the way down. Say a browser is sending an HTTPS request to a web server. The browser hands the encrypted request to TCP, which adds a header with source and destination ports; the result is a segment. IP wraps the segment with source and destination addresses; now it's a packet. The link layer wraps the packet in a frame addressed to the next hop's hardware (MAC) address, adds a checksum, and puts bits on the wire.
+
+Along the way, each router strips the frame, reads the destination IP, decrements the packet's time-to-live, and wraps it in a new frame for the next hop. The IP packet travels end to end; frames only live for one hop. At the web server, everything unwinds in reverse. The network card checks the frame's checksum, the IP layer confirms the address is its own, and TCP uses the destination port to hand the bytes to the process listening on it.
+
+<PacketEncapsulation />
+
+**Interview angle:** know the unit at each layer (segment, packet, frame) and that routers work at the network layer.
+
+### TCP vs UDP
+
+TCP gives you a reliable, ordered byte stream over a connection. It numbers every byte, retransmits what gets lost, reorders what arrives out of order, slows the sender when the receiver falls behind (flow control), and backs off when the network is congested (congestion control). All of that costs a connection handshake and extra latency whenever a packet is lost.
+
+UDP sends individual datagrams with no connection, no retransmission, and no ordering. It's a thin layer over IP that adds ports and a checksum. What it lacks is the point: nothing waits on a lost packet.
+
+Pick by what hurts more, a delay or a gap. File transfers, web pages, and APIs use TCP because every byte must arrive. Games, voice calls, and video calls use UDP because a late packet is worthless and the application can conceal or skip a gap. DNS uses UDP for a different reason: a query and its answer usually fit in one datagram each, so a handshake would double the cost, and a lost query is simply retried. On-demand video streaming mostly runs over TCP (HTTP) or QUIC, since buffering hides the latency. QUIC itself is the modern twist: it builds reliability, ordering, and encryption on top of UDP, in user space, so it can evolve faster than kernel TCP.
+
+**Interview angle:** choose based on whether the application prefers late or lost, and mention QUIC as the in-between.
+
+### The TCP and TLS handshakes
+
+A TCP connection opens with three messages. The client sends SYN with a randomly chosen initial sequence number. The server replies SYN-ACK, acknowledging that number and sending its own. The client replies ACK. Both sides now agree on sequence numbers, and one round trip has passed before any application data moves.
+
+HTTPS adds TLS on top, after the TCP handshake. In TLS 1.3, the client's first message (ClientHello) lists the versions and cipher suites it supports and includes a key share, so both sides can derive encryption keys right away. The server answers with its own key share, its certificate, a signature proving it holds the certificate's private key, and a Finished message. Everything after the ServerHello is already encrypted. The client checks the certificate chain and signature, sends its own Finished, and can send the first HTTP request in the same flight. That's one round trip for TLS 1.3, down from two in TLS 1.2. Resumed sessions can go further with 0-RTT data, at the cost of that early data being replayable, so it should only be used for safe, idempotent requests.
+
+<HandshakeSequence />
+
+"SSL" is TLS's long-obsolete predecessor. The name stuck, which is why people still say SSL certificate.
+
+**Interview angle:** count round trips. A new HTTPS connection costs two before the first byte of the request, which is why connection reuse matters.
+
+### HTTP/1.1 vs HTTP/2 vs HTTP/3
+
+HTTP/1.1 is text-based, and persistent connections (keep-alive) let one TCP connection carry many requests, but responses come back strictly in order, one at a time. A slow response blocks everything queued behind it. (Pipelining let clients send several requests at once, but responses still had to come back in order, and it was rarely enabled.) Browsers work around that by opening several connections per host, about six.
+
+HTTP/2 switched to a binary framing layer and multiplexes many concurrent streams over a single TCP connection, with HPACK compressing the repetitive headers. That fixed head-of-line blocking at the HTTP level but not below it: TCP delivers bytes in order, so one lost packet stalls every stream on the connection until it's retransmitted.
+
+HTTP/3 runs over QUIC on UDP. Each stream is independent at the transport level, so a lost packet only delays its own stream. The transport and TLS 1.3 handshakes are combined, which saves a round trip on new connections. And connections are identified by an ID instead of the IP and port pair, so a phone switching from Wi-Fi to cellular can keep its connection.
+
+**Interview angle:** each version fixed the previous one's head-of-line blocking one layer lower.
+
+### DNS
+
+DNS turns names into addresses. A lookup checks caches first: the browser's, then the operating system's. On a miss, the OS's stub resolver asks a recursive resolver, usually run by the ISP or a public service. If the recursive resolver doesn't have the answer cached, it walks the hierarchy: a root server points it to the servers for `.com`, those point to the authoritative servers for the domain, and the authoritative server answers. Every answer carries a TTL, and every layer caches it for that long.
+
+The common record types:
+
+- **A:** a name to an IPv4 address
+- **AAAA:** a name to an IPv6 address
+- **CNAME:** a name that's an alias for another name
+- **MX:** the mail servers for a domain
+- **TXT:** arbitrary text, used for domain verification and email authentication
+- **NS:** the authoritative name servers for a zone
+
+DNS usually runs over UDP port 53, falls back to TCP when a response is too large for UDP, and always uses TCP for zone transfers. Classic DNS queries are plaintext, so anyone on the path can see and tamper with them. DNS over HTTPS (DoH) and DNS over TLS (DoT) encrypt the hop from your device to the recursive resolver; the resolver's own queries upstream usually stay in the clear.
+
+**Interview angle:** walk the resolution chain, and remember that TTLs make DNS changes slow to take effect.
+
+### Sockets
+
+A socket is the kernel's endpoint for communication, and like a file, a process uses it through a file descriptor it can `read` and `write`. Unix domain sockets connect processes on the same machine; TCP and UDP sockets connect processes across the network.
+
+A TCP server calls `socket` to create one, `bind` to attach it to an address and port, `listen` to mark it as accepting connections, and then `accept` in a loop. Each `accept` returns a new socket for that one connection, while the listening socket keeps waiting for more. A client calls `socket` and then `connect`. After that, both sides exchange data with `send` and `recv`. A connection is uniquely identified by its 4-tuple: source IP, source port, destination IP, destination port. That's how one server port can hold thousands of connections at once, and why a client machine can run out of ephemeral ports when it opens too many connections to the same destination.
+
+**Interview angle:** know the server call sequence, and that `accept` hands back a new socket per connection.
+
+### What happens when you type a URL
+
+This question has no bottom, so pick a depth and signal where you could go further.
+
+1. The browser parses the URL and checks whether the host is on its HSTS list, which forces HTTPS.
+2. DNS resolves the hostname to an IP address, going through the caches and resolvers described above.
+3. The browser opens a TCP connection to that address on port 443, or a QUIC connection for HTTP/3.
+4. TLS negotiates keys and verifies the server's certificate.
+5. The browser sends the HTTP request, with headers and cookies.
+6. On the server side, the request typically hits a CDN or load balancer, then an application server, which may consult caches and databases before building a response.
+7. The response comes back with a status code, headers, and a body.
+8. The browser parses the HTML into the DOM and fetches the CSS, JavaScript, and images it references, often in parallel. It builds the CSS object model, runs scripts, computes layout, and paints pixels.
+
+**Interview angle:** give the full outline quickly, then ask which step they'd like you to go deep on.
+
+### Debugging slow responses for a subset of users
+
+"Some users see slow responses" is a question about narrowing before guessing.
+
+1. **Define the subset.** Which users, exactly? Slice latency by region, ISP, device, app version, account, endpoint, and time of day until one dimension explains it.
+2. **Compare percentiles, not averages.** Look at p50, p95, and p99 for the affected slice against everyone else. A healthy median with a terrible p99 points to something intermittent.
+3. **Split client side from server side.** Client-side causes: long network round trips, slow DNS, TLS handshakes over a bad link, an unhealthy CDN point of presence. Server-side causes: one bad host or shard, a hot key, cache misses concentrated on certain accounts, accounts with unusually large data, a noisy neighbor on shared hardware.
+4. **Trace the slow requests.** Distributed traces show which hop the time goes to, and it's rarely where you'd guess.
+5. **Check recent changes.** Deploys, config changes, and feature flags rolled out to exactly that subset are the usual culprits.
+6. **Reproduce it.** Replay a request with the affected user's parameters and watch it go slow.
+
+**Interview angle:** narrow first, then hypothesize. Interviewers want the method more than the answer.
+
+## Rapid fire
+
+### Is Java pass-by-value or pass-by-reference?
+
+Always pass-by-value. For primitives, the method gets a copy of the number. For objects, the variable holds a reference, and the method gets a copy of that reference. Both copies point to the same object, so the method can change the object's fields and the caller will see it. But reassigning the parameter to a new object only changes the method's copy; the caller's variable still points where it did.
+
+### How compilers store string literals
+
+Compilers for C, C++, Rust, and similar languages place string literals in a read-only data section of the binary (`.rodata` on Linux). Identical literals may be merged into a single copy, though C doesn't guarantee it, and modifying a literal through a pointer is undefined behavior in C and C++. On most systems it crashes because the page is read-only. Java interns literals in a string pool, so equal literals are the same object. In Rust, a literal is a `&'static str` that points into that read-only data for the life of the program.
+
+## The night before
+
+<SummaryBox>
+
+- Clarify requirements before drawing anything, and check the blueprint with the interviewer.
+- Replicate for throughput, shard for size.
+- Consistent hashing moves about 1/N of keys on resize; virtual nodes even out the load.
+- Cache-aside with jittered TTLs, and a plan for stampedes and cold shards.
+- R + W > N makes quorum reads overlap the latest write.
+- Token bucket for rate limiting, enforced on the server.
+- Any retry or at-least-once delivery needs idempotency; "write then publish" needs an outbox.
+- B-trees for read-heavy workloads, LSM-trees for write-heavy ones, bloom filters to skip files.
+- A new HTTPS connection costs a TCP round trip plus a TLS 1.3 round trip.
+- fork, then exec; zombies mean the parent never called wait.
+- When debugging, narrow down who is affected before guessing why.
+
+</SummaryBox>
