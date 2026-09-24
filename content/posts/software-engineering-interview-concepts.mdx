@@ -206,3 +206,103 @@ Servers die and disks die; at scale, entire data centers occasionally do too. Ru
 The hard part is data. For traffic to move to another data center during a large-scale outage, that data center needs the data, so replication across locations has to be planned: what's synchronous, what lags, and what users see during failover. Test the failover before you need it. And monitor at several levels (hosts, services, the whole region) so you can tell a bad machine from a bad day.
 
 **Interview angle:** multi-region is easy to draw and hard to run. Talk about data replication and failover testing, not just the second box on the diagram.
+
+## Databases and storage
+
+### SQL vs NoSQL
+
+Relational databases store rows in tables with a declared schema, join across tables, and wrap changes in transactions. That model handles most applications well and has fifty years of tooling behind it. "NoSQL" is an umbrella for everything else, and the families differ more from each other than from SQL. Key-value stores (Redis, DynamoDB) look up a value by key and little else. Document stores (MongoDB) keep nested JSON-like records. Wide-column stores (Cassandra, Bigtable) spread huge sparse tables across many machines. Graph databases (Neo4j) make relationships first-class.
+
+The real difference is in how you model data. Relational design normalizes first and lets queries join things back together. NoSQL design usually starts from the queries and denormalizes so each one reads a single record or partition, trading storage and write complexity for predictable reads at scale.
+
+**Interview angle:** default to a relational database and switch only for a named reason: a scale or access pattern it can't serve, or a data shape it fits badly.
+
+### ACID and isolation levels
+
+ACID is four promises about transactions. Atomicity: all of a transaction's changes happen or none do. Consistency: a transaction moves the database from one valid state to another, respecting constraints. Isolation: concurrent transactions don't see each other's partial work. Durability: once committed, a change survives a crash.
+
+Isolation is where the tradeoffs live, because full isolation is expensive. The anomalies each level allows:
+
+- **Dirty read:** reading another transaction's uncommitted change.
+- **Non-repeatable read:** reading the same row twice and getting different values because someone committed in between.
+- **Phantom read:** rerunning a query and getting new rows that another transaction inserted.
+- **Lost update:** two read-modify-write cycles race, and one overwrites the other.
+- **Write skew:** two transactions each check a condition, both pass, and their combined writes break it (two doctors both go off call because each saw the other still on).
+
+Read uncommitted allows nearly everything. Read committed stops dirty reads. Repeatable read also stops non-repeatable reads. Serializable makes transactions behave as if they ran one at a time. Most databases implement these with MVCC (multi-version concurrency control): writers create new row versions, and readers see a consistent snapshot without blocking writers. Defaults vary. PostgreSQL defaults to read committed, and its repeatable read is snapshot isolation. MySQL's InnoDB defaults to repeatable read.
+
+**Interview angle:** know which anomalies your chosen level still allows, and reach for `SELECT ... FOR UPDATE` or serializable isolation when a check-then-write must be safe.
+
+### Indexes and their write cost
+
+An index is a separate structure, usually a B-tree, that lets the database find rows without scanning the table. It makes reads dramatically faster and makes every write slower, because each insert, update, or delete must also update every index on the table. Indexes also take disk and memory. That's why databases don't index everything automatically: the application developer knows the query patterns and chooses which columns are worth it.
+
+Two details come up often. A composite index on `(a, b)` helps queries that filter on `a`, or on `a` and `b`, but not on `b` alone. That's the leftmost-prefix rule. A covering index contains every column a query needs, so the database answers from the index without touching the table at all.
+
+**Interview angle:** justify each index by a query, and mention what it costs writes.
+
+### Replication: single-leader, multi-leader, leaderless
+
+With single-leader replication, one node takes all writes and streams changes to followers. The leader can serve reads too; followers serve reads to spread load. If a follower dies, reads shift elsewhere. If the leader dies, a follower is promoted. Replication is usually asynchronous, which keeps writes fast but introduces lag: a user writes, immediately reads from a follower, and doesn't see their own change. Routing a user's reads to the leader for a short while after they write is a common fix. Synchronous replication removes the lag and makes every write wait for the slowest replica.
+
+Multi-leader replication lets several nodes accept writes, typically one per region, so users write locally. The price is conflicts: two regions can change the same record at the same time. Resolution options are last-write-wins (simple and lossy), application-level merge logic, or data types built to merge (CRDTs).
+
+Leaderless replication, the Dynamo style, has no leader at all. Clients write to several replicas and read from several, and quorums decide what counts as success. That's covered below in quorum reads and writes.
+
+**Interview angle:** for any replicated design, say whether replication is sync or async and what users see during lag or failover.
+
+### Sharding and the celebrity problem
+
+Scale vertically first: a bigger machine with more CPU, memory, and faster disks is the simplest fix. It has a ceiling, it gets expensive fast, and it's still a single point of failure. Horizontal scaling means sharding: split the data across machines by a shard key. Hashing the key (say `user_id`) spreads data evenly but makes range queries touch every shard. Range sharding keeps adjacent keys together, which suits range scans and risks hot spots when everyone writes to the newest range.
+
+Even hashing can't save you from one key that gets a huge share of traffic. That's the celebrity problem: one account with millions of followers overwhelms whichever shard owns it. Fixes include splitting that key across several shards with a suffix, giving it a dedicated shard, or caching it aggressively. Adding shards later means moving data, and consistent hashing keeps that movement small. Joins and transactions that span shards become hard or impossible, so choose the shard key to keep related data together.
+
+**Interview angle:** pick the shard key explicitly and say what happens to a hot key.
+
+### Append-only logs and compaction
+
+The cheapest possible write is appending to the end of a file. A surprising number of storage engines build on that. The simplest version is a log of key-value records plus an in-memory hash map from each key to the byte offset of its latest record. A write appends and updates the map. A read looks up the offset and does one seek.
+
+The log grows forever, so it's split into segments. When a segment reaches a size limit, the engine closes it and starts a new one. A background process compacts closed segments, dropping every record for a key except the newest, and merges small segments together. Having a single writer append to the active segment keeps concurrency simple, crash recovery is mostly a matter of finding where the last complete record ends, and nothing is overwritten in place, so there's no fragmentation.
+
+The limits are real: every key must fit in memory, and range queries are poor because keys are scattered in write order.
+
+**Interview angle:** this is the mental model behind LSM-trees, and it explains why so many databases write sequentially.
+
+### LSM-trees
+
+A log-structured merge-tree keeps the append-only idea and adds sorting. Writes go into a memtable, an in-memory sorted structure such as a balanced tree. When it grows past a threshold, it's written to disk as an SSTable (sorted string table), a file of key-value pairs in sorted order, and a fresh memtable takes its place. A write-ahead log records each write before it enters the memtable, so a crash doesn't lose data that hadn't been flushed yet.
+
+Reads check the memtable first, then SSTables from newest to oldest, stopping at the first match. For a key that doesn't exist, that means touching every file, so each SSTable carries a bloom filter that can say "definitely not here" and skip the file. In the background, compaction merges SSTables, drops overwritten values, and keeps the number of files manageable.
+
+The design gets its reputation from write throughput: every disk write is sequential. Because files are sorted, range scans are efficient too, and the approach keeps working when the dataset is far larger than memory.
+
+<LsmTree />
+
+**Interview angle:** LSM-trees favor writes; reads and compaction pay for it. Know where the bloom filter fits.
+
+### Bloom filters
+
+A bloom filter answers "is this item in the set?" using a bit array and a few hash functions. Adding an item sets the bit at each of its hash positions. Checking an item looks at those positions: if any bit is 0, the item was never added. If all are 1, it probably was, because other items might have set those bits. So there are no false negatives, but false positives exist, and their rate rises as the filter fills. Plain bloom filters can't delete, since clearing a bit might erase evidence of another item. Counting bloom filters, which keep small counters instead of bits, allow deletes.
+
+They're everywhere a cheap "no" saves an expensive lookup: LSM-tree reads, checking whether a URL was already crawled, or skipping a cache or database round trip for keys that don't exist.
+
+**Interview angle:** state the guarantee exactly. "Definitely not" or "maybe" — never "definitely yes."
+
+### B-trees
+
+B-trees are the other major storage engine family and the structure behind most relational indexes. Data lives in fixed-size pages, traditionally 4 KB, matching how disks read and write blocks. Each page holds many keys and pointers to child pages, so the branching factor is in the hundreds, and the tree stays shallow. Depth grows as O(log n), and most databases fit in three or four levels. Four levels of 4 KB pages with a branching factor of 500 can address about 256 TB.
+
+Unlike an LSM-tree, a B-tree updates pages in place. A write-ahead log records each change before the page is modified, so a crash mid-update can be repaired on restart.
+
+The rule of thumb: B-trees give predictable read latency and suit read-heavy workloads; LSM-trees give higher write throughput and suit write-heavy ones. Both suffer from write amplification, meaning one logical write becomes several physical ones, in different ways.
+
+**Interview angle:** compare B-trees and LSM-trees by workload, not by which is "better."
+
+### Designing a key-value store
+
+This question pulls most of this section together. Start small: on a single machine, a hash map in memory solves it. Shorter keys and compressed values let more fit in memory, and once it doesn't all fit, keep hot data in memory and the rest on disk.
+
+For real scale, distribute it. Partition keys across nodes with consistent hashing, with virtual nodes so bigger machines take more keys. Replicate each key to N nodes, the next N distinct servers clockwise on the ring. Make consistency tunable with write and read quorums W and R. Detect failed nodes with gossip. Resolve concurrent writes with vector clocks, or accept last-write-wins where losing a write is tolerable. Store data on each node with an LSM-tree to keep writes fast.
+
+**Interview angle:** walk from one machine to many, and name the tradeoff each step adds.
