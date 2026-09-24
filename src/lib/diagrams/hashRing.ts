@@ -55,3 +55,10 @@ export function movedKeys(before: Record<string, string>, after: Record<string, 
 export function ringAngle(position: number): number {
   return (position / RING_SPACE) * 360;
 }
+
+// Rounded so Node (server render) and the browser produce identical SVG attributes; their trig results can differ in the last digit.
+export function ringPoint(angleDeg: number, radius: number, center: number): { x: number; y: number } {
+  const radians = ((angleDeg - 90) * Math.PI) / 180;
+  const round = (v: number) => Math.round(v * 100) / 100;
+  return { x: round(center + radius * Math.cos(radians)), y: round(center + radius * Math.sin(radians)) };
+}

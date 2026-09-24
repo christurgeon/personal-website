@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import DiagramFrame, { DiagramButton } from "./diagram/DiagramFrame";
-import { assignKeys, buildRing, hash32, modAssign, movedKeys, ringAngle } from "@/lib/diagrams/hashRing";
+import { assignKeys, buildRing, hash32, modAssign, movedKeys, ringAngle, ringPoint } from "@/lib/diagrams/hashRing";
 
 const SERVERS = ["A", "B", "C", "D", "E"];
 const FILL: Record<string, string> = { A: "var(--red)", B: "var(--blue)", C: "var(--green)", D: "var(--yellow)", E: "var(--pink)" };
@@ -16,8 +16,7 @@ const RING_RADIUS = 130;
 const KEY_RADIUS = 106;
 
 function polar(angleDeg: number, radius: number) {
-  const radians = ((angleDeg - 90) * Math.PI) / 180;
-  return { x: CENTER + radius * Math.cos(radians), y: CENTER + radius * Math.sin(radians) };
+  return ringPoint(angleDeg, radius, CENTER);
 }
 
 export default function ConsistentHashRing() {
