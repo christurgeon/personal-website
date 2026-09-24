@@ -94,7 +94,7 @@ export default function QuorumReplicas() {
         }}
       >
         {strong
-          ? `R + W = ${r + w} > N = ${n}. Every read shares at least ${sets.overlap.length} replica with the latest write, so it can see the newest value.`
+          ? `R + W = ${r + w} > N = ${n}. Every read shares at least ${sets.overlap.length} ${sets.overlap.length === 1 ? "replica" : "replicas"} with the latest write, so it can see the newest value.`
           : `R + W = ${r + w} ≤ N = ${n}. In the worst case the read asks only replicas that missed the write and returns stale data.`}
       </p>
     </DiagramFrame>

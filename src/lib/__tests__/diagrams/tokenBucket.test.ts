@@ -26,6 +26,12 @@ describe("token bucket", () => {
     expect(burst(drained, 1000, 5).allowed).toBe(2);
   });
 
+  it("grants a whole token after one second of 100 ms refills", () => {
+    let state = burst(createBucket(5, 1, 0), 0, 5).state;
+    for (let now = 100; now <= 1000; now += 100) state = refill(state, now);
+    expect(tryTake(state, 1000).allowed).toBe(true);
+  });
+
   it("never exceeds capacity after a long idle period", () => {
     const drained = burst(createBucket(5, 1, 0), 0, 5).state;
     expect(refill(drained, 600_000).tokens).toBe(5);

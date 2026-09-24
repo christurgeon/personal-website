@@ -9,11 +9,14 @@ export function createBucket(capacity: number, refillPerSecond: number, nowMs: n
   return { capacity, refillPerSecond, tokens: capacity, updatedAtMs: nowMs };
 }
 
+// Rounded so repeated small refills (ten 0.1s) reach a whole token instead of 0.9999999999999999.
+const roundTokens = (tokens: number) => Math.round(tokens * 1e9) / 1e9;
+
 export function refill(state: BucketState, nowMs: number): BucketState {
   const elapsed = Math.max(0, nowMs - state.updatedAtMs);
   return {
     ...state,
-    tokens: Math.min(state.capacity, state.tokens + (elapsed * state.refillPerSecond) / 1000),
+    tokens: Math.min(state.capacity, roundTokens(state.tokens + (elapsed * state.refillPerSecond) / 1000)),
     updatedAtMs: Math.max(nowMs, state.updatedAtMs),
   };
 }
