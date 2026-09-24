@@ -18,6 +18,7 @@ import QuorumReplicas from "./QuorumReplicas";
 import LoadBalancerRace from "./LoadBalancerRace";
 import PageTableWalk from "./PageTableWalk";
 import HandshakeSequence from "./HandshakeSequence";
+import LsmTree from "./LsmTree";
 
 export const mdxComponents = {
   BackdoorRothSteps,
@@ -40,4 +41,5 @@ export const mdxComponents = {
   LoadBalancerRace,
   PageTableWalk,
   HandshakeSequence,
+  LsmTree,
 };
