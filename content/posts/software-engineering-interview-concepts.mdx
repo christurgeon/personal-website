@@ -306,3 +306,80 @@ This question pulls most of this section together. Start small: on a single mach
 For real scale, distribute it. Partition keys across nodes with consistent hashing, with virtual nodes so bigger machines take more keys. Replicate each key to N nodes, the next N distinct servers clockwise on the ring. Make consistency tunable with write and read quorums W and R. Detect failed nodes with gossip. Resolve concurrent writes with vector clocks, or accept last-write-wins where losing a write is tolerable. Store data on each node with an LSM-tree to keep writes fast.
 
 **Interview angle:** walk from one machine to many, and name the tradeoff each step adds.
+
+## Distributed systems
+
+### The CAP theorem
+
+CAP says a distributed data store can't guarantee all three of consistency (every read sees the latest write), availability (every request gets a non-error response), and partition tolerance (the system keeps working when the network drops messages between nodes). The useful reading is narrower than "pick two." Networks do partition, so partition tolerance isn't optional. The real question is what a node does during a partition when it can't reach the others: refuse to answer and stay consistent (CP), or answer with what it has and stay available (AP).
+
+<CapPartition />
+
+A CA system, one that assumes the network never partitions, only exists on a single machine. PACELC extends the idea to normal operation: if there's a Partition, choose Availability or Consistency; Else, choose between Latency and Consistency. Even with a healthy network, waiting for replicas to agree costs time.
+
+**Interview angle:** don't recite the acronym. Say which way your design leans during a partition and why that's right for this product.
+
+### Consistency models
+
+Strong consistency (formally, linearizability) means every read returns the most recent write, as if there were a single copy of the data. It demands coordination between replicas, which costs latency and, during partitions, availability. Eventual consistency promises only that if writes stop, all replicas converge on the same value eventually. Until then, different readers can see different answers. Weak consistency promises even less: after a write, a read may or may not see it, and there's no bound on when it will. Real-time systems such as live video or game state updates accept that because stale data is worthless anyway.
+
+Between the extremes sit session guarantees that match what users notice. Read-your-writes: after you change something, you see your change. Monotonic reads: you never see data go backwards in time.
+
+**Interview angle:** strong consistency where money or uniqueness is involved, eventual everywhere else, and session guarantees so users don't see their own edits vanish.
+
+### Failure detection and gossip
+
+In a cluster, nodes need to know which of their peers are alive. Having every node heartbeat every other node doesn't scale, so many systems use gossip. Each node keeps a membership list with a heartbeat counter per peer, increments its own counter, and periodically sends its list to a few random peers, who merge it with theirs. Information spreads through the cluster like a rumor. If a peer's counter stops increasing for a while, it's suspected dead, and the suspicion spreads the same way.
+
+One node's opinion isn't enough. A node that looks dead to me might be fine and just unreachable from where I sit, so a failure should be confirmed by at least one other independent source before the cluster acts on it. The deeper problem is that a slow node and a dead node look identical from outside. Every failure detector is a timeout guess.
+
+**Interview angle:** mention gossip for membership and admit the uncertainty. You can't distinguish slow from dead, only choose how long to wait.
+
+### Vector clocks and conflict resolution
+
+When replicas accept writes independently, they need a way to tell whether two versions of a value are ordered or concurrent. A vector clock attaches a list of (node, counter) pairs to each value. When a node updates the value, it increments its own counter. Compare two clocks entry by entry. If every counter in one is at least as large as in the other, it descends from it, and the newer version wins cleanly. If each clock has some counter larger than the other, say `[A:2, B:1]` against `[A:1, B:2]`, the writes were concurrent. Neither saw the other, and that's the conflict.
+
+Systems that detect conflicts this way usually keep both versions ("siblings") and hand them to the client or the application to merge, the way a shopping cart can union two concurrent edits. The alternative is last-write-wins: keep whichever write has the later timestamp. It's simple, but it silently drops the other write and relies on clocks that can disagree across machines.
+
+**Interview angle:** vector clocks detect conflicts; they don't resolve them. Say who resolves them.
+
+### Quorum reads and writes
+
+In a leaderless store, each key lives on N replicas. A write counts as successful once W replicas acknowledge it; a read asks R replicas and takes the newest value among the answers. If R + W > N, every read set and every write set share at least one replica, so a read always reaches someone who saw the latest successful write. A common setting is N = 3, W = 2, R = 2. Setting W = 1 makes writes fast and reads must work harder; R = 1 does the reverse.
+
+<QuorumReplicas />
+
+Quorums aren't a perfect guarantee. Sloppy quorums, which accept writes on stand-in nodes when the real replicas are unreachable, break the overlap. Concurrent writes can still conflict. And a write that failed on some replicas may still have landed on others.
+
+**Interview angle:** state the R + W > N rule, then name a caveat. It shows you know the rule is a starting point.
+
+### Unique ID generation
+
+A single database's auto-increment stops working once you have many writers. The common options:
+
+- **Ticket server:** one service hands out IDs. Simple, but it's a single point of failure and an extra network call per ID. Running two that hand out odd and even numbers helps.
+- **UUID:** 128 random-looking bits generated anywhere with no coordination and a negligible chance of collision. They're long and not numeric. Random version 4 UUIDs don't sort by time, which hurts index locality; version 7 puts a timestamp first to fix that.
+- **Per-server offsets:** with N servers, server k hands out k, k + N, k + 2N, and so on. No coordination, but adding or removing a server means renumbering everything.
+- **Snowflake-style IDs:** divide a 64-bit number into fields for a timestamp, a datacenter, a machine, and a per-millisecond sequence.
+
+<SnowflakeIdLayout />
+
+Snowflake-style IDs are numeric, roughly time-ordered, and need no coordination. They depend on the clock. If a machine's clock jumps backwards, the generator must wait or refuse, or it will reuse IDs.
+
+**Interview angle:** Snowflake-style is usually the expected answer; the follow-up is clock skew.
+
+### Idempotency
+
+An operation is idempotent if doing it twice has the same effect as doing it once. That property is what makes retries safe, and in a distributed system retries happen constantly: a timeout doesn't tell you whether the request failed or only the response did. By HTTP's definitions, `GET`, `PUT`, and `DELETE` are idempotent; `POST` is not.
+
+For operations that aren't naturally idempotent, such as charging a card, use an idempotency key. The client generates a unique key per logical operation and sends it with every retry. The server records the key with the result of the first attempt and returns that stored result for any repeat. Keep the records in a deduplication table with a TTL long enough to cover realistic retries.
+
+**Interview angle:** any time your design retries or uses at-least-once delivery, say how duplicates are made harmless.
+
+### The outbox pattern
+
+A common bug: a service updates its database and then publishes an event to a queue. If the process crashes between the two, the database changed and nobody heard about it. Publish first and crash, and you announced a change that never happened. There's no transaction that spans a database and a message broker. That's the dual-write problem.
+
+The outbox pattern moves the event into the database. In the same transaction as the business change, insert a row into an outbox table describing the event. A separate relay reads new outbox rows (by polling, or by tailing the database's change log) and publishes them, marking each one sent. The database transaction guarantees the change and the event exist together; the relay guarantees the event eventually goes out. It can go out more than once, so consumers must be idempotent.
+
+**Interview angle:** whenever a design says "write to the DB, then publish," ask what happens if it crashes in between. The outbox is the standard answer.
