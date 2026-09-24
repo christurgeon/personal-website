@@ -17,6 +17,7 @@ import LruCache from "./LruCache";
 import QuorumReplicas from "./QuorumReplicas";
 import LoadBalancerRace from "./LoadBalancerRace";
 import PageTableWalk from "./PageTableWalk";
+import HandshakeSequence from "./HandshakeSequence";
 
 export const mdxComponents = {
   BackdoorRothSteps,
@@ -38,4 +39,5 @@ export const mdxComponents = {
   QuorumReplicas,
   LoadBalancerRace,
   PageTableWalk,
+  HandshakeSequence,
 };
