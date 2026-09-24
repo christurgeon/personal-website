@@ -19,6 +19,7 @@ import LoadBalancerRace from "./LoadBalancerRace";
 import PageTableWalk from "./PageTableWalk";
 import HandshakeSequence from "./HandshakeSequence";
 import LsmTree from "./LsmTree";
+import PacketEncapsulation from "./PacketEncapsulation";
 
 export const mdxComponents = {
   BackdoorRothSteps,
@@ -42,4 +43,5 @@ export const mdxComponents = {
   PageTableWalk,
   HandshakeSequence,
   LsmTree,
+  PacketEncapsulation,
 };
