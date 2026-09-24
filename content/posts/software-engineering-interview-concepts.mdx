@@ -433,7 +433,7 @@ Threads in the same process share the address space, heap, globals, and open fil
 
 Processes get their own virtual address space, so one process can't scribble on another's memory, and a crash usually stays contained. Communicating takes explicit mechanisms: pipes, sockets, message queues, or shared memory set up on purpose.
 
-**Interview angle:** threads for cheap sharing within one program, processes for isolation. Chrome runs each tab in its own process for exactly that reason.
+**Interview angle:** threads for cheap sharing within one program, processes for isolation. Browsers put tabs and sites in separate processes for exactly that reason: one crashing page shouldn't take the others with it.
 
 ### Locks, mutexes, and deadlocks
 
