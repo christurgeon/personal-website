@@ -12,3 +12,8 @@ export function nextStep(step: number, total: number, loop: boolean): number {
   if (step + 1 < total) return step + 1;
   return loop ? 0 : step;
 }
+
+// Autoplay ticks would otherwise make screen readers announce every step, forever.
+export function liveRegion(playing: boolean): "off" | "polite" {
+  return playing ? "off" : "polite";
+}

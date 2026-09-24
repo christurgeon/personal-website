@@ -3,6 +3,7 @@
 import type { ReactNode } from "react";
 import DiagramFrame, { StepControls } from "./diagram/DiagramFrame";
 import { useDiagramPlayback, useStepper } from "./diagram/useDiagramPlayback";
+import { liveRegion } from "@/lib/diagrams/playback";
 
 const LAYERS = [
   { name: "Application", label: "email body", background: "var(--yellow)", color: "var(--on-yellow)" },
@@ -73,6 +74,7 @@ export default function PacketEncapsulation() {
           paused={paused}
           onTogglePause={() => setPaused(!paused)}
           reducedMotion={reducedMotion}
+          playing={playing}
         />
       }
     >
@@ -93,7 +95,7 @@ export default function PacketEncapsulation() {
         ))}
       </ol>
       <Wrapped depth={current.depth} />
-      <p className="mt-4" aria-live="polite">
+      <p className="mt-4" aria-live={liveRegion(playing)}>
         {current.note}
       </p>
     </DiagramFrame>

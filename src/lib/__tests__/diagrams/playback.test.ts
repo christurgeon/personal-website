@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { nextStep, shouldPlay } from "@/lib/diagrams/playback";
+import { liveRegion, nextStep, shouldPlay } from "@/lib/diagrams/playback";
 
 describe("shouldPlay", () => {
   it("plays only when in view, motion is allowed, and not paused", () => {
@@ -22,5 +22,12 @@ describe("nextStep", () => {
 
   it("wraps to the first step when looping", () => {
     expect(nextStep(2, 3, true)).toBe(0);
+  });
+});
+
+describe("liveRegion", () => {
+  it("silences announcements while a diagram autoplays and announces steps the reader triggers", () => {
+    expect(liveRegion(true)).toBe("off");
+    expect(liveRegion(false)).toBe("polite");
   });
 });

@@ -3,6 +3,7 @@
 import { useMemo } from "react";
 import DiagramFrame, { StepControls } from "./diagram/DiagramFrame";
 import { useDiagramPlayback, useStepper } from "./diagram/useDiagramPlayback";
+import { liveRegion } from "@/lib/diagrams/playback";
 import { runLsm, type LsmFrame, type LsmOp, type ReadStep } from "@/lib/diagrams/lsmTree";
 
 const LIMIT = 3;
@@ -73,10 +74,11 @@ export default function LsmTree() {
           paused={paused}
           onTogglePause={() => setPaused(!paused)}
           reducedMotion={reducedMotion}
+          playing={playing}
         />
       }
     >
-      <p className="mb-4 font-semibold" aria-live="polite">
+      <p className="mb-4 font-semibold" aria-live={liveRegion(playing)}>
         {describe(frame)}
       </p>
       <div className="grid gap-4 sm:grid-cols-[minmax(0,1fr)_minmax(0,2fr)]">

@@ -1,4 +1,5 @@
 import type { ReactNode, Ref } from "react";
+import { liveRegion } from "@/lib/diagrams/playback";
 
 interface DiagramFrameProps {
   title: string;
@@ -66,9 +67,10 @@ interface StepControlsProps {
   paused: boolean;
   onTogglePause: () => void;
   reducedMotion: boolean;
+  playing: boolean;
 }
 
-export function StepControls({ step, total, atEnd, onNext, onReset, paused, onTogglePause, reducedMotion }: StepControlsProps) {
+export function StepControls({ step, total, atEnd, onNext, onReset, paused, onTogglePause, reducedMotion, playing }: StepControlsProps) {
   return (
     <>
       {!reducedMotion && <DiagramButton onClick={onTogglePause}>{paused ? "Play" : "Pause"}</DiagramButton>}
@@ -76,7 +78,7 @@ export function StepControls({ step, total, atEnd, onNext, onReset, paused, onTo
         Step
       </DiagramButton>
       <DiagramButton onClick={onReset}>Reset</DiagramButton>
-      <span className="font-mono-label sm:ml-auto" style={{ color: "var(--muted)" }} aria-live="polite">
+      <span className="font-mono-label sm:ml-auto" style={{ color: "var(--muted)" }} aria-live={liveRegion(playing)}>
         Step {step + 1} / {total}
       </span>
     </>

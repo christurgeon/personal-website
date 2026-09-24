@@ -3,6 +3,7 @@
 import { useState } from "react";
 import DiagramFrame, { DiagramButton, StepControls } from "./diagram/DiagramFrame";
 import { useDiagramPlayback, useStepper } from "./diagram/useDiagramPlayback";
+import { liveRegion } from "@/lib/diagrams/playback";
 import { walk, type PageTables } from "@/lib/diagrams/pageTable";
 
 const TABLES: PageTables = { 0x1: { 0xa: 0x3c, 0xc: 0x07 }, 0x2: { 0x1: 0x12 } };
@@ -97,11 +98,12 @@ export default function PageTableWalk() {
             paused={paused}
             onTogglePause={() => setPaused(!paused)}
             reducedMotion={reducedMotion}
+            playing={playing}
           />
         </>
       }
     >
-      <p className="mb-4 font-semibold" aria-live="polite">
+      <p className="mb-4 font-semibold" aria-live={liveRegion(playing)}>
         {message}
       </p>
       <div className="font-mono-label mb-2" style={{ color: "var(--muted)" }}>

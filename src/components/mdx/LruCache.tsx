@@ -3,6 +3,7 @@
 import { useMemo } from "react";
 import DiagramFrame, { StepControls } from "./diagram/DiagramFrame";
 import { useDiagramPlayback, useStepper } from "./diagram/useDiagramPlayback";
+import { liveRegion } from "@/lib/diagrams/playback";
 import { runLru, type LruEvent, type LruOp } from "@/lib/diagrams/lruCache";
 
 const CAPACITY = 3;
@@ -69,10 +70,11 @@ export default function LruCache() {
           paused={paused}
           onTogglePause={() => setPaused(!paused)}
           reducedMotion={reducedMotion}
+          playing={playing}
         />
       }
     >
-      <p className="mb-4 font-semibold" aria-live="polite">
+      <p className="mb-4 font-semibold" aria-live={liveRegion(playing)}>
         {describe(frame.op, frame.event)}
       </p>
       <div className="grid gap-5 sm:grid-cols-[auto_minmax(0,1fr)]">

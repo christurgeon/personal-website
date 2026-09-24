@@ -2,6 +2,7 @@
 
 import DiagramFrame, { StepControls } from "./diagram/DiagramFrame";
 import { useDiagramPlayback, useStepper } from "./diagram/useDiagramPlayback";
+import { liveRegion } from "@/lib/diagrams/playback";
 
 interface Message {
   from: "client" | "server";
@@ -71,6 +72,7 @@ export default function HandshakeSequence() {
           paused={paused}
           onTogglePause={() => setPaused(!paused)}
           reducedMotion={reducedMotion}
+          playing={playing}
         />
       }
     >
@@ -141,7 +143,7 @@ export default function HandshakeSequence() {
           );
         })}
       </svg>
-      <p className="mt-3" aria-live="polite">
+      <p className="mt-3" aria-live={liveRegion(playing)}>
         <strong>{current.label}.</strong> {current.detail}
       </p>
     </DiagramFrame>
