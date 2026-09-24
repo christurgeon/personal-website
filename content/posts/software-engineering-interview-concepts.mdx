@@ -746,3 +746,31 @@ This question has no bottom, so pick a depth and signal where you could go furth
 6. **Reproduce it.** Replay a request with the affected user's parameters and watch it go slow.
 
 **Interview angle:** narrow first, then hypothesize. Interviewers want the method more than the answer.
+
+## Rapid fire
+
+### Is Java pass-by-value or pass-by-reference?
+
+Always pass-by-value. For primitives, the method gets a copy of the number. For objects, the variable holds a reference, and the method gets a copy of that reference. Both copies point to the same object, so the method can change the object's fields and the caller will see it. But reassigning the parameter to a new object only changes the method's copy; the caller's variable still points where it did.
+
+### How compilers store string literals
+
+Compilers for C, C++, Rust, and similar languages place string literals in a read-only data section of the binary (`.rodata` on Linux). Identical literals may be merged into a single copy, though C doesn't guarantee it, and modifying a literal through a pointer is undefined behavior in C and C++. On most systems it crashes because the page is read-only. Java interns literals in a string pool, so equal literals are the same object. In Rust, a literal is a `&'static str` that points into that read-only data for the life of the program.
+
+## The night before
+
+<SummaryBox>
+
+- Clarify requirements before drawing anything, and check the blueprint with the interviewer.
+- Replicate for throughput, shard for size.
+- Consistent hashing moves about 1/N of keys on resize; virtual nodes even out the load.
+- Cache-aside with jittered TTLs, and a plan for stampedes and cold shards.
+- R + W > N makes quorum reads overlap the latest write.
+- Token bucket for rate limiting, enforced on the server.
+- Any retry or at-least-once delivery needs idempotency; "write then publish" needs an outbox.
+- B-trees for read-heavy workloads, LSM-trees for write-heavy ones, bloom filters to skip files.
+- A new HTTPS connection costs a TCP round trip plus a TLS 1.3 round trip.
+- fork, then exec; zombies mean the parent never called wait.
+- When debugging, narrow down who is affected before guessing why.
+
+</SummaryBox>
