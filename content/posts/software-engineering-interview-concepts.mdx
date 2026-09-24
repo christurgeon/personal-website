@@ -61,7 +61,7 @@ These numbers are approximate and change with hardware, but the orders of magnit
       <td>~2–10 ms</td>
     </tr>
     <tr>
-      <td>Round trip across the Atlantic</td>
+      <td>Round trip, California to Europe and back</td>
       <td>~150 ms</td>
     </tr>
   </tbody>
@@ -77,7 +77,7 @@ For traffic and storage, a day has about 86,400 seconds; call it 10^5. Average Q
 
 A load balancer sits in front of a pool of servers and decides which one handles each request. Clients only ever see its public address or DNS name; the servers behind it live on private addresses and can come and go without anyone outside noticing. You can add capacity, drain a server for a deploy, or lose a machine entirely, and clients keep connecting to the same place.
 
-Load balancers work at one of two levels. A layer 4 balancer looks at TCP or UDP connections and forwards packets without reading them, which makes it fast and protocol-agnostic. A layer 7 balancer speaks HTTP: it can terminate TLS, read the path and headers, and route on them, so `/images` goes to one pool and `/api` to another. That flexibility costs CPU per request.
+Load balancers work at one of two levels. A layer 4 balancer looks at TCP or UDP connections and routes on addresses and ports without looking inside the payload, which makes it fast and protocol-agnostic. A layer 7 balancer speaks HTTP: it can terminate TLS, read the path and headers, and route on them, so `/images` goes to one pool and `/api` to another. That flexibility costs CPU per request.
 
 Whatever the layer, the core job is the same: spread requests with a strategy such as round robin, least connections, or weighted variants of either, and health-check every backend so traffic stops flowing to the ones that fail.
 
@@ -109,7 +109,7 @@ A rate limiter protects a service from being overwhelmed, whether by a buggy cli
 
 The classic algorithm is the token bucket. A bucket holds up to N tokens and refills at a fixed rate. Each request takes a token; no token, no request. Short bursts up to the bucket size go through, but sustained traffic is capped at the refill rate. The leaky bucket is its sibling: requests queue and drain at a constant rate, which smooths output but adds delay. A fixed window counter (at most 100 requests per minute, reset on the minute) is the simplest option, but it allows up to twice the limit across a window boundary: 100 requests at 12:00:59 and another 100 at 12:01:00. Sliding window logs or counters fix that edge at the cost of more bookkeeping.
 
-You rarely want a single bucket. Different endpoints get different limits, and if you throttle by user or IP address, each user or address needs its own bucket. Across many servers the counters must be shared, typically in Redis with atomic increments and an expiry, or two servers will each let the same client through. When you reject a request, return `429 Too Many Requests` with a `Retry-After` header so well-behaved clients back off.
+One global bucket is rarely enough. Limits are usually keyed, per endpoint and per caller, so a login endpoint can be stricter than a read endpoint and one noisy client can't spend everyone's budget. Across many servers the counters must be shared, typically in Redis with atomic increments and an expiry, or two servers will each let the same client through. When you reject a request, return `429 Too Many Requests` with a `Retry-After` header so well-behaved clients back off.
 
 <TokenBucket />
 
@@ -153,7 +153,7 @@ There are two ways to spread a service across machines. Replication runs identic
 
 Sharding can also help stateless services, as an isolation boundary. Some failures come from the input: a malformed or pathological "poison" request that crashes whatever processes it. In a replicated service, enough of those requests can take down every replica, because every replica handles everything. In a sharded service, the poison request only reaches its shard. You lose a fraction of traffic instead of all of it.
 
-Caches show the difference sharply. Take ten nodes, each with 10 GB of memory and room for 100 requests per second, in front of 200 GB of possible results and 1,000 requests per second of traffic. Both layouts serve the traffic. As replicas, every node caches roughly the same popular results, so the cache holds about 10 GB of the dataset. As shards, each node holds different keys, so the cache holds ten times as much.
+Caches make the difference concrete. Picture twelve cache nodes with 8 GB of memory each, sized so that even eleven of them can carry the traffic. Run them as replicas and every node ends up caching the same popular results: the fleet holds 8 GB of distinct data. Run them as shards and each node holds different keys: the fleet holds 96 GB. Same hardware, same traffic, twelve times the cache.
 
 <ShardedVsReplicatedCache />
 
@@ -201,7 +201,7 @@ Delivery guarantees are the classic follow-up. At-most-once never redelivers and
 
 ### Multiple data centers and geoDNS
 
-Servers die and disks die; at scale, entire data centers occasionally do too. Running in more than one location keeps the service up when one goes dark. GeoDNS resolves the same domain name to different addresses depending on where the user is, which sends people to the nearest healthy location and cuts latency.
+Servers die and disks die; at scale, entire data centers occasionally do too. Running in more than one location keeps the service up when one goes dark. GeoDNS resolves the same domain name to different addresses depending on where the query comes from (the user's resolver, or a client-subnet hint when the resolver sends one), which sends people to the nearest healthy location and cuts latency.
 
 The hard part is data. For traffic to move to another data center during a large-scale outage, that data center needs the data, so replication across locations has to be planned: what's synchronous, what lags, and what users see during failover. Test the failover before you need it. And monitor at several levels (hosts, services, the whole region) so you can tell a bad machine from a bad day.
 
@@ -227,7 +227,7 @@ Isolation is where the tradeoffs live, because full isolation is expensive. The 
 - **Non-repeatable read:** reading the same row twice and getting different values because someone committed in between.
 - **Phantom read:** rerunning a query and getting new rows that another transaction inserted.
 - **Lost update:** two read-modify-write cycles race, and one overwrites the other.
-- **Write skew:** two transactions each check a condition, both pass, and their combined writes break it (two doctors both go off call because each saw the other still on).
+- **Write skew:** two transactions each check a condition, both pass, and their combined writes break it (two people each see one free seat left on a flight and both book it).
 
 Read uncommitted allows nearly everything. Read committed stops dirty reads. Repeatable read also stops non-repeatable reads. Serializable makes transactions behave as if they ran one at a time. Most databases implement these with MVCC (multi-version concurrency control): writers create new row versions, and readers see a consistent snapshot without blocking writers. Defaults vary. PostgreSQL defaults to read committed, and its repeatable read is snapshot isolation. MySQL's InnoDB defaults to repeatable read.
 
@@ -237,13 +237,13 @@ Read uncommitted allows nearly everything. Read committed stops dirty reads. Rep
 
 An index is a separate structure, usually a B-tree, that lets the database find rows without scanning the table. It makes reads dramatically faster and makes every write slower, because each insert, update, or delete must also update every index on the table. Indexes also take disk and memory. That's why databases don't index everything automatically: the application developer knows the query patterns and chooses which columns are worth it.
 
-Two details come up often. A composite index on `(a, b)` helps queries that filter on `a`, or on `a` and `b`, but not on `b` alone. That's the leftmost-prefix rule. A covering index contains every column a query needs, so the database answers from the index without touching the table at all.
+Two details come up often. A composite index on `(a, b)` helps queries that filter on `a`, or on `a` and `b`, but generally not on `b` alone. That's the leftmost-prefix rule; some databases can "skip scan" around it when `a` has few distinct values. A covering index contains every column a query needs, so the database answers from the index without touching the table at all.
 
 **Interview angle:** justify each index by a query, and mention what it costs writes.
 
 ### Replication: single-leader, multi-leader, leaderless
 
-With single-leader replication, one node takes all writes and streams changes to followers. The leader can serve reads too; followers serve reads to spread load. If a follower dies, reads shift elsewhere. If the leader dies, a follower is promoted. Replication is usually asynchronous, which keeps writes fast but introduces lag: a user writes, immediately reads from a follower, and doesn't see their own change. Routing a user's reads to the leader for a short while after they write is a common fix. Synchronous replication removes the lag and makes every write wait for the slowest replica.
+With single-leader replication, one node takes all writes and streams changes to followers. The leader can serve reads too; followers serve reads to spread load. If a follower dies, reads shift elsewhere. If the leader dies, a follower is promoted. Replication is usually asynchronous, which keeps writes fast but introduces lag: a user writes, immediately reads from a follower, and doesn't see their own change. Routing a user's reads to the leader for a short while after they write is a common fix. Synchronous replication removes the lag and makes every write wait for the synchronous replicas, which is why many setups keep one follower synchronous and the rest asynchronous.
 
 Multi-leader replication lets several nodes accept writes, typically one per region, so users write locally. The price is conflicts: two regions can change the same record at the same time. Resolution options are last-write-wins (simple and lossy), application-level merge logic, or data types built to merge (CRDTs).
 
@@ -291,7 +291,7 @@ They're everywhere a cheap "no" saves an expensive lookup: LSM-tree reads, check
 
 ### B-trees
 
-B-trees are the other major storage engine family and the structure behind most relational indexes. Data lives in fixed-size pages, traditionally 4 KB, matching how disks read and write blocks. Each page holds many keys and pointers to child pages, so the branching factor is in the hundreds, and the tree stays shallow. Depth grows as O(log n), and most databases fit in three or four levels. Four levels of 4 KB pages with a branching factor of 500 can address about 256 TB.
+B-trees are the other major storage engine family and the structure behind most relational indexes. Data lives in fixed-size pages, traditionally 4 KB (PostgreSQL uses 8 KB, MySQL's InnoDB 16 KB), sized to match how disks read and write blocks. Each page holds many keys and pointers to child pages, so the branching factor is in the hundreds, and the tree stays shallow. Depth grows as O(log n), so it stays tiny: if each page points to about 500 children, four levels reach 500⁴, roughly 62 billion leaf pages. At 4 KB apiece that's around 250 TB, reachable in four page reads.
 
 Unlike an LSM-tree, a B-tree updates pages in place. A write-ahead log records each change before the page is modified, so a crash mid-update can be repaired on restart.
 
@@ -358,13 +358,13 @@ Quorums aren't a perfect guarantee. Sloppy quorums, which accept writes on stand
 A single database's auto-increment stops working once you have many writers. The common options:
 
 - **Ticket server:** one service hands out IDs. Simple, but it's a single point of failure and an extra network call per ID. Running two that hand out odd and even numbers helps.
-- **UUID:** 128 random-looking bits generated anywhere with no coordination and a negligible chance of collision. They're long and not numeric. Random version 4 UUIDs don't sort by time, which hurts index locality; version 7 puts a timestamp first to fix that.
-- **Per-server offsets:** with N servers, server k hands out k, k + N, k + 2N, and so on. No coordination, but adding or removing a server means renumbering everything.
+- **UUID:** 128 random-looking bits generated anywhere with no coordination and a negligible chance of collision. They're long: 128 bits won't fit in a 64-bit integer column. Random version 4 UUIDs don't sort by time, which hurts index locality; version 7 puts a timestamp first to fix that.
+- **Per-server offsets:** with N servers, server k hands out k, k + N, k + 2N, and so on. No coordination, but changing N is painful: every server must switch to the new step at the same moment, or two of them will hand out the same ID.
 - **Snowflake-style IDs:** divide a 64-bit number into fields for a timestamp, a datacenter, a machine, and a per-millisecond sequence.
 
 <SnowflakeIdLayout />
 
-Snowflake-style IDs are numeric, roughly time-ordered, and need no coordination. They depend on the clock. If a machine's clock jumps backwards, the generator must wait or refuse, or it will reuse IDs.
+Snowflake-style IDs fit in 64 bits, sort roughly by time, and need no coordination per ID; each machine only needs its datacenter and machine numbers assigned once. They depend on the clock. If a machine's clock jumps backwards, the generator must wait or refuse, or it will reuse IDs.
 
 **Interview angle:** Snowflake-style is usually the expected answer; the follow-up is clock skew.
 
@@ -477,15 +477,15 @@ A connection pool is the same structure. Fill a blocking queue with N open conne
 
 New processes on Linux come from existing ones. A process calls `fork`, and the kernel creates a near-identical child with a new process ID (PID); the original becomes its parent, recorded as the child's PPID. Memory isn't copied up front. Parent and child share pages copy-on-write until one of them modifies a page. Usually the child then calls `execve`, which throws away its memory image and loads a new program in its place. That two-step split is why a shell can set up redirections and environment in the child before the new program starts.
 
-Every process has a parent, all the way up to PID 1, `init` (on most modern systems, `systemd`), which the kernel starts at boot. Process details live under `/proc` as files, one directory per PID. Daemons are background processes that keep the system running; they're detached from any terminal, which is why `ps` shows `?` in their TTY column.
+Every user-space process has a parent, all the way up to PID 1, `init` (on most modern systems, `systemd`), which the kernel starts at boot. Process details live under `/proc` as files, one directory per PID. Daemons are background processes that keep the system running; they're detached from any terminal, which is why `ps` shows `?` in their TTY column.
 
 A process is always in one of a few states:
 
 - **R:** running or runnable, waiting only for a CPU.
 - **S:** interruptible sleep, waiting for an event such as input.
-- **D:** uninterruptible sleep, usually waiting on I/O. Signals, even `SIGKILL`, don't take effect until the wait ends.
+- **D:** uninterruptible sleep, usually waiting on I/O. Signals, even `SIGKILL`, usually don't take effect until the wait ends.
 - **Z:** zombie, finished but not yet reaped by its parent.
-- **T:** stopped, for example by `SIGSTOP` or a debugger.
+- **T:** stopped, for example by `SIGSTOP` (a process stopped by a debugger shows as lowercase `t`).
 
 Processes communicate with the kernel and each other through signals. The ones worth knowing:
 
@@ -539,19 +539,19 @@ Scheduling priority is nudged with niceness, from −20 (least nice, highest pri
 
 When a process exits, the kernel keeps a small entry in the process table holding its exit status, so the parent can find out how it ended. The parent collects that status with `wait` or `waitpid`, and only then does the entry disappear. Until it does, the finished process is a zombie. It uses no CPU and almost no memory, but it still holds a PID, and a parent that never reaps can pile up enough zombies to exhaust the PID space.
 
-You can't kill a zombie; it's already dead. Fix the parent so it reaps its children, or kill the parent. The orphaned zombies are then adopted by PID 1, which reaps them. Zombies show up with state `Z`:
+You can't kill a zombie; it's already dead. Fix the parent so it reaps its children, or kill the parent. The orphaned zombies are then adopted by PID 1 (or a designated subreaper process), which reaps them. Zombies show up with state `Z`:
 
 ```bash
 ps -eo pid,ppid,stat,cmd | awk '$3 ~ /^Z/'
 ```
 
-An orphan is different: a live process whose parent died. It gets adopted by PID 1 and carries on normally.
+An orphan is different: a live process whose parent died. It gets adopted by PID 1, or by a subreaper if one is set, and carries on normally.
 
 **Interview angle:** zombie means "parent didn't call wait." The fix is the parent, not the zombie.
 
 ### How kill works
 
-`kill` is named for its most common use, but it's really "send a signal." The command calls the `kill(pid, sig)` system call. The kernel checks that the sender has permission (same user, or root), then marks the signal as pending on the target. Delivery happens the next time the target returns from kernel mode to user mode. At that point it runs its handler for the signal, takes the default action, or ignores it.
+`kill` is named for its most common use, but it's really "send a signal." The command calls the `kill(pid, sig)` system call. The kernel checks that the sender has permission (in short: the same user, or a privileged process), then marks the signal as pending on the target. Delivery happens the next time the target returns from kernel mode to user mode. At that point it runs its handler for the signal, takes the default action, or ignores it.
 
 The default signal is `SIGTERM`, which a process can catch to clean up (flush buffers, close connections) before exiting, or can ignore. `SIGKILL` and `SIGSTOP` can't be caught, blocked, or ignored; the kernel handles them itself. Even `SIGKILL` has to wait if the target is in uninterruptible sleep (state `D`), stuck in a system call such as I/O to a hung network filesystem. It dies when that call returns.
 
@@ -578,23 +578,21 @@ A file descriptor is a small non-negative integer that the kernel hands a proces
 
 Each descriptor points to an open file description, a kernel object that holds the state of that open: the current offset, the access mode (read, write, or both), status flags such as append mode, and a reference to the file's inode. The distinction matters because the mapping isn't one-to-one. `dup` and `fork` create new descriptors that point to the same description, so they share one offset: a write through either one advances it for both. Calling `open` twice on the same file creates two separate descriptions with independent offsets.
 
-**Interview angle:** this is why a parent and child that both write to an inherited log file don't overwrite each other: they share the offset.
+**Interview angle:** this is why a parent and child that both write to an inherited log file don't overwrite each other: they share the offset. Their lines can still interleave, which is what `O_APPEND` and one `write` per record are for.
 
 ### Inodes
 
 A filesystem keeps a table of inodes (index nodes), one per file. An inode holds everything about a file except its name and its contents:
 
-- file type (regular file, directory, symlink, device)
-- owner and group
-- permission bits
-- timestamps: `mtime` (content modified), `ctime` (metadata changed), `atime` (last accessed)
-- the number of hard links pointing to it
-- size and the number of blocks allocated
-- pointers to the data blocks, the part that actually finds the contents
+- **Where the data is:** pointers to the data blocks, plus the file's size and how many blocks it uses
+- **What it is:** the file type (regular file, directory, symlink, device)
+- **Who can touch it:** owner, group, and permission bits
+- **When it changed:** `mtime` for content, `ctime` for metadata, `atime` for the last read
+- **How many names it has:** the hard link count
 
 Names live in directories, which are just lists of name-to-inode-number entries. That's why hard links work: two names in the directory tree pointing to one inode. The file's data is freed only when the link count drops to zero and no process still has it open.
 
-Filesystems create a fixed number of inodes, so you can run out of them with plenty of free space, usually from millions of tiny files. The symptom is "No space left on device" while `df -h` shows free space. Check with `df -i`, and use `ls -i` or `stat` to see a file's inode.
+Some filesystems, including ext4, create a fixed number of inodes when the filesystem is made, so you can run out of them with plenty of free space, usually from millions of tiny files. The symptom is "No space left on device" while `df -h` shows free space. Check with `df -i`, and use `ls -i` or `stat` to see a file's inode.
 
 **Interview angle:** "disk full but df shows space" is a classic, and inode exhaustion is the answer.
 
@@ -608,7 +606,7 @@ Linux names block devices under `/dev`. `/dev/sda` is a whole disk, and `/dev/sd
 
 Every process sees its own private address space, as if it had the machine's memory to itself. The addresses a program uses, every pointer it dereferences, are virtual. On each access, the CPU's memory management unit translates the virtual address into a physical one using page tables that the kernel maintains for that process.
 
-The page tables are a tree indexed by pieces of the virtual address. The address is split into several index fields plus an offset within a page. Each index selects an entry at one level of the tree, and the last level's entry (the page table entry) gives the physical frame number along with flags: present, writable, user or kernel only, accessed, dirty, and caching behavior. The physical address is that frame number joined to the untouched offset. The virtual address itself is never stored anywhere; its pieces are the lookup keys. On x86-64 with 4 KB pages, that's four levels for 48-bit addresses, or five on newer hardware.
+The page tables are a tree indexed by pieces of the virtual address. The address is split into several index fields plus an offset within a page. Each index selects an entry at one level of the tree, and the last level's entry (the page table entry) gives the physical frame number along with flags: present, writable, user or kernel only, accessed, dirty, and caching behavior. The physical address is that frame number joined to the untouched offset. The page tables never store the virtual address; its pieces are the lookup keys. On x86-64 with 4 KB pages, that's four levels for 48-bit addresses, or five on newer hardware.
 
 <PageTableWalk />
 
@@ -654,9 +652,9 @@ The full procedures, including scenarios for memory leaks, OOM kills, and failed
 
 Networking stacks are built in layers, and each layer only talks to the ones directly above and below it. The TCP/IP model has four: application (HTTP, SMTP, DNS), transport (TCP, UDP), network (IP), and link (Ethernet, Wi-Fi). The seven-layer OSI model splits the top into application, presentation, and session, and the bottom into data link and physical, but interviews mostly use its numbers as shorthand: "layer 4" for transport, "layer 7" for application.
 
-Sending data wraps it once per layer on the way down. Say a laptop is sending an email to a mail server. The mail client hands the message to TCP, which adds a header with source and destination ports; the result is a segment. IP wraps the segment with source and destination addresses; now it's a packet. The link layer wraps the packet in a frame addressed to the next hop's hardware (MAC) address, adds a checksum, and puts bits on the wire.
+Sending data wraps it once per layer on the way down. Say a browser is sending an HTTPS request to a web server. The browser hands the encrypted request to TCP, which adds a header with source and destination ports; the result is a segment. IP wraps the segment with source and destination addresses; now it's a packet. The link layer wraps the packet in a frame addressed to the next hop's hardware (MAC) address, adds a checksum, and puts bits on the wire.
 
-Along the way, each router strips the frame, reads the destination IP, decrements the packet's time-to-live, and wraps it in a new frame for the next hop. The IP packet travels end to end; frames only live for one hop. At the mail server, everything unwinds in reverse. The network card checks the frame's checksum, the IP layer confirms the address is its own, and TCP uses the destination port to hand the bytes to the process listening on it.
+Along the way, each router strips the frame, reads the destination IP, decrements the packet's time-to-live, and wraps it in a new frame for the next hop. The IP packet travels end to end; frames only live for one hop. At the web server, everything unwinds in reverse. The network card checks the frame's checksum, the IP layer confirms the address is its own, and TCP uses the destination port to hand the bytes to the process listening on it.
 
 <PacketEncapsulation />
 
@@ -668,7 +666,7 @@ TCP gives you a reliable, ordered byte stream over a connection. It numbers ever
 
 UDP sends individual datagrams with no connection, no retransmission, and no ordering. It's a thin layer over IP that adds ports and a checksum. What it lacks is the point: nothing waits on a lost packet.
 
-Pick by what hurts more, a delay or a gap. File transfers, web pages, and APIs use TCP because every byte must arrive. DNS lookups, games, voice calls, and video calls use UDP because a late packet is worthless and the application can conceal or skip a gap. On-demand video streaming mostly runs over TCP (HTTP) or QUIC, since buffering hides the latency. QUIC itself is the modern twist: it builds reliability, ordering, and encryption on top of UDP, in user space, so it can evolve faster than kernel TCP.
+Pick by what hurts more, a delay or a gap. File transfers, web pages, and APIs use TCP because every byte must arrive. Games, voice calls, and video calls use UDP because a late packet is worthless and the application can conceal or skip a gap. DNS uses UDP for a different reason: a query and its answer usually fit in one datagram each, so a handshake would double the cost, and a lost query is simply retried. On-demand video streaming mostly runs over TCP (HTTP) or QUIC, since buffering hides the latency. QUIC itself is the modern twist: it builds reliability, ordering, and encryption on top of UDP, in user space, so it can evolve faster than kernel TCP.
 
 **Interview angle:** choose based on whether the application prefers late or lost, and mention QUIC as the in-between.
 
@@ -686,7 +684,7 @@ HTTPS adds TLS on top, after the TCP handshake. In TLS 1.3, the client's first m
 
 ### HTTP/1.1 vs HTTP/2 vs HTTP/3
 
-HTTP/1.1 is text-based, and persistent connections (keep-alive) let one TCP connection carry many requests, but only one at a time. A slow response blocks everything queued behind it. Browsers work around that by opening several connections per host, about six.
+HTTP/1.1 is text-based, and persistent connections (keep-alive) let one TCP connection carry many requests, but responses come back strictly in order, one at a time. A slow response blocks everything queued behind it. (Pipelining let clients send several requests at once, but responses still had to come back in order, and it was rarely enabled.) Browsers work around that by opening several connections per host, about six.
 
 HTTP/2 switched to a binary framing layer and multiplexes many concurrent streams over a single TCP connection, with HPACK compressing the repetitive headers. That fixed head-of-line blocking at the HTTP level but not below it: TCP delivers bytes in order, so one lost packet stalls every stream on the connection until it's retransmitted.
 
@@ -707,7 +705,7 @@ The common record types:
 - **TXT:** arbitrary text, used for domain verification and email authentication
 - **NS:** the authoritative name servers for a zone
 
-DNS usually runs over UDP port 53, falling back to TCP for large responses and zone transfers. Classic DNS queries are plaintext, so anyone on the path can see and tamper with them. DNS over HTTPS (DoH) and DNS over TLS (DoT) encrypt them.
+DNS usually runs over UDP port 53, falls back to TCP when a response is too large for UDP, and always uses TCP for zone transfers. Classic DNS queries are plaintext, so anyone on the path can see and tamper with them. DNS over HTTPS (DoH) and DNS over TLS (DoT) encrypt the hop from your device to the recursive resolver; the resolver's own queries upstream usually stay in the clear.
 
 **Interview angle:** walk the resolution chain, and remember that TTLs make DNS changes slow to take effect.
 
