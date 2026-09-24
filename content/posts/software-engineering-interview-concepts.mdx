@@ -470,3 +470,180 @@ Blocking forever is fine for a background pipeline but not on a request path, wh
 A connection pool is the same structure. Fill a blocking queue with N open connections. Borrowing a connection is `take`, returning it is `put`, and the size of the queue acts as the semaphore. Always return connections in a `finally` block, or one exception leaks a connection and the pool slowly empties.
 
 **Interview angle:** a bounded queue is backpressure; an unbounded one is a memory leak waiting for a traffic spike.
+
+## Operating systems and Linux
+
+### The process lifecycle
+
+New processes on Linux come from existing ones. A process calls `fork`, and the kernel creates a near-identical child with a new process ID (PID); the original becomes its parent, recorded as the child's PPID. Memory isn't copied up front. Parent and child share pages copy-on-write until one of them modifies a page. Usually the child then calls `execve`, which throws away its memory image and loads a new program in its place. That two-step split is why a shell can set up redirections and environment in the child before the new program starts.
+
+Every process has a parent, all the way up to PID 1, `init` (on most modern systems, `systemd`), which the kernel starts at boot. Process details live under `/proc` as files, one directory per PID. Daemons are background processes that keep the system running; they're detached from any terminal, which is why `ps` shows `?` in their TTY column.
+
+A process is always in one of a few states:
+
+- **R:** running or runnable, waiting only for a CPU.
+- **S:** interruptible sleep, waiting for an event such as input.
+- **D:** uninterruptible sleep, usually waiting on I/O. Signals, even `SIGKILL`, don't take effect until the wait ends.
+- **Z:** zombie, finished but not yet reaped by its parent.
+- **T:** stopped, for example by `SIGSTOP` or a debugger.
+
+Processes communicate with the kernel and each other through signals. The ones worth knowing:
+
+<table>
+  <thead>
+    <tr>
+      <th>Signal</th>
+      <th>Number</th>
+      <th>Meaning</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>SIGHUP</td>
+      <td>1</td>
+      <td>Terminal hung up; daemons often treat it as "reload config"</td>
+    </tr>
+    <tr>
+      <td>SIGINT</td>
+      <td>2</td>
+      <td>Interrupt from the keyboard (Ctrl+C)</td>
+    </tr>
+    <tr>
+      <td>SIGKILL</td>
+      <td>9</td>
+      <td>Terminate immediately; cannot be caught or ignored</td>
+    </tr>
+    <tr>
+      <td>SIGSEGV</td>
+      <td>11</td>
+      <td>Invalid memory access</td>
+    </tr>
+    <tr>
+      <td>SIGTERM</td>
+      <td>15</td>
+      <td>Polite request to terminate; the default for `kill`</td>
+    </tr>
+    <tr>
+      <td>SIGSTOP</td>
+      <td>19 on x86 Linux</td>
+      <td>Pause the process; cannot be caught or ignored</td>
+    </tr>
+  </tbody>
+</table>
+
+Scheduling priority is nudged with niceness, from −20 (least nice, highest priority) to 19 (nicest, lowest priority).
+
+**Interview angle:** explain fork then exec, and why the split exists.
+
+### Zombie processes
+
+When a process exits, the kernel keeps a small entry in the process table holding its exit status, so the parent can find out how it ended. The parent collects that status with `wait` or `waitpid`, and only then does the entry disappear. Until it does, the finished process is a zombie. It uses no CPU and almost no memory, but it still holds a PID, and a parent that never reaps can pile up enough zombies to exhaust the PID space.
+
+You can't kill a zombie; it's already dead. Fix the parent so it reaps its children, or kill the parent. The orphaned zombies are then adopted by PID 1, which reaps them. Zombies show up with state `Z`:
+
+```bash
+ps -eo pid,ppid,stat,cmd | awk '$3 ~ /^Z/'
+```
+
+An orphan is different: a live process whose parent died. It gets adopted by PID 1 and carries on normally.
+
+**Interview angle:** zombie means "parent didn't call wait." The fix is the parent, not the zombie.
+
+### How kill works
+
+`kill` is named for its most common use, but it's really "send a signal." The command calls the `kill(pid, sig)` system call. The kernel checks that the sender has permission (same user, or root), then marks the signal as pending on the target. Delivery happens the next time the target returns from kernel mode to user mode. At that point it runs its handler for the signal, takes the default action, or ignores it.
+
+The default signal is `SIGTERM`, which a process can catch to clean up (flush buffers, close connections) before exiting, or can ignore. `SIGKILL` and `SIGSTOP` can't be caught, blocked, or ignored; the kernel handles them itself. Even `SIGKILL` has to wait if the target is in uninterruptible sleep (state `D`), stuck in a system call such as I/O to a hung network filesystem. It dies when that call returns.
+
+**Interview angle:** send `SIGTERM` first and give the process time to shut down cleanly; `SIGKILL` is the last resort.
+
+### Syscalls
+
+User programs run in a restricted CPU mode that can't touch hardware or kernel memory directly. That isolation keeps one buggy program from crashing the machine. When a program needs something only the kernel can do, it makes a system call: it puts a syscall number and arguments in registers and executes a special instruction (`syscall` on x86-64) that switches the CPU into kernel mode at a fixed entry point.
+
+Common ones:
+
+- Files: `open`, `read`, `write`, `close`
+- Processes: `fork`, `execve`, `wait`
+- Memory: `mmap`, `brk`
+- Networking: `socket`, `connect`, `sendto`, `recvfrom`
+
+A syscall costs far more than a function call because of the mode switch and the kernel's checks, which is why buffered I/O batches many small writes into a few large ones. `strace` shows every syscall a process makes, and it's often the fastest way to see what a stuck program is waiting on.
+
+**Interview angle:** know that a syscall is the only door into the kernel, and why crossing it is expensive.
+
+### File descriptors vs file descriptions
+
+A file descriptor is a small non-negative integer that the kernel hands a process when it opens something. It's an index into that process's file descriptor table. By convention 0 is standard input, 1 is standard output, and 2 is standard error; files, sockets, and pipes you open get 3 and up.
+
+Each descriptor points to an open file description, a kernel object that holds the state of that open: the current offset, the access mode (read, write, or both), status flags such as append mode, and a reference to the file's inode. The distinction matters because the mapping isn't one-to-one. `dup` and `fork` create new descriptors that point to the same description, so they share one offset: a write through either one advances it for both. Calling `open` twice on the same file creates two separate descriptions with independent offsets.
+
+**Interview angle:** this is why a parent and child that both write to an inherited log file don't overwrite each other: they share the offset.
+
+### Inodes
+
+A filesystem keeps a table of inodes (index nodes), one per file. An inode holds everything about a file except its name and its contents:
+
+- file type (regular file, directory, symlink, device)
+- owner and group
+- permission bits
+- timestamps: `mtime` (content modified), `ctime` (metadata changed), `atime` (last accessed)
+- the number of hard links pointing to it
+- size and the number of blocks allocated
+- pointers to the data blocks, the part that actually finds the contents
+
+Names live in directories, which are just lists of name-to-inode-number entries. That's why hard links work: two names in the directory tree pointing to one inode. The file's data is freed only when the link count drops to zero and no process still has it open.
+
+Filesystems create a fixed number of inodes, so you can run out of them with plenty of free space, usually from millions of tiny files. The symptom is "No space left on device" while `df -h` shows free space. Check with `df -i`, and use `ls -i` or `stat` to see a file's inode.
+
+**Interview angle:** "disk full but df shows space" is a classic, and inode exhaustion is the answer.
+
+### Disks and partitions
+
+Linux names block devices under `/dev`. `/dev/sda` is a whole disk, and `/dev/sda1` and `/dev/sda2` are partitions on it; NVMe drives look like `/dev/nvme0n1` with partitions such as `/dev/nvme0n1p1`. A partition table describes the layout, either the older MBR format or GPT, which supports more partitions and larger disks. Each partition typically holds its own filesystem, which is how one disk can hold a boot partition, a root filesystem, and swap without them interfering. `lsblk` prints the tree of disks, partitions, and mount points.
+
+**Interview angle:** know the naming, and that separate partitions isolate filesystems. A runaway log filling `/var` shouldn't fill `/`.
+
+### Virtual memory and address translation
+
+Every process sees its own private address space, as if it had the machine's memory to itself. The addresses a program uses, every pointer it dereferences, are virtual. On each access, the CPU's memory management unit translates the virtual address into a physical one using page tables that the kernel maintains for that process.
+
+The page tables are a tree indexed by pieces of the virtual address. The address is split into several index fields plus an offset within a page. Each index selects an entry at one level of the tree, and the last level's entry (the page table entry) gives the physical frame number along with flags: present, writable, user or kernel only, accessed, dirty, and caching behavior. The physical address is that frame number joined to the untouched offset. The virtual address itself is never stored anywhere; its pieces are the lookup keys. On x86-64 with 4 KB pages, that's four levels for 48-bit addresses, or five on newer hardware.
+
+<PageTableWalk />
+
+Walking four levels on every memory access would be ruinous, so the CPU caches recent translations in the TLB (translation lookaside buffer). If a page isn't present, the MMU raises a page fault. The kernel then loads the page from disk, maps a fresh one, or, if the access was simply invalid, sends the process `SIGSEGV`.
+
+**Interview angle:** virtual → page table walk → frame + offset, with the TLB as the cache and page faults as the slow path.
+
+### Page thrashing
+
+Thrashing is what happens when the memory processes actively need, their working set, is larger than physical RAM. Pages get evicted to disk to make room, then are needed again almost immediately, so the system spends its time moving pages back and forth instead of running programs. Everything slows to a crawl while the disks stay busy.
+
+The signs are a high rate of major page faults, non-zero `si` and `so` (swap in and out) columns in `vmstat`, heavy disk I/O on the swap device, and, counterintuitively, low CPU utilization because processes are always waiting. The naive fix is more RAM. The others are shrinking the working set (smaller caches, fixing a leak), running fewer memory-hungry processes at once, and tuning how eagerly the kernel swaps.
+
+**Interview angle:** thrashing looks like "the machine is slow but the CPU is idle." Check swap activity.
+
+### Reading flame graphs
+
+A flame graph summarizes thousands of sampled stack traces in one picture. Each box is a function. The box's width is the share of samples in which that function was on the stack. The y-axis is stack depth: callers sit below the functions they call. The x-axis is not time. Frames at each level are sorted alphabetically so identical stacks merge into one wide box, and left-to-right position means nothing.
+
+To read one, look for wide boxes near the top of each tower. A wide plateau with nothing above it is a function spending time in its own code, the hot spot. A wide box with a busy tower above it is a function that's expensive because of what it calls. Colors are usually just for contrast and carry no meaning unless the tool says otherwise.
+
+On Linux, `perf record -g` plus the FlameGraph scripts is the classic pipeline; profilers such as `py-spy` for Python produce them directly. A regular flame graph shows time on the CPU. An off-CPU flame graph shows time spent blocked, on locks, I/O, or sleep, which is where latency problems often hide.
+
+**Interview angle:** width is cost, the x-axis isn't time, and the hot spot is the widest box with nothing on top.
+
+### A first-pass triage checklist
+
+When a Linux box is misbehaving, a quick pass over the main resources usually points somewhere:
+
+- **CPU:** `top` or `htop`. Compare load average to the core count, and check the split between user, system, and I/O wait time.
+- **Memory:** `free -h`. Is available memory low? Is the machine swapping?
+- **Disk:** `iostat -x`. High utilization and rising `await` mean the disks are the bottleneck.
+- **Network:** `ss -s` for connection counts, and retransmit counters for a lossy path.
+- **Logs:** `dmesg` for kernel messages such as the OOM killer, and `journalctl` for services.
+
+The full procedures, including scenarios for memory leaks, OOM kills, and failed mounts, are in [Lessons for Production Engineering](/blog/production-engineering-lessons), and my command toolkit is on [GitHub](https://github.com/christurgeon/Troubleshooting-Tools).
+
+**Interview angle:** start broad (CPU, memory, disk, network) before digging into any one process.
