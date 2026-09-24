@@ -70,3 +70,139 @@ These numbers are approximate and change with hardware, but the orders of magnit
 For traffic and storage, a day has about 86,400 seconds; call it 10^5. Average QPS is daily active users × actions per user ÷ 86,400, and peak is usually two to three times the average. Storage is items × size × retention × replication factor. If a service gets 100 million writes a day of 1 KB each, that's roughly 1,200 writes per second on average and about 100 GB a day before replication.
 
 **Interview angle:** say every assumption out loud and round aggressively. Nobody cares whether it's 1,157 or 1,200 QPS; they care whether it's a thousand or a million.
+
+## Scaling building blocks
+
+### Load balancers
+
+A load balancer sits in front of a pool of servers and decides which one handles each request. Clients only ever see its public address or DNS name; the servers behind it live on private addresses and can come and go without anyone outside noticing. That indirection is most of the point. You can add capacity, drain a server for a deploy, or lose a machine entirely, and clients keep connecting to the same place.
+
+Load balancers work at one of two levels. A layer 4 balancer looks at TCP or UDP connections and forwards packets without reading them, which makes it fast and protocol-agnostic. A layer 7 balancer speaks HTTP: it can terminate TLS, read the path and headers, and route on them, so `/images` goes to one pool and `/api` to another. That flexibility costs CPU per request.
+
+Whatever the layer, the job has the same parts. Spread requests using a strategy such as round robin, least connections, or weighted variants of either. Health-check every backend and stop sending traffic to the ones that fail. Optionally terminate TLS so the servers behind it don't each need certificates and the CPU to handle handshakes.
+
+<LoadBalancerRace />
+
+**Interview angle:** the load balancer is itself a single point of failure, so say how you'd make it redundant (an active-passive pair or a managed service). And know why least connections beats round robin when servers or requests are uneven.
+
+### API gateway vs load balancer
+
+The two get confused because both sit at the front door. A load balancer's job is distribution: keep traffic flowing to healthy servers. An API gateway's job is policy. It's a layer 7 entry point for APIs that routes each request to the right service and handles the cross-cutting concerns no individual service wants to reimplement: authentication and authorization (API keys, JWTs, OAuth), rate limits and quotas, request and response transformation such as converting XML to JSON, response caching, and logging, metrics, and tracing.
+
+Gateways earn their keep when you expose internal services to the outside world or need to control access from mobile apps and third parties. In practice the two are often stacked: a load balancer spreads traffic across gateway instances, and each gateway routes to services that have their own load balancing behind them.
+
+**Interview angle:** be able to say which concern lives where. Auth and rate limits in the gateway, health checks and distribution in the load balancer.
+
+### API styles: REST, SOAP, gRPC
+
+SOAP is a protocol. Every message is an XML envelope with a strict structure, and a family of WS-* standards adds security, reliable delivery, and transactions on top. It can run over HTTP, SMTP, or raw TCP. The rigidity is the feature: two enterprises can agree on a contract and hold each other to it. The cost is verbosity and tooling weight.
+
+REST is an architectural style, not a protocol. You model resources, address them with URLs, and act on them with standard HTTP methods: `GET`, `POST`, `PUT`, `DELETE`. Payloads are usually JSON. Requests are stateless, so each one carries everything the server needs, and responses can be cached by ordinary HTTP machinery. It's the default for public and browser-facing APIs because every client already speaks it.
+
+gRPC uses Protocol Buffers over HTTP/2. You define the service in a schema, generate client and server code in most languages, and get compact binary messages, streaming in both directions, and strict types. It shines for internal service-to-service calls with high throughput. Browsers can't speak it natively, so public APIs usually put a REST or gRPC-Web layer in front.
+
+**Interview angle:** choose by who calls it. Public or browser clients get REST; internal high-throughput calls get gRPC; SOAP is mostly for existing enterprise contracts you have to honor.
+
+### Rate limiting
+
+A rate limiter protects a service from being overwhelmed, whether by a buggy client in a retry loop, a scraper, or a deliberate denial-of-service attempt, and it keeps costs predictable. Put it on the server side. A client-side limit is a suggestion that any client can ignore. The usual home is middleware in front of the service, often the API gateway, which already handles related jobs such as TLS termination and IP allowlisting.
+
+The classic algorithm is the token bucket. A bucket holds up to N tokens and refills at a fixed rate. Each request takes a token; no token, no request. Short bursts up to the bucket size go through, but sustained traffic is capped at the refill rate. The leaky bucket is its sibling: requests queue and drain at a constant rate, which smooths output but adds delay. A fixed window counter (at most 100 requests per minute, reset on the minute) is the simplest option, but it allows up to twice the limit across a window boundary: 100 requests at 12:00:59 and another 100 at 12:01:00. Sliding window logs or counters fix that edge at the cost of more bookkeeping.
+
+You rarely want a single bucket. Different endpoints get different limits, and if you throttle by user or IP address, each user or address needs its own bucket. Across many servers the counters must be shared, typically in Redis with atomic increments and an expiry, or two servers will each let the same client through. When you reject a request, return `429 Too Many Requests` with a `Retry-After` header so well-behaved clients back off.
+
+<TokenBucket />
+
+**Interview angle:** token bucket is the default answer. Be ready to explain the fixed-window boundary burst and how you'd share counters across instances without a race.
+
+### Stateless web tier
+
+A stateful server remembers something about a client between requests, typically session data held in memory. That forces every request from that client back to the same server, which load balancers handle with sticky sessions. Sticky sessions work until a server dies and takes its sessions with it, or until you want to scale in and discover you can't remove a machine without logging people out.
+
+A stateless tier keeps no client state on the web servers at all. Session data moves to a shared store such as Redis or a database, and any server can handle any request. Adding capacity means starting more servers; removing it means stopping them. Autoscaling becomes a matter of watching load.
+
+**Interview angle:** if your design has web servers, make them stateless and say where the state went.
+
+### CDNs
+
+A content delivery network is a fleet of cache servers spread around the world that serve static content (images, video, CSS, JavaScript) from a location near each user. On a cache miss, the edge server fetches the file from your origin, stores it, and serves later requests itself. The origin controls how long edges keep a file through headers such as `Cache-Control`.
+
+Invalidation is the part to plan for. You can purge objects through the CDN's API, but the more reliable pattern is versioned file names: when `app.js` changes, publish `app.3f9a1c.js` and update the reference, so old and new never collide. Also plan for the CDN itself failing. Clients should be able to fall back to the origin, and the origin should survive that traffic for a while. CDNs are run by third parties and bill by traffic, so cache what benefits from it rather than everything.
+
+CDNs aren't only for static files anymore. They can cache dynamic responses for short periods, run small bits of code at the edge, and keep warm connections open to your origin, which speeds up even uncached requests by skipping repeated TCP and TLS handshakes over long distances.
+
+**Interview angle:** mention versioned URLs for invalidation and say what happens when the CDN is down.
+
+### Caching strategies and eviction
+
+The default pattern is cache-aside. On a read, check the cache; on a miss, read the database, write the result into the cache, and return it. Writes go to the database and either invalidate or update the cached entry. The alternatives change who writes to the cache and when. Write-through writes to the cache and the database together, which keeps the cache fresh at the cost of slower writes. Write-back writes to the cache and flushes to the database later, which is fast but can lose data if the cache dies. Write-around skips the cache on writes entirely, which suits data that is rarely read back.
+
+Caching helps most when data is read often and changes rarely. The cache also scales separately from the database, so it absorbs read load that would otherwise need more database replicas. Give entries a time to live: too short and you miss constantly, too long and you serve stale data. Add random jitter to TTLs so a batch of keys written together doesn't expire at the same instant. When a hot key expires and a thousand requests miss at once, they all hit the database together. That's a cache stampede. Jitter, request coalescing (one request refills the key while the rest wait), a short lock per key, or refreshing popular keys before they expire all help.
+
+When the cache is full, the eviction policy picks what goes. LRU evicts the least recently used key, LFU the least frequently used, FIFO the oldest insert, and ARC adapts between recency and frequency. Implementations are a favorite follow-up. FIFO is a hash map plus a queue. LRU is a hash map from key to a node in a doubly linked list ordered by recency: move a node to the head on every access, evict from the tail. LFU keeps key → (value, frequency, node) plus a map from each frequency to a doubly linked list, and breaks ties within a frequency by recency.
+
+<LruCache />
+
+Operationally, hit rate is the number to optimize. Load test the system with and without the cache so you know the traffic level at which the backend starts returning 500s on its own, because that is what happens when the cache fails. Over-provision cache capacity, spread cache servers across datacenters so one outage doesn't take out the whole cache, and put rate limiting somewhere that survives losing a few cache nodes.
+
+**Interview angle:** name the pattern (cache-aside), the TTL tradeoff, and stampede protection. If they ask you to build one, it's LRU with a hash map and a doubly linked list.
+
+### Replicated vs sharded services
+
+There are two ways to spread a service across machines, and they solve different problems. Replication runs identical copies behind a load balancer. It adds request throughput and survives the loss of any single copy, which makes it the natural shape for stateless services. Sharding splits the data so each machine owns a different slice. It adds capacity for state, and it's what you reach for when the data no longer fits on one machine.
+
+Sharding can also help stateless services, as an isolation boundary. Some failures come from the input: a malformed or pathological "poison" request that crashes whatever processes it. In a replicated service, enough of those requests can take down every replica, because every replica handles everything. In a sharded service, the poison request only reaches its shard. You lose a fraction of traffic instead of all of it.
+
+Caches show the difference sharply. Take ten nodes, each with 10 GB of memory and room for 100 requests per second, in front of 200 GB of possible results and 1,000 requests per second of traffic. Both layouts serve the traffic. As replicas, every node caches roughly the same popular results, so the cache holds about 10 GB of the dataset. As shards, each node holds different keys, so the cache holds ten times as much.
+
+<ShardedVsReplicatedCache />
+
+**Interview angle:** replicate for throughput, shard for size. Then say what losing one node costs in each layout.
+
+### Consistent hashing and virtual nodes
+
+The naive way to pick a shard is `hash(key) % N`. It works until N changes. Going from 10 servers to 11 changes the answer for about 90% of keys, and for a cache that means a wave of misses hitting the database all at once.
+
+Consistent hashing puts servers and keys on the same ring of hash values. Each key belongs to the first server clockwise from it. Adding a server only takes over the keys in the arc just before it; removing one only hands its arc to the next server. On average only about 1/N of the keys move.
+
+With a handful of servers, the arcs come out uneven, and one server can end up owning far more of the ring than the others. Virtual nodes fix that: place each server on the ring many times, at different hashed positions, so each one owns many small arcs whose total evens out. Virtual nodes also let you weight servers. Give a machine with twice the memory twice as many virtual nodes, and it takes about twice the keys.
+
+<ConsistentHashRing />
+
+The shard key matters as much as the hashing scheme. For HTTP caches, hashing the request path plus the query parameters is a good general-purpose key. Leave out the URL fragment, the part after `#`: browsers never send it to the server. The exception is when geography matters more than spread, and you'd rather route users to a nearby shard.
+
+**Interview angle:** explain why modulo hashing fails on resize, how the ring fixes it, and what virtual nodes add.
+
+### Cache warm-up and replicated shards
+
+A new cache shard starts empty. It only fills as real requests miss and get cached, so right after a deploy or a replacement, that shard's slice of traffic goes straight to the backend. Roll out a sharded cache all at once and you've briefly thrown away most of your cache. Deploy gradually, pre-warm shards from a snapshot or recent traffic, or accept the dip and size the backend for it.
+
+The stronger fix is to make each shard a replicated service of its own. Every shard becomes several identical nodes behind their own load balancer, so a single node failure or a rolling deploy never empties a shard. That buys three things: failures stop being cache misses, deploys can happen at peak traffic as long as you've over-provisioned, and a hot shard can get more replicas without touching the others. The cost is more machines and more moving parts.
+
+**Interview angle:** mention warm-up whenever you add a cache to a design. It's the detail that shows you've operated one.
+
+### Ambassador vs shard router
+
+Once data is sharded, something has to know which shard holds a key. One option is the ambassador pattern: a small proxy that runs next to each client, in the same pod or on the same host. The application talks to `localhost`; the ambassador knows the shard map and forwards each request to the right shard. No extra network hop, and the application stays ignorant of sharding. The catch is that the proxy ships with every client, so you deploy and update it everywhere.
+
+The other option is a shard router: a shared service, itself replicated behind a load balancer, that every client calls. Clients stay simple and the routing logic lives in one place. But the router has to scale with total demand, and every request pays for an extra network hop through it.
+
+**Interview angle:** ambassador trades deployment sprawl for latency; a router trades latency and capacity for simplicity.
+
+### Message queues and pub/sub
+
+A queue lets a producer hand off work without waiting for whoever does it. That decoupling absorbs bursts (the queue grows, consumers catch up), lets producers and consumers scale on their own, and makes retries possible because a message stays around until someone acknowledges it.
+
+Two models come up. In a work queue, each message goes to exactly one consumer, which is how you spread jobs across workers. In publish/subscribe, every subscriber group gets every message, which is how several independent systems react to the same event. Log-based systems such as Kafka keep messages in partitions: order is preserved within a partition, consumers track their own offset, and they can replay from an earlier point.
+
+Delivery guarantees are the classic follow-up. At-most-once never redelivers and can lose messages. At-least-once never loses them and can deliver duplicates, so consumers must be idempotent. "Exactly-once" in practice means at-least-once delivery plus idempotent processing or transactions that tie the consume and the side effect together. Messages that keep failing go to a dead-letter queue so they stop blocking everything behind them.
+
+**Interview angle:** say which delivery guarantee you're relying on and how consumers handle duplicates.
+
+### Multiple data centers and geoDNS
+
+Servers die and disks die; at scale, entire data centers occasionally do too. Running in more than one location keeps the service up when one goes dark. GeoDNS resolves the same domain name to different addresses depending on where the user is, which sends people to the nearest healthy location and cuts latency.
+
+The hard part is data. For traffic to move to another data center during a large-scale outage, that data center needs the data, so replication across locations has to be planned: what's synchronous, what lags, and what users see during failover. Test the failover before you need it. And monitor at several levels (hosts, services, the whole region) so you can tell a bad machine from a bad day.
+
+**Interview angle:** multi-region is easy to draw and hard to run. Talk about data replication and failover testing, not just the second box on the diagram.
