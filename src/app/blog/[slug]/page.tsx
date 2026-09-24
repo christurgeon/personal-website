@@ -11,6 +11,8 @@ import { ShareButtons } from "@/components/ShareButtons";
 import { SubscribeForm } from "@/components/SubscribeForm";
 import { RisoThumbnail } from "@/components/riso/RisoThumbnail";
 import { TAG_COLORS, TAG_FGS, pickByIndex } from "@/lib/riso";
+import { GuideToc } from "@/components/GuideToc";
+import { extractToc } from "@/lib/toc";
 import type { Metadata } from "next";
 
 interface PostPageProps {
@@ -58,6 +60,12 @@ export default async function PostPage({ params }: PostPageProps) {
   const allPosts = getAllPosts();
   const upNext = allPosts.filter((p) => p.slug !== slug).slice(0, 2);
 
+  const isGuide = post.layout === "guide";
+  const toc = isGuide ? extractToc(post.content) : [];
+  // Guide posts align every block with the content column to the right of the 240px nav + 48px gap.
+  const column = isGuide ? "max-w-[80ch] lg:ml-[288px]" : "mx-auto max-w-[68ch]";
+  const content = <MDXRemote source={post.content} options={{ mdxOptions: { rehypePlugins: [rehypeSlug] } }} components={mdxComponents} />;
+
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "Article",
@@ -86,7 +94,7 @@ export default async function PostPage({ params }: PostPageProps) {
           </Link>
         </div>
 
-        <header className="animate-fade-in mx-auto mb-10 max-w-[68ch]">
+        <header className={`animate-fade-in mb-10 ${column}`}>
           {post.tags && post.tags.length > 0 && (
             <div className="mb-6 flex flex-wrap gap-2">
               {post.tags.map((tag, idx) => (
@@ -125,7 +133,7 @@ export default async function PostPage({ params }: PostPageProps) {
         </header>
 
         {post.coverImage && (
-          <div className="animate-fade-in-delay-1 mx-auto mb-14 max-w-[68ch]">
+          <div className={`animate-fade-in-delay-1 mb-14 ${column}`}>
             <div
               className="relative w-full overflow-hidden"
               style={{
@@ -139,20 +147,25 @@ export default async function PostPage({ params }: PostPageProps) {
           </div>
         )}
 
-        <article className="prose prose-lg animate-fade-in-delay-2 mx-auto max-w-[68ch]">
-          <MDXRemote source={post.content} options={{ mdxOptions: { rehypePlugins: [rehypeSlug] } }} components={mdxComponents} />
-        </article>
+        {isGuide ? (
+          <div className="lg:grid lg:grid-cols-[240px_minmax(0,1fr)] lg:gap-12">
+            <GuideToc entries={toc} />
+            <article className="prose prose-lg guide-article animate-fade-in-delay-2 max-w-none min-w-0">{content}</article>
+          </div>
+        ) : (
+          <article className="prose prose-lg animate-fade-in-delay-2 mx-auto max-w-[68ch]">{content}</article>
+        )}
 
-        <div className="mx-auto max-w-[68ch]">
+        <div className={column}>
           <ShareButtons title={post.title} slug={slug} />
         </div>
 
-        <div className="mx-auto mt-14 max-w-[68ch]">
+        <div className={`mt-14 ${column}`}>
           <SubscribeForm variant="card" />
         </div>
 
         {upNext.length > 0 && (
-          <section className="mx-auto mt-20 max-w-[68ch]">
+          <section className={`mt-20 ${column}`}>
             <div className="font-mono-label mb-5" style={{ color: "var(--muted)", fontSize: "0.78rem" }}>
               [ UP NEXT ]
             </div>
