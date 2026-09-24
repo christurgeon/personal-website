@@ -6,12 +6,13 @@ import { z } from "zod";
 
 const postsDirectory = path.join(process.cwd(), "content/posts");
 
-const frontmatterSchema = z.object({
+export const frontmatterSchema = z.object({
   title: z.string(),
   date: z.string().date(),
   excerpt: z.string(),
   coverImage: z.string().optional(),
   tags: z.array(z.string()).optional(),
+  layout: z.enum(["guide"]).optional(),
 });
 
 export interface PostMeta {
@@ -21,6 +22,7 @@ export interface PostMeta {
   excerpt: string;
   coverImage?: string;
   tags?: string[];
+  layout?: "guide";
   readingTime: string;
 }
 
@@ -71,13 +73,14 @@ export function getAllPosts(): PostMeta[] {
   allPostsCache = slugs
     .map((slug) => getPostBySlug(slug.replace(/\.mdx$/, "")))
     .filter((post): post is Post => post !== null)
-    .map(({ slug, title, date, excerpt, coverImage, tags, readingTime }) => ({
+    .map(({ slug, title, date, excerpt, coverImage, tags, layout, readingTime }) => ({
       slug,
       title,
       date,
       excerpt,
       coverImage,
       tags,
+      layout,
       readingTime,
     }))
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());

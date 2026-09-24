@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { getPostSlugs, getPostBySlug, getAllPosts } from "../blog";
+import { getPostSlugs, getPostBySlug, getAllPosts, frontmatterSchema } from "../blog";
 
 // These tests run against the real content/posts directory.
 // They validate that every MDX file has valid frontmatter (Zod-checked).
@@ -69,5 +69,21 @@ describe("getAllPosts", () => {
     const posts = getAllPosts();
     const slugs = getPostSlugs();
     expect(posts.length).toBe(slugs.length);
+  });
+});
+
+describe("frontmatterSchema layout", () => {
+  const base = { title: "T", date: "2026-01-01", excerpt: "E" };
+
+  it("is optional", () => {
+    expect(frontmatterSchema.parse(base).layout).toBeUndefined();
+  });
+
+  it("accepts guide", () => {
+    expect(frontmatterSchema.parse({ ...base, layout: "guide" }).layout).toBe("guide");
+  });
+
+  it("rejects any other value", () => {
+    expect(() => frontmatterSchema.parse({ ...base, layout: "wide" })).toThrow();
   });
 });

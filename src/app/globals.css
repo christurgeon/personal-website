@@ -612,3 +612,40 @@ footer {
   border-color: var(--border);
   padding: 0.6em 0.9em;
 }
+
+/* ============================================================
+   Guide layout (posts with layout: "guide")
+   ============================================================ */
+.guide-toc-link {
+  display: block;
+  font-size: 0.88rem;
+  line-height: 1.35;
+  color: var(--muted);
+  overflow-wrap: anywhere;
+  transition: color 0.15s ease;
+}
+.guide-toc-link:hover {
+  color: var(--ink);
+}
+.guide-toc-link[data-active-part] {
+  color: var(--ink);
+}
+.guide-toc-link[aria-current="location"] {
+  color: var(--accent);
+}
+
+.guide-article > * {
+  max-width: 80ch;
+}
+.guide-article > figure {
+  max-width: none;
+}
+/* Mobile clears the sticky jump bar (~48px); desktop only needs breathing room. */
+.guide-article :is(h2, h3) {
+  scroll-margin-top: 64px;
+}
+@media (min-width: 1024px) {
+  .guide-article :is(h2, h3) {
+    scroll-margin-top: 24px;
+  }
+}
