@@ -14,6 +14,7 @@ import RadiationTypes from "./RadiationTypes";
 import ConsistentHashRing from "./ConsistentHashRing";
 import TokenBucket from "./TokenBucket";
 import LruCache from "./LruCache";
+import QuorumReplicas from "./QuorumReplicas";
 
 export const mdxComponents = {
   BackdoorRothSteps,
@@ -32,4 +33,5 @@ export const mdxComponents = {
   ConsistentHashRing,
   TokenBucket,
   LruCache,
+  QuorumReplicas,
 };
