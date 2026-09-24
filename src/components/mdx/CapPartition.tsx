@@ -1,18 +1,14 @@
 import DiagramFrame from "./diagram/DiagramFrame";
 
-const MONO = "var(--font-mono), monospace";
-
-function Replica({ x, title, value }: { x: number; title: string; value: string }) {
+// HTML rather than a scaled SVG so the labels stay readable at phone widths.
+function Replica({ title, value }: { title: string; value: string }) {
   return (
-    <g>
-      <rect x={x} y={30} width={150} height={70} style={{ fill: "var(--card)", stroke: "var(--border)", strokeWidth: 3 }} />
-      <text x={x + 75} y={58} textAnchor="middle" style={{ fill: "var(--ink)", fontFamily: MONO, fontSize: 13, fontWeight: 700 }}>
-        {title}
-      </text>
-      <text x={x + 75} y={82} textAnchor="middle" style={{ fill: "var(--muted)", fontFamily: MONO, fontSize: 12 }}>
+    <div className="min-w-0 px-3 py-3 text-center" style={{ background: "var(--card)", border: "3px solid var(--border)" }}>
+      <div className="font-mono text-sm font-bold">{title}</div>
+      <div className="font-mono text-sm" style={{ color: "var(--muted)" }}>
         {value}
-      </text>
-    </g>
+      </div>
+    </div>
   );
 }
 
@@ -22,24 +18,26 @@ export default function CapPartition() {
       title="CAP during a network partition"
       caption="Partitions are not optional in a real network, so the real choice is what a cut-off replica does when asked: refuse (consistency) or answer with what it has (availability)."
     >
-      <svg
-        viewBox="0 0 520 150"
-        className="block h-auto w-full"
+      <div
+        className="grid grid-cols-[minmax(0,1fr)_4.5rem_minmax(0,1fr)] items-center sm:grid-cols-[minmax(0,1fr)_7rem_minmax(0,1fr)]"
         role="img"
         aria-label="Two replicas separated by a network partition. Replica 1 has x = 2; replica 2 still has x = 1."
       >
-        <Replica x={30} title="Replica 1" value="x = 2 (latest)" />
-        <Replica x={340} title="Replica 2" value="x = 1 (stale)" />
-        <line x1={180} y1={65} x2={340} y2={65} style={{ stroke: "var(--border)", strokeWidth: 3, strokeDasharray: "8 6" }} />
-        <line x1={248} y1={50} x2={272} y2={80} style={{ stroke: "var(--red)", strokeWidth: 5 }} />
-        <line x1={272} y1={50} x2={248} y2={80} style={{ stroke: "var(--red)", strokeWidth: 5 }} />
-        <text x={260} y={104} textAnchor="middle" style={{ fill: "var(--red)", fontFamily: MONO, fontSize: 11, letterSpacing: "0.08em" }}>
-          PARTITION
-        </text>
-        <text x={415} y={132} textAnchor="middle" style={{ fill: "var(--ink)", fontFamily: MONO, fontSize: 11 }}>
-          a client reads x here
-        </text>
-      </svg>
+        <Replica title="Replica 1" value="x = 2 (latest)" />
+        <div className="relative flex h-full flex-col items-center justify-center" aria-hidden="true">
+          <div className="absolute inset-x-0 top-1/2" style={{ borderTop: "3px dashed var(--border)" }} />
+          <span className="relative px-1 text-xl leading-none font-bold" style={{ background: "var(--card)", color: "var(--red)" }}>
+            ✕
+          </span>
+          <span className="font-mono-label relative mt-1" style={{ color: "var(--red)", fontSize: "0.68rem" }}>
+            partition
+          </span>
+        </div>
+        <Replica title="Replica 2" value="x = 1 (stale)" />
+      </div>
+      <p className="font-mono-label mt-2 text-right" style={{ color: "var(--muted)" }}>
+        a client reads x from replica 2
+      </p>
       <div className="mt-4 grid gap-3 sm:grid-cols-2">
         <div className="p-3" style={{ border: "2.5px solid var(--border)", background: "color-mix(in srgb, var(--blue) 18%, var(--card))" }}>
           <div className="font-mono-label mb-1">CP · choose consistency</div>
