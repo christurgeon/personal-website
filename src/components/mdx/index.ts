@@ -11,6 +11,7 @@ import SummaryBox from "./SummaryBox";
 import AgentWorkflowLoop from "./AgentWorkflowLoop";
 import StrategyGraveyard from "./StrategyGraveyard";
 import RadiationTypes from "./RadiationTypes";
+import ConsistentHashRing from "./ConsistentHashRing";
 
 export const mdxComponents = {
   BackdoorRothSteps,
@@ -26,4 +27,5 @@ export const mdxComponents = {
   AgentWorkflowLoop,
   StrategyGraveyard,
   RadiationTypes,
+  ConsistentHashRing,
 };
