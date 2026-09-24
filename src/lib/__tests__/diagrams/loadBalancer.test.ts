@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { assign, createLb, lbTick, type Strategy } from "@/lib/diagrams/loadBalancer";
+import { assign, createLb, lbArrive, lbServe, lbTick, type Strategy } from "@/lib/diagrams/loadBalancer";
 
 const SPEEDS = [3, 3, 1];
 
@@ -31,6 +31,21 @@ describe("load balancer", () => {
 
   it("least connections keeps every queue short", () => {
     expect(Math.max(...run("least-connections", 10).queues)).toBeLessThanOrEqual(1);
+  });
+
+  it("arrivals load the fast servers before they drain", () => {
+    const arrived = lbArrive(run("round-robin", 5), "round-robin", 6);
+    expect(arrived.queues).toEqual([2, 2, 7]);
+    expect(arrived.tick).toBe(5);
+    expect(lbServe(arrived, SPEEDS).queues).toEqual([0, 0, 6]);
+  });
+
+  it("least connections spreads arrivals so every server holds work", () => {
+    expect(lbArrive(run("least-connections", 5), "least-connections", 6).queues).toEqual([3, 2, 2]);
+  });
+
+  it("serving advances the tick", () => {
+    expect(lbServe(createLb(3), SPEEDS).tick).toBe(1);
   });
 
   it("counts ticks", () => {

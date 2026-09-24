@@ -23,9 +23,17 @@ export function assign(state: LbState, strategy: Strategy): { state: LbState; se
   return { state: { ...state, queues, cursor }, server };
 }
 
-export function lbTick(state: LbState, strategy: Strategy, speeds: number[], arrivals: number): LbState {
+export function lbArrive(state: LbState, strategy: Strategy, arrivals: number): LbState {
   let current = state;
   for (let i = 0; i < arrivals; i++) current = assign(current, strategy).state;
-  const queues = current.queues.map((q, i) => Math.max(0, q - speeds[i]));
-  return { ...current, queues, tick: current.tick + 1 };
+  return current;
+}
+
+export function lbServe(state: LbState, speeds: number[]): LbState {
+  const queues = state.queues.map((q, i) => Math.max(0, q - speeds[i]));
+  return { ...state, queues, tick: state.tick + 1 };
+}
+
+export function lbTick(state: LbState, strategy: Strategy, speeds: number[], arrivals: number): LbState {
+  return lbServe(lbArrive(state, strategy, arrivals), speeds);
 }
