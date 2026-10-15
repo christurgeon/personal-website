@@ -1,6 +1,7 @@
 ---
 title: "Vibe Coding with Guardrails"
 date: "2026-04-17"
+updated: "2026-10-15"
 excerpt: "A practical workflow for coding with AI agents: research first, invite pushback, get a second opinion on the plan, enforce hard rules with hooks, limit what the agent can reach, and manage context before it rots."
 tags: ["ai", "claude-code", "agentic-coding", "engineering", "security", "workflow"]
 ---
@@ -208,7 +209,7 @@ Simon Willison calls the dangerous combination the [lethal trifecta](https://sim
 You can't remove untrusted content from a coding agent's life; reading other people's code is the job. So remove one of the other two:
 
 - **Keep production credentials out of the agent's environment.** Give it scoped, throwaway tokens for the one service the task needs. If a key would be a disaster to leak, the agent shouldn't be able to read it.
-- **Turn on the sandbox.** Claude Code's [sandbox](https://code.claude.com/docs/en/sandboxing) is off by default. When enabled, it limits which directories shell commands can write to and which hosts they can reach, enforced by the operating system rather than by asking nicely. It covers shell commands only, so for anything long-running or unattended, use a container or a remote VM.
+- **Turn on the sandbox.** Claude Code's [sandbox](https://code.claude.com/docs/en/sandboxing) is off by default. When enabled, it limits which directories shell commands can write to and which hosts they can reach, enforced by the operating system rather than by asking nicely. It covers shell commands only, so for anything long-running or unattended, use a container or [a remote VM](/blog/code-from-anywhere).
 - **Default the network to closed.** Allow-list the package registry and the APIs the task needs. An agent that can't reach an arbitrary host can't send your data to one.
 
 One more leak path needs no attacker at all. Agents love `git add -A`, and they leave things lying around: screenshots from browser testing, debug dumps, a `.env.local` made "just for this test." Read `git diff --staged` before anything leaves your machine, or put the check in a hook.

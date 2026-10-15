@@ -86,7 +86,7 @@ The whole thing runs on one line in my shell config:
 tm() { tmux new -As "${1:-main}"; }
 ```
 
-`-A` attaches to the named session if it exists and creates it if it doesn't, which makes `tm` idempotent; `${1:-main}` just saves typing. It means "take me to my workspace," regardless of which device asks or whether the workspace exists yet. `tm` on the laptop puts you in `main`. `tm` on the phone an hour later puts you in the *same* `main` — same scrollback, same agent mid-thought. Named sessions give you parallel workspaces for free: `tm website` for this blog, `tm trading` for the thing that loses me money.
+`-A` attaches to the named session if it exists and creates it if it doesn't, which makes `tm` idempotent; `${1:-main}` just saves typing. It means "take me to my workspace," regardless of which device asks or whether the workspace exists yet. `tm` on the laptop puts you in `main`. `tm` on the phone an hour later puts you in the *same* `main` — same scrollback, same agent mid-thought. Named sessions give you parallel workspaces for free: `tm website` for this blog, `tm trading` for [the thing that loses me money](/blog/trading-weather-markets).
 
 Detaching is `Ctrl-b d`, or nothing at all. Close the app, lose signal, walk away. tmux can't tell a deliberate detach from a dropped connection, and that indifference is the entire feature. Flaky airport wifi and closing your laptop on purpose become the same non-event. Start Claude on a long task, walk off, and reattach from whatever's nearby to scroll through everything it did while you were gone.
 

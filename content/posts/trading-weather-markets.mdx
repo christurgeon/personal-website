@@ -1,8 +1,9 @@
 ---
 title: "The Oracle: Trading Weather, Being Wrong"
+seoTitle: "Building a Kalshi Weather Trading Bot: What Survived"
 date: "2026-06-14"
 excerpt: "A field guide to building a prediction-market trading bot — the strategies that died on measurement, the handful that survived, and why most of the work turned out to be killing good-looking ideas before they cost real money."
-tags: ["trading", "prediction-markets", "quant", "weather", "engineering", "calibration"]
+tags: ["trading", "prediction-markets", "quant", "weather", "engineering", "calibration", "finance"]
 ---
 
 I built a trading bot. I named it The Oracle, which in hindsight was optimistic.
@@ -45,7 +46,7 @@ A few of these deserve a fuller eulogy.
 
 The **daily "between" book** is the one that stings, because it *was* the original thesis. The idea was to bet that the day's high would land inside a specific one-degree bracket. It turns out the morning market for those brackets is brutally efficient — by the time I could see a forecast, so could everyone else, and the price already reflected it. The strategy didn't blow up; it *bled*, slowly, at roughly the rate of the exchange's fees. That's almost more damning than a crash. A crash means you found a real risk. A slow bleed at the fee rate means you found nothing at all, and paid rent on it.
 
-The **off-weather sweep** taught a humility of a different shape. I pointed a fleet of research agents at everything else Kalshi lists — sports against the sharp books, crypto, cross-venue arbitrage, entertainment markets. Every lane came back the same way: someone is already there, and they are faster, better-capitalized, and better-informed than a guy with a VPS and a forecast model. The efficient market isn't a theory you read about in school. It's a wall you walk into, repeatedly, in the dark.
+The **off-weather sweep** taught a humility of a different shape. I pointed a fleet of research agents at everything else Kalshi lists — sports against the sharp books, crypto, cross-venue arbitrage, entertainment markets. Every lane came back the same way: someone is already there, and they are faster, better-capitalized, and better-informed than a guy with [a VPS](/blog/code-from-anywhere) and a forecast model. The efficient market isn't a theory you read about in school. It's a wall you walk into, repeatedly, in the dark.
 
 ---
 
