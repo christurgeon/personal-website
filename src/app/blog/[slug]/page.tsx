@@ -45,7 +45,6 @@ export async function generateMetadata({ params }: PostPageProps): Promise<Metad
       description: post.excerpt,
       type: "article",
       publishedTime: post.date,
-      ...(post.updated && { modifiedTime: post.updated }),
     },
   };
 }
@@ -73,7 +72,6 @@ export default async function PostPage({ params }: PostPageProps) {
     headline: post.title,
     description: post.excerpt,
     datePublished: post.date,
-    dateModified: post.updated ?? post.date,
     mainEntityOfPage: { "@type": "WebPage", "@id": postUrl },
     author: {
       "@type": "Person",
@@ -128,12 +126,6 @@ export default async function PostPage({ params }: PostPageProps) {
 
           <div className="font-mono-label flex flex-wrap items-center gap-x-2 gap-y-1" style={{ color: "var(--muted)", fontSize: "0.78rem" }}>
             <span>{format(parseISO(post.date), "MMM d, yyyy")}</span>
-            {post.updated && (
-              <>
-                <span aria-hidden="true">·</span>
-                <span>Updated {format(parseISO(post.updated), "MMM d, yyyy")}</span>
-              </>
-            )}
             <span aria-hidden="true">·</span>
             <span>{post.readingTime}</span>
             <span aria-hidden="true">·</span>

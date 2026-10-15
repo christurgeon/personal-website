@@ -17,7 +17,7 @@ const items = [
   },
   {
     level: "P2",
-    label: "Max 401(k) employee limit ($23.5K)",
+    label: "Max 401(k) employee limit ($24.5K)",
     desc: "Reduce taxable income or build tax-free Roth wealth.",
     color: "#3b82f6",
     bg: "rgba(59,130,246,0.1)",
@@ -25,7 +25,7 @@ const items = [
   },
   {
     level: "P3",
-    label: "Backdoor Roth IRA ($7K)",
+    label: "Backdoor Roth IRA ($7.5K)",
     desc: "Bypass income limits. Tax-free growth forever.",
     color: "#8b5cf6",
     bg: "rgba(139,92,246,0.1)",
@@ -33,7 +33,7 @@ const items = [
   },
   {
     level: "P4",
-    label: "Mega Backdoor Roth (up to $70K total)",
+    label: "Mega Backdoor Roth (up to $72K total)",
     desc: "After-tax → Roth conversion. Check if your plan allows it.",
     color: "#06b6d4",
     bg: "rgba(6,182,212,0.1)",

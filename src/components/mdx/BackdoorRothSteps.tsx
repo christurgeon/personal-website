@@ -1,7 +1,7 @@
 const steps = [
   {
     number: 1,
-    title: "Contribute $7,000 to a Traditional IRA",
+    title: "Contribute $7,500 to a Traditional IRA",
     description: "This contribution is non-deductible since your income exceeds the limit.",
   },
   {
