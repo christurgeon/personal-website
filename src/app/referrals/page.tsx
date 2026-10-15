@@ -86,12 +86,6 @@ const categories: Category[] = [
         bonus: "We both get $25",
         href: "https://kalshi.com/sign-up/?referral=b758c4ef-2bc7-438b-ac4a-564f1ae0b567&m=true",
       },
-      {
-        name: "SoFi",
-        description: "An online bank that offers checking and savings accounts with no account fees or minimum balance requirements",
-        bonus: "Up to $325",
-        href: "https://urldefense.com/v3/__https://www.sofi.com/invite/money?gcp=03e69213-cfcd-4cf5-a7ae-c3d01fc8fb4a&isAliasGcp=false__;!!K_TC0FI_KA!vYcVZSr7zEqiiSoYvQp4K-J_Rvr6qNUzUoAgkmOssBToWw3VByPocooO0x5if3pAj3ZK_fyqoLvOl09lAnnbb7mTHEZO$",
-      },
     ],
   },
   {
@@ -140,8 +134,6 @@ const fullBonusByHref: Record<string, string> = {
   "https://get.venmo.com/7xWaniQM3Zb": "Earn $100 cash back after spending $500 on purchases in the first 3 months",
   "https://www.schwab.com/client-referral?refrid=REFEREUE4TERM": "Get up to $1,000 through this referral depending on your initial funding amount",
   "https://kalshi.com/sign-up/?referral=b758c4ef-2bc7-438b-ac4a-564f1ae0b567&m=true": "Sign up and we'll both get $25",
-  "https://urldefense.com/v3/__https://www.sofi.com/invite/money?gcp=03e69213-cfcd-4cf5-a7ae-c3d01fc8fb4a&isAliasGcp=false__;!!K_TC0FI_KA!vYcVZSr7zEqiiSoYvQp4K-J_Rvr6qNUzUoAgkmOssBToWw3VByPocooO0x5if3pAj3ZK_fyqoLvOl09lAnnbb7mTHEZO$":
-    "You'll get a $25 bonus when you open a SoFi Checking and Savings account, and either $50 or $300 when you set up eligible direct deposit of $1,000 or more. Terms apply.",
 };
 
 export default function ReferralsPage() {
