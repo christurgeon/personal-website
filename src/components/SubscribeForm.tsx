@@ -61,12 +61,7 @@ export function SubscribeForm({ variant }: { variant: Variant }) {
   );
 
   const formRow = (
-    <form
-      onSubmit={handleSubmit}
-      action={siteConfig.newsletter.subscribeEndpoint}
-      method="post"
-      className="flex flex-col gap-3 sm:flex-row"
-    >
+    <form onSubmit={handleSubmit} action={siteConfig.newsletter.subscribeEndpoint} method="post" className="flex flex-col gap-3 sm:flex-row">
       <label htmlFor={inputId} className="sr-only">
         Email address
       </label>
@@ -121,10 +116,7 @@ export function SubscribeForm({ variant }: { variant: Variant }) {
         <div className="font-mono-label mb-3" style={{ opacity: 0.7 }}>
           [ MAILING LIST ]
         </div>
-        <h2
-          className="font-display mb-2 uppercase tracking-[-0.03em]"
-          style={{ fontSize: "clamp(1.6rem, 3vw, 2.2rem)", lineHeight: 0.95 }}
-        >
+        <h2 className="font-display mb-2 tracking-[-0.03em] uppercase" style={{ fontSize: "clamp(1.6rem, 3vw, 2.2rem)", lineHeight: 0.95 }}>
           Get the next one by email
         </h2>
         <p className="mb-5 max-w-[52ch] text-[0.97rem]">{PITCH}</p>
