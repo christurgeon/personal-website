@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { getPostSlugs, getPostBySlug, getAllPosts, frontmatterSchema } from "../blog";
+import { getPostSlugs, getPostBySlug, getAllPosts, getRelatedPosts, frontmatterSchema } from "../blog";
 
 // These tests run against the real content/posts directory.
 // They validate that every MDX file has valid frontmatter (Zod-checked).
@@ -85,5 +85,57 @@ describe("frontmatterSchema layout", () => {
 
   it("rejects any other value", () => {
     expect(() => frontmatterSchema.parse({ ...base, layout: "wide" })).toThrow();
+  });
+});
+
+describe("frontmatterSchema updated", () => {
+  const base = { title: "T", date: "2026-01-01", excerpt: "E" };
+
+  it("accepts an ISO date", () => {
+    expect(frontmatterSchema.parse({ ...base, updated: "2026-02-01" }).updated).toBe("2026-02-01");
+  });
+
+  it("rejects a non-date string", () => {
+    expect(() => frontmatterSchema.parse({ ...base, updated: "last week" })).toThrow();
+  });
+
+  it("is never earlier than the publish date in real posts", () => {
+    for (const post of getAllPosts()) {
+      if (post.updated) expect(post.updated >= post.date).toBe(true);
+    }
+  });
+});
+
+describe("getRelatedPosts", () => {
+  const sharedTags = (a: string[] = [], b: string[] = []) => a.filter((tag) => b.includes(tag)).length;
+
+  it("excludes the current post and respects the limit", () => {
+    const [first] = getAllPosts();
+    const related = getRelatedPosts(first.slug, 2);
+    expect(related).toHaveLength(2);
+    expect(related.map((p) => p.slug)).not.toContain(first.slug);
+  });
+
+  it("ranks by shared tags, then by recency", () => {
+    const posts = getAllPosts();
+    for (const post of posts) {
+      const related = getRelatedPosts(post.slug, posts.length);
+      const scores = related.map((r) => sharedTags(post.tags, r.tags));
+      for (let i = 1; i < related.length; i++) {
+        expect(scores[i - 1]).toBeGreaterThanOrEqual(scores[i]);
+        if (scores[i - 1] === scores[i]) {
+          expect(related[i - 1].date >= related[i].date).toBe(true);
+        }
+      }
+    }
+  });
+
+  it("pairs the interview guide with the Linux field guide", () => {
+    expect(getRelatedPosts("software-engineering-interview-concepts", 1)[0].slug).toBe("production-engineering-lessons");
+  });
+
+  it("falls back to the newest posts for an unknown slug", () => {
+    const posts = getAllPosts();
+    expect(getRelatedPosts("no-such-post", 2)).toEqual(posts.slice(0, 2));
   });
 });

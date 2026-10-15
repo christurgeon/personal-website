@@ -8,7 +8,10 @@ const postsDirectory = path.join(process.cwd(), "content/posts");
 
 export const frontmatterSchema = z.object({
   title: z.string(),
+  // Overrides <title> for search results; the page heading and social cards keep `title`.
+  seoTitle: z.string().optional(),
   date: z.string().date(),
+  updated: z.string().date().optional(),
   excerpt: z.string(),
   coverImage: z.string().optional(),
   tags: z.array(z.string()).optional(),
@@ -18,7 +21,9 @@ export const frontmatterSchema = z.object({
 export interface PostMeta {
   slug: string;
   title: string;
+  seoTitle?: string;
   date: string;
+  updated?: string;
   excerpt: string;
   coverImage?: string;
   tags?: string[];
@@ -73,10 +78,12 @@ export function getAllPosts(): PostMeta[] {
   allPostsCache = slugs
     .map((slug) => getPostBySlug(slug.replace(/\.mdx$/, "")))
     .filter((post): post is Post => post !== null)
-    .map(({ slug, title, date, excerpt, coverImage, tags, layout, readingTime }) => ({
+    .map(({ slug, title, seoTitle, date, updated, excerpt, coverImage, tags, layout, readingTime }) => ({
       slug,
       title,
+      seoTitle,
       date,
+      updated,
       excerpt,
       coverImage,
       tags,
@@ -86,4 +93,19 @@ export function getAllPosts(): PostMeta[] {
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
   return allPostsCache;
+}
+
+// Ranks other posts by shared tags; ties and posts with no overlap fall back to recency.
+export function getRelatedPosts(slug: string, limit: number): PostMeta[] {
+  const posts = getAllPosts();
+  const current = posts.find((p) => p.slug === slug);
+  const tags = new Set(current?.tags ?? []);
+  const sharedTags = (post: PostMeta) => (post.tags ?? []).filter((tag) => tags.has(tag)).length;
+
+  return posts
+    .filter((p) => p.slug !== slug)
+    .map((post) => ({ post, score: sharedTags(post) }))
+    .sort((a, b) => b.score - a.score)
+    .slice(0, limit)
+    .map(({ post }) => post);
 }

@@ -5,7 +5,7 @@ import { format, parseISO } from "date-fns";
 import { MDXRemote } from "next-mdx-remote/rsc";
 import rehypeSlug from "rehype-slug";
 import { mdxComponents } from "@/components/mdx";
-import { getPostBySlug, getAllPosts } from "@/lib/blog";
+import { getPostBySlug, getAllPosts, getRelatedPosts } from "@/lib/blog";
 import { siteConfig } from "@/lib/config";
 import { ShareButtons } from "@/components/ShareButtons";
 import { SubscribeForm } from "@/components/SubscribeForm";
@@ -37,7 +37,7 @@ export async function generateMetadata({ params }: PostPageProps): Promise<Metad
   }
 
   return {
-    title: post.title,
+    title: post.seoTitle ?? post.title,
     description: post.excerpt,
     alternates: { canonical: `/blog/${slug}` },
     openGraph: {
@@ -45,6 +45,7 @@ export async function generateMetadata({ params }: PostPageProps): Promise<Metad
       description: post.excerpt,
       type: "article",
       publishedTime: post.date,
+      ...(post.updated && { modifiedTime: post.updated }),
     },
   };
 }
@@ -57,8 +58,7 @@ export default async function PostPage({ params }: PostPageProps) {
     notFound();
   }
 
-  const allPosts = getAllPosts();
-  const upNext = allPosts.filter((p) => p.slug !== slug).slice(0, 2);
+  const upNext = getRelatedPosts(slug, 2);
 
   const isGuide = post.layout === "guide";
   const toc = isGuide ? extractToc(post.content) : [];
@@ -66,18 +66,21 @@ export default async function PostPage({ params }: PostPageProps) {
   const column = isGuide ? "max-w-[80ch] lg:ml-[288px]" : "mx-auto max-w-[68ch]";
   const content = <MDXRemote source={post.content} options={{ mdxOptions: { rehypePlugins: [rehypeSlug] } }} components={mdxComponents} />;
 
+  const postUrl = `${siteConfig.url}/blog/${slug}`;
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "Article",
     headline: post.title,
     description: post.excerpt,
     datePublished: post.date,
+    dateModified: post.updated ?? post.date,
+    mainEntityOfPage: { "@type": "WebPage", "@id": postUrl },
     author: {
       "@type": "Person",
       name: siteConfig.name,
       url: siteConfig.url,
     },
-    ...(post.coverImage && { image: `${siteConfig.url}${post.coverImage}` }),
+    image: post.coverImage ? `${siteConfig.url}${post.coverImage}` : `${postUrl}/opengraph-image`,
   };
 
   return (
@@ -125,6 +128,12 @@ export default async function PostPage({ params }: PostPageProps) {
 
           <div className="font-mono-label flex flex-wrap items-center gap-x-2 gap-y-1" style={{ color: "var(--muted)", fontSize: "0.78rem" }}>
             <span>{format(parseISO(post.date), "MMM d, yyyy")}</span>
+            {post.updated && (
+              <>
+                <span aria-hidden="true">·</span>
+                <span>Updated {format(parseISO(post.updated), "MMM d, yyyy")}</span>
+              </>
+            )}
             <span aria-hidden="true">·</span>
             <span>{post.readingTime}</span>
             <span aria-hidden="true">·</span>

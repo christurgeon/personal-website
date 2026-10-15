@@ -29,7 +29,7 @@ export const photoCategories: PhotoCategory[] = [
       {
         id: "ny-1",
         src: "/images/photography/new-york-city/manhattan-bridge-1.jpg",
-        alt: "View from Manhattan Bridge with boken",
+        alt: "View from Manhattan Bridge with bokeh",
         width: 1638,
         height: 2048,
         location: "Manhattan Bridge",
@@ -45,10 +45,10 @@ export const photoCategories: PhotoCategory[] = [
       {
         id: "ny-3",
         src: "/images/photography/new-york-city/time-square-1.jpg",
-        alt: "Time square",
+        alt: "Times Square",
         width: 1638,
         height: 2048,
-        location: "Time Square",
+        location: "Times Square",
       },
       {
         id: "ny-4",
@@ -69,7 +69,7 @@ export const photoCategories: PhotoCategory[] = [
       {
         id: "ny-6",
         src: "/images/photography/new-york-city/manhattan-bridge-2.jpg",
-        alt: "View from Manhattan Bridge with boken",
+        alt: "View from Manhattan Bridge with bokeh",
         width: 1638,
         height: 2048,
         location: "Manhattan Bridge",
@@ -149,10 +149,10 @@ export const photoCategories: PhotoCategory[] = [
       {
         id: "ny-16",
         src: "/images/photography/new-york-city/city-4.jpg",
-        alt: "Staple Street Sky Bridge",
+        alt: "Staple Street Skybridge",
         width: 1638,
         height: 2048,
-        location: "Staple Street Sky Bridge",
+        location: "Staple Street Skybridge",
       },
       {
         id: "ny-17",
@@ -459,7 +459,7 @@ export const photoCategories: PhotoCategory[] = [
       {
         id: "pg-2",
         src: "/images/photography/patagonia/river-1.jpg",
-        alt: "A River Rushing Through Torred del Paine in Chile",
+        alt: "A River Rushing Through Torres del Paine in Chile",
         width: 1638,
         height: 2048,
         location: "Torres del Paine",
@@ -467,7 +467,7 @@ export const photoCategories: PhotoCategory[] = [
       {
         id: "pg-3",
         src: "/images/photography/patagonia/penguin-1.jpg",
-        alt: "Penguins in Martillo Island, Ushuaia, Argentina",
+        alt: "Penguins on Martillo Island, Ushuaia, Argentina",
         width: 1638,
         height: 2048,
         location: "Ushuaia",
@@ -475,7 +475,7 @@ export const photoCategories: PhotoCategory[] = [
       {
         id: "pg-4",
         src: "/images/photography/patagonia/huemul-1.jpg",
-        alt: "Hikers Walking in the Huemul Circuit to a Glacier",
+        alt: "Hikers Walking on the Huemul Circuit to a Glacier",
         width: 1638,
         height: 2048,
         location: "Huemul Circuit",
@@ -483,7 +483,7 @@ export const photoCategories: PhotoCategory[] = [
       {
         id: "pg-5",
         src: "/images/photography/patagonia/penguin-2.jpg",
-        alt: "Penguins in Martillo Island, Ushuaia, Argentina",
+        alt: "Penguins on Martillo Island, Ushuaia, Argentina",
         width: 1638,
         height: 2048,
         location: "Ushuaia",
