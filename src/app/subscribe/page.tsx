@@ -16,10 +16,7 @@ export default function SubscribePage() {
         <div className="font-mono-label mb-4" style={{ color: "var(--muted)" }}>
           [ MAILING LIST ]
         </div>
-        <h1
-          className="font-display leading-[0.92] tracking-[-0.04em] uppercase"
-          style={{ fontSize: "clamp(2.8rem, 9vw, 6.5rem)" }}
-        >
+        <h1 className="font-display leading-[0.92] tracking-[-0.04em] uppercase" style={{ fontSize: "clamp(2.8rem, 9vw, 6.5rem)" }}>
           Never miss a{" "}
           <span
             className="inline-block border-[3px] px-[0.12em]"
@@ -35,8 +32,7 @@ export default function SubscribePage() {
           </span>
         </h1>
         <p className="animate-fade-in-delay-1 mt-6 max-w-2xl text-lg md:text-xl" style={{ color: "var(--muted)" }}>
-          New posts on software, markets, and travel — sent when there&apos;s something worth reading. No schedule, no
-          spam.
+          New posts on software, markets, and travel — sent when there&apos;s something worth reading. No schedule, no spam.
         </p>
         <div className="animate-fade-in-delay-2 mt-8 flex flex-wrap items-center gap-5">
           <Sticker color="red" rotate={-5}>

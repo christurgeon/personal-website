@@ -5,10 +5,7 @@ export interface LruState {
 }
 
 export type LruEvent =
-  | { kind: "hit"; key: string }
-  | { kind: "miss"; key: string }
-  | { kind: "insert"; key: string; evicted?: string }
-  | { kind: "update"; key: string };
+  { kind: "hit"; key: string } | { kind: "miss"; key: string } | { kind: "insert"; key: string; evicted?: string } | { kind: "update"; key: string };
 
 export type LruOp = { op: "get"; key: string } | { op: "put"; key: string; value: string };
 

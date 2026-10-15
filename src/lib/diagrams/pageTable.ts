@@ -11,8 +11,7 @@ export interface AddressParts {
 export type PageTables = Record<number, Record<number, number>>;
 
 export type WalkResult =
-  | { ok: true; parts: AddressParts; frame: number; physical: number }
-  | { ok: false; parts: AddressParts; faultAt: "l1" | "l2" };
+  { ok: true; parts: AddressParts; frame: number; physical: number } | { ok: false; parts: AddressParts; faultAt: "l1" | "l2" };
 
 const INDEX_MASK = (1 << INDEX_BITS) - 1;
 const OFFSET_MASK = (1 << OFFSET_BITS) - 1;
