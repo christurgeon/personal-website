@@ -88,24 +88,6 @@ describe("frontmatterSchema layout", () => {
   });
 });
 
-describe("frontmatterSchema updated", () => {
-  const base = { title: "T", date: "2026-01-01", excerpt: "E" };
-
-  it("accepts an ISO date", () => {
-    expect(frontmatterSchema.parse({ ...base, updated: "2026-02-01" }).updated).toBe("2026-02-01");
-  });
-
-  it("rejects a non-date string", () => {
-    expect(() => frontmatterSchema.parse({ ...base, updated: "last week" })).toThrow();
-  });
-
-  it("is never earlier than the publish date in real posts", () => {
-    for (const post of getAllPosts()) {
-      if (post.updated) expect(post.updated >= post.date).toBe(true);
-    }
-  });
-});
-
 describe("getRelatedPosts", () => {
   const sharedTags = (a: string[] = [], b: string[] = []) => a.filter((tag) => b.includes(tag)).length;
 

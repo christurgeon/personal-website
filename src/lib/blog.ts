@@ -11,7 +11,6 @@ export const frontmatterSchema = z.object({
   // Overrides <title> for search results; the page heading and social cards keep `title`.
   seoTitle: z.string().optional(),
   date: z.string().date(),
-  updated: z.string().date().optional(),
   excerpt: z.string(),
   coverImage: z.string().optional(),
   tags: z.array(z.string()).optional(),
@@ -23,7 +22,6 @@ export interface PostMeta {
   title: string;
   seoTitle?: string;
   date: string;
-  updated?: string;
   excerpt: string;
   coverImage?: string;
   tags?: string[];
@@ -78,12 +76,11 @@ export function getAllPosts(): PostMeta[] {
   allPostsCache = slugs
     .map((slug) => getPostBySlug(slug.replace(/\.mdx$/, "")))
     .filter((post): post is Post => post !== null)
-    .map(({ slug, title, seoTitle, date, updated, excerpt, coverImage, tags, layout, readingTime }) => ({
+    .map(({ slug, title, seoTitle, date, excerpt, coverImage, tags, layout, readingTime }) => ({
       slug,
       title,
       seoTitle,
       date,
-      updated,
       excerpt,
       coverImage,
       tags,
