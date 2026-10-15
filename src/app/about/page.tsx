@@ -8,7 +8,7 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "About",
-  description: `About ${siteConfig.name}, a software engineer at Point72 sharing blog posts and photography alongside personal coding projects.`,
+  description: `About ${siteConfig.name}, a software engineer at Point72 and solo traveler sharing blog posts, travel photography, and personal coding projects.`,
   alternates: { canonical: "/about" },
 };
 
@@ -83,8 +83,8 @@ export default function AboutPage() {
       >
         <div className="prose max-w-none">
           <p>
-            Howdy! I&apos;m {siteConfig.name}. Thanks for stopping by. This site is equal parts notebook, photo gallery, and experiment: a place where
-            I collect and share some of the things I care deeply about.
+            Howdy! I&apos;m Chris. I&apos;m a software engineer in NYC, a solo traveler, and someone who can&apos;t leave a question alone until
+            I&apos;ve read three studies about it. This site is where those things end up.
           </p>
 
           <h2>What I Do</h2>
@@ -93,22 +93,53 @@ export default function AboutPage() {
             <Link href="https://point72.com/" target="_blank" rel="noopener noreferrer">
               Point72
             </Link>
-            , where I build automated solutions to difficult infrastructure problems. When I&apos;m not writing{" "}
-            <Link href={siteConfig.socials.github} target="_blank" rel="noopener noreferrer">
-              code
-            </Link>
-            , I&apos;m usually <Link href="/blog">writing words</Link>, taking <Link href="/photography">photos</Link> of places I don&apos;t want to
-            forget, or producing{" "}
-            <Link href={siteConfig.socials.soundcloud} target="_blank" rel="noopener noreferrer">
-              electronic music
+            , where I build automated solutions to difficult infrastructure problems. On my own time I build and <Link href="/blog">write about</Link>{" "}
+            side projects: a <Link href="/blog/trading-weather-markets">weather-market trading bot</Link> that mostly taught me how to be wrong
+            cheaply, a <Link href="/blog/code-from-anywhere">setup for running coding agents from my phone</Link>, and a lot of notes on{" "}
+            <Link href="/blog/vibe-coding-with-guardrails">working with AI</Link> without letting it run off a cliff. My{" "}
+            <Link href="/projects">projects</Link> and{" "}
+            <Link href="/chris_turgeon_resume.pdf" target="_blank" rel="noopener noreferrer">
+              resume
             </Link>{" "}
-            that ranges from barely listenable to occasionally decent.
+            have the details.
           </p>
+
+          <h2>Where I&apos;ve Been</h2>
+          <p>
+            A semester studying abroad in Singapore showed me a whole new way to travel, and I&apos;ve been chasing that feeling ever since. Since
+            then I&apos;ve backpacked through Europe and Latin America, road-tripped across Jordan and Cura&ccedil;ao, climbed Acatenango in
+            Guatemala, and hiked to the edge of the Southern Patagonian Ice Field. I go alone when I can, and I{" "}
+            <Link href="/blog/solo-travel">stay in hostels on purpose</Link>. The <Link href="/photography">photos</Link> are the places I didn&apos;t
+            want to forget.
+          </p>
+
+          <h2>Other Things I&apos;m Into</h2>
+          <ul>
+            <li>
+              Making cocktails. I keep a <Link href="/blog/cocktails">running recipe collection</Link>.
+            </li>
+            <li>Eating my way through NYC. My Beli is below if you want recommendations.</li>
+            <li>
+              Reading. Current favorite: <em>A Gentleman in Moscow</em>.
+            </li>
+            <li>
+              Over-optimizing things, from <Link href="/blog/optimizing-your-finances">my finances</Link> to{" "}
+              <Link href="/blog/four-actives-and-a-language-model">my skincare</Link>.
+            </li>
+            <li>
+              Producing{" "}
+              <Link href={siteConfig.socials.soundcloud} target="_blank" rel="noopener noreferrer">
+                electronic music
+              </Link>
+              , with mixed results.
+            </li>
+          </ul>
 
           <h2>Get in Touch</h2>
           <p>
-            I&apos;m always interested in hearing from new people. Whether you have a question, want to collaborate, or just want to say hi, feel free
-            to reach out. Some of my favorite conversations have started that way.
+            Email me at <Link href={`mailto:${siteConfig.socials.email}`}>{siteConfig.socials.email}</Link> about anything on this site, a trip
+            you&apos;re planning, or something you&apos;re building. Or <Link href="/subscribe">subscribe</Link> and I&apos;ll send new posts when
+            they&apos;re out.
           </p>
         </div>
       </article>
