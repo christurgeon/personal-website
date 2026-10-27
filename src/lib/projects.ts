@@ -19,6 +19,15 @@ export const projects: Project[] = [
     featured: true,
   },
   {
+    name: "The Oracle",
+    description:
+      "Research trading bot for Kalshi's daily weather markets. It turns GFS and ECMWF ensemble forecasts into calibrated probabilities, sizes positions with fractional Kelly under hard risk limits, and runs in shadow mode by default so every idea is graded before it risks money. Published for its engineering and research method, including the mostly negative results.",
+    language: "Python",
+    tags: ["Trading", "Prediction Markets", "Weather"],
+    github: "https://github.com/christurgeon/the-oracle",
+    sticker: "OSS",
+  },
+  {
     name: "Shortlist",
     description:
       "Quantitative stock pre-screener that scores quality, moat, growth, value, momentum, insider activity, and risk across FMP, Finnhub, SEC EDGAR, and Yahoo into a gate-filtered, ranked shortlist for a human deep dive. Config-driven, sector-aware, and free-tier friendly.",
