@@ -1,0 +1,76 @@
+---
+title: "High-Signal Podcasts"
+seoTitle: "The Best Educational Podcasts: A Hand-Checked List"
+date: "2026-11-03"
+excerpt: "A curated list of podcasts you actually learn from (science, engineering, economics, history, philosophy), built from Hacker News threads and expert recommendation lists."
+tags: ["podcasts", "learning", "reference", "science", "engineering"]
+layout: "guide"
+---
+
+<PodcastJsonLd />
+
+The recommendation engine in Apple Podcasts is bad at one specific job: finding shows where you come away knowing more than when you started. It's good at finding shows that are popular, or that resemble something you already played. That means three hosts reacting to the news, founder origin stories, and wellness shows that wear a lab coat to sell supplements.
+
+Karpathy's [HackerTube](https://karpathy.bearblog.dev/hacker-tube/) tried to fix the same thing for YouTube by ranking videos on whether thoughtful people actually recommended them, not on engagement. This is my attempt at the podcast version. I had a few AI research agents go through 24 "Ask HN: what podcasts do you listen to?" threads from 2011 to 2025 (about 1,400 comments), plus curated lists, faculty recommendations and Reddit. Then I deduplicated the results, scored them, and went through them by hand. 237 shows went in and 84 came out.
+
+The filter was simple: the show should be researchers, engineers, historians or practitioners talking about work they actually understand. No hype cycles and no padding. A good show can still be entertaining, but anything built mainly to entertain is left out.
+
+The list is split three ways:
+
+- **Core:** subscribe. These are consistently good.
+- **Deep cuts:** excellent but narrow, infrequent, or finished. For most of them, the archive is the best part.
+- **Pick episodes:** don't subscribe. At their best these shows are top-tier, but the average episode isn't.
+
+Every show has a link for Apple and for Spotify, plus a starter episode or two where one clearly stands out.
+
+## Core
+
+### Generalist
+
+<PodcastList tier="core" section="generalist" />
+
+### Science & math
+
+<PodcastList tier="core" section="science-math" />
+
+### Mind & life
+
+<PodcastList tier="core" section="mind-life" />
+
+### Computing & AI
+
+<PodcastList tier="core" section="computing-ai" />
+
+### Engineering & systems
+
+<PodcastList tier="core" section="engineering-systems" />
+
+### Economics & markets
+
+<PodcastList tier="core" section="economics-markets" />
+
+### History
+
+<PodcastList tier="core" section="history" />
+
+### Philosophy
+
+<PodcastList tier="core" section="philosophy" />
+
+## Deep cuts
+
+These are narrower. Pick the ones in your lane and skip the rest. If a show has ended, don't count that against it: The History of Rome ended in 2012 and is still the template for narrative history podcasts.
+
+<PodcastList tier="deep-cut" compact />
+
+## Pick episodes, don't subscribe
+
+These are the shows that show up all over recommendation threads and deserve to, but only for certain episodes. Search their archives by topic or guest instead of letting the feed decide what you hear.
+
+<PodcastList tier="episodes" compact />
+
+## Caveats
+
+This is based on popularity among a particular crowd (HN readers, academics, a few rationalist forums), with my editorial judgment on top of that. Chemistry, climate and genetics are thin because good shows on those subjects barely came up in the threads. If you know one that belongs here, [tell me](/about).
+
+The list lives in a single [JSON file](https://github.com/christurgeon/personal-website/blob/main/content/data/podcasts.json) that this page renders from, so corrections are welcome as PRs.
