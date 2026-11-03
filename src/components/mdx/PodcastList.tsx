@@ -1,3 +1,4 @@
+import styles from "./PodcastList.module.css";
 import { appleUrl, getPodcasts, listenUrl, SECTIONS, spotifyUrl, starterEpisodes, type Podcast, type Section, type Tier } from "@/lib/podcasts";
 
 interface PodcastListProps {
@@ -6,17 +7,6 @@ interface PodcastListProps {
   compact?: boolean;
 }
 
-const ACCENT: Record<Section, string> = {
-  generalist: "var(--yellow)",
-  "science-math": "var(--blue)",
-  "mind-life": "var(--pink)",
-  "computing-ai": "var(--red)",
-  "engineering-systems": "var(--green)",
-  "economics-markets": "var(--yellow)",
-  history: "var(--pink)",
-  philosophy: "var(--blue)",
-};
-
 const STATUS_LABEL: Record<Podcast["status"], string | null> = {
   active: null,
   hiatus: "On hiatus",
@@ -24,21 +14,12 @@ const STATUS_LABEL: Record<Podcast["status"], string | null> = {
 };
 
 function ListenLinks({ p }: { p: Podcast }) {
-  const link = {
-    border: "2px solid var(--border)",
-    padding: "0.15rem 0.55rem",
-    fontSize: "0.72rem",
-    letterSpacing: "0.08em",
-    textDecoration: "none",
-    color: "var(--ink)",
-    background: "var(--card)",
-  } as const;
   return (
     <span className="font-mono-label inline-flex gap-2">
-      <a href={appleUrl(p)} target="_blank" rel="noopener noreferrer" style={link}>
+      <a href={appleUrl(p)} target="_blank" rel="noopener noreferrer" className={styles.listen}>
         APPLE
       </a>
-      <a href={spotifyUrl(p)} target="_blank" rel="noopener noreferrer" style={link}>
+      <a href={spotifyUrl(p)} target="_blank" rel="noopener noreferrer" className={styles.listen}>
         SPOTIFY
       </a>
     </span>
@@ -49,18 +30,18 @@ function Episodes({ p, max }: { p: Podcast; max: number }) {
   const eps = starterEpisodes(p, max);
   if (!eps.length) return null;
   return (
-    <ul className="m-0 mt-2 list-none p-0" style={{ fontSize: "0.85rem", lineHeight: 1.5 }}>
+    <ul className={styles.episodes}>
       {eps.map((e) => {
         const href = listenUrl(e);
         return (
-          <li key={e.title} style={{ color: "var(--muted)" }}>
+          <li key={e.title}>
             <span aria-hidden>▸ </span>
             {href ? (
-              <a href={href} target="_blank" rel="noopener noreferrer" style={{ color: "var(--ink)" }}>
+              <a href={href} target="_blank" rel="noopener noreferrer">
                 {e.title}
               </a>
             ) : (
-              <span style={{ color: "var(--ink)" }}>{e.title}</span>
+              <span className={styles.title}>{e.title}</span>
             )}
           </li>
         );
@@ -72,44 +53,23 @@ function Episodes({ p, max }: { p: Podcast; max: number }) {
 function Meta({ p, section = false }: { p: Podcast; section?: boolean }) {
   const status = STATUS_LABEL[p.status];
   return (
-    <div style={{ fontSize: "0.78rem", color: "var(--muted)" }}>
+    <div className={styles.meta}>
       {section && <span className="font-mono-label">{SECTIONS[p.section].toUpperCase()} · </span>}
       {p.hosts.join(", ")}
-      {status && (
-        <span
-          className="font-mono-label"
-          style={{ marginLeft: "0.5rem", padding: "0 0.35rem", background: "var(--yellow)", color: "var(--on-yellow)" }}
-        >
-          {status.toUpperCase()}
-        </span>
-      )}
+      {status && <span className={`font-mono-label ${styles.status}`}>{status.toUpperCase()}</span>}
     </div>
   );
 }
 
 function Card({ p, episodes }: { p: Podcast; episodes: number }) {
   return (
-    <div
-      id={p.id}
-      style={{
-        background: "var(--card)",
-        border: "3px solid var(--border)",
-        borderLeft: `8px solid ${ACCENT[p.section]}`,
-        boxShadow: "4px 4px 0 var(--border)",
-        padding: "1rem 1.2rem",
-        color: "var(--ink)",
-      }}
-    >
+    <div id={p.id} data-section={p.section} className={`${styles.card} ${styles.accent}`}>
       <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <div className="font-display" style={{ fontSize: "1.05rem", lineHeight: 1.2 }}>
-          {p.name}
-        </div>
+        <div className={`font-display ${styles.name}`}>{p.name}</div>
         <ListenLinks p={p} />
       </div>
       <Meta p={p} />
-      <p className="m-0 mt-2" style={{ fontSize: "0.92rem", lineHeight: 1.55 }}>
-        {p.note}
-      </p>
+      <p className={styles.note}>{p.note}</p>
       <Episodes p={p} max={episodes} />
     </div>
   );
@@ -117,20 +77,13 @@ function Card({ p, episodes }: { p: Podcast; episodes: number }) {
 
 function Row({ p, episodes }: { p: Podcast; episodes: number }) {
   return (
-    <li
-      id={p.id}
-      style={{ borderBottom: "2px solid var(--border)", padding: "0.8rem 0 0.8rem 0.9rem", borderLeft: `5px solid ${ACCENT[p.section]}` }}
-    >
+    <li id={p.id} data-section={p.section} className={`${styles.row} ${styles.accent}`}>
       <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <span className="font-display" style={{ fontSize: "0.98rem" }}>
-          {p.name}
-        </span>
+        <span className={`font-display ${styles.name}`}>{p.name}</span>
         <ListenLinks p={p} />
       </div>
       <Meta p={p} section />
-      <p className="m-0 mt-1" style={{ fontSize: "0.88rem", lineHeight: 1.5 }}>
-        {p.note}
-      </p>
+      <p className={styles.note}>{p.note}</p>
       <Episodes p={p} max={episodes} />
     </li>
   );
@@ -143,7 +96,7 @@ export default function PodcastList({ tier, section, compact = false }: PodcastL
 
   if (compact) {
     return (
-      <ul className="not-prose my-6 list-none p-0" style={{ borderTop: "2px solid var(--border)", color: "var(--ink)" }}>
+      <ul className={`not-prose my-6 list-none p-0 ${styles.compactList}`}>
         {shows.map((p) => (
           <Row key={p.id} p={p} episodes={episodes} />
         ))}
@@ -152,7 +105,7 @@ export default function PodcastList({ tier, section, compact = false }: PodcastL
   }
 
   return (
-    <div className="not-prose my-6 grid grid-cols-1 gap-5">
+    <div className={`not-prose my-6 grid grid-cols-1 gap-5 ${styles.list}`}>
       {shows.map((p) => (
         <Card key={p.id} p={p} episodes={episodes} />
       ))}

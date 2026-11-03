@@ -1,0 +1,101 @@
+.list {
+  color: var(--ink);
+}
+
+.compactList {
+  border-top: 2px solid var(--border);
+  color: var(--ink);
+}
+
+/* Section accent drives the left stripe on both cards and rows. */
+.accent[data-section="generalist"],
+.accent[data-section="economics-markets"] {
+  --section-accent: var(--yellow);
+}
+.accent[data-section="science-math"],
+.accent[data-section="philosophy"] {
+  --section-accent: var(--blue);
+}
+.accent[data-section="mind-life"],
+.accent[data-section="history"] {
+  --section-accent: var(--pink);
+}
+.accent[data-section="computing-ai"] {
+  --section-accent: var(--red);
+}
+.accent[data-section="engineering-systems"] {
+  --section-accent: var(--green);
+}
+
+.card {
+  background: var(--card);
+  border: 3px solid var(--border);
+  border-left: 8px solid var(--section-accent);
+  box-shadow: 4px 4px 0 var(--border);
+  padding: 1rem 1.2rem;
+}
+
+.row {
+  border-bottom: 2px solid var(--border);
+  border-left: 5px solid var(--section-accent);
+  padding: 0.8rem 0 0.8rem 0.9rem;
+}
+
+.name {
+  font-size: 1.05rem;
+  line-height: 1.2;
+}
+
+.row .name {
+  font-size: 0.98rem;
+}
+
+.note {
+  margin: 0.5rem 0 0;
+  font-size: 0.92rem;
+  line-height: 1.55;
+}
+
+.row .note {
+  margin-top: 0.25rem;
+  font-size: 0.88rem;
+  line-height: 1.5;
+}
+
+.meta {
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+
+.status {
+  margin-left: 0.5rem;
+  padding: 0 0.35rem;
+  background: var(--yellow);
+  color: var(--on-yellow);
+}
+
+/* Scoped under .accent to outrank the global `.prose a` rule. */
+.accent a.listen,
+.accent a.listen:hover {
+  border: 2px solid var(--border);
+  padding: 0.15rem 0.55rem;
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-decoration: none;
+  color: var(--ink);
+  background: var(--card);
+}
+
+.episodes {
+  margin: 0.5rem 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  color: var(--muted);
+}
+
+.accent .episodes a,
+.episodes .title {
+  color: var(--ink);
+}
