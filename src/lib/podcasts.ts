@@ -24,6 +24,7 @@ const episodeSchema = z.object({
   url: z.string().url().optional(),
   needs_resolution: z.boolean().optional(),
   apple_track_id: z.number().optional(),
+  release_date: z.string().optional(),
 });
 
 const podcastSchema = z.object({
@@ -43,7 +44,10 @@ const podcastSchema = z.object({
     apple_id: z.number().nullable(),
     spotify: z.string().url().nullable(),
     rss: z.string().url().nullable(),
+    overcast: z.string().url().optional(),
+    pocketcasts: z.string().url().optional(),
   }),
+  artwork: z.string().url().optional(),
 });
 
 export type Podcast = z.infer<typeof podcastSchema>;

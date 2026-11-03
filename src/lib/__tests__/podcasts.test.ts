@@ -19,6 +19,24 @@ describe("podcasts data", () => {
     expect(appleUrl(p)).toBe("https://podcasts.apple.com/podcast/id123");
   });
 
+  it("has consistent, well-formed resolved links", () => {
+    for (const p of podcasts) {
+      const { apple, apple_id, spotify } = p.links;
+      if (apple_id) expect(apple, p.name).toBe(`https://podcasts.apple.com/podcast/id${apple_id}`);
+      if (spotify) expect(spotify, p.name).toMatch(/^https:\/\/open\.spotify\.com\/show\/[A-Za-z0-9]{22}$/);
+      for (const e of p.standout_episodes) {
+        if (e.apple_track_id) expect(e.url, `${p.name}: ${e.title}`).toBe(`https://podcasts.apple.com/podcast/id${apple_id}?i=${e.apple_track_id}`);
+      }
+    }
+    // Every subscribe-tier show should link straight to both apps, not to a search page.
+    for (const p of getPodcasts({ tier: "core" })) {
+      expect(p.links.apple_id, p.name).toBeTruthy();
+      expect(p.links.spotify, p.name).toBeTruthy();
+    }
+    const ids = podcasts.map((p) => p.links.apple_id).filter(Boolean);
+    expect(new Set(ids).size).toBe(ids.length);
+  });
+
   it("falls back to search URLs when IDs are missing", () => {
     const p = { ...podcasts[0], links: { apple: null, apple_id: null, spotify: null, rss: null } };
     expect(appleUrl(p)).toContain("/search?term=");
