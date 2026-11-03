@@ -54,8 +54,14 @@ def main():
     for s in shows:
         if s["links"].get("apple_id"):
             continue
+        # Trust an Apple URL that's already in the data over a fuzzy search match.
+        known = re.search(r"/id(\d+)", s["links"].get("apple") or "")
         try:
-            hit = find_show(s["name"], s["hosts"])
+            if known:
+                found = get(f"https://itunes.apple.com/lookup?id={known.group(1)}&entity=podcast")["results"]
+                hit = found[0] if found else None
+            else:
+                hit = find_show(s["name"], s["hosts"])
             time.sleep(DELAY)
             if not hit:
                 unresolved.append(s["name"])

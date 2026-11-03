@@ -1,5 +1,17 @@
 import styles from "./PodcastList.module.css";
-import { appleUrl, getPodcasts, listenUrl, SECTIONS, spotifyUrl, starterEpisodes, type Podcast, type Section, type Tier } from "@/lib/podcasts";
+import { jsonLdString } from "@/lib/jsonLd";
+import {
+  appleId,
+  appleUrl,
+  getPodcasts,
+  listenUrl,
+  SECTIONS,
+  spotifyUrl,
+  starterEpisodes,
+  type Podcast,
+  type Section,
+  type Tier,
+} from "@/lib/podcasts";
 
 interface PodcastListProps {
   tier: Tier;
@@ -16,10 +28,22 @@ const STATUS_LABEL: Record<Podcast["status"], string | null> = {
 function ListenLinks({ p }: { p: Podcast }) {
   return (
     <span className="font-mono-label inline-flex gap-2">
-      <a href={appleUrl(p)} target="_blank" rel="noopener noreferrer" className={styles.listen}>
+      <a
+        href={appleUrl(p)}
+        target="_blank"
+        rel="noopener noreferrer"
+        className={styles.listen}
+        aria-label={`${appleId(p) ? "" : "Search for "}${p.name} on Apple Podcasts (opens in new tab)`}
+      >
         APPLE
       </a>
-      <a href={spotifyUrl(p)} target="_blank" rel="noopener noreferrer" className={styles.listen}>
+      <a
+        href={spotifyUrl(p)}
+        target="_blank"
+        rel="noopener noreferrer"
+        className={styles.listen}
+        aria-label={`${p.links.spotify ? "" : "Search for "}${p.name} on Spotify (opens in new tab)`}
+      >
         SPOTIFY
       </a>
     </span>
@@ -128,11 +152,12 @@ export function PodcastJsonLd() {
         "@type": "PodcastSeries",
         name: p.name,
         description: p.note,
-        url: appleUrl(p),
+        // A search URL doesn't identify the show, so only emit url once the Apple ID is resolved.
+        ...(appleId(p) && { url: appleUrl(p) }),
         ...(p.links.rss && { webFeed: p.links.rss }),
         author: p.hosts.map((name) => ({ "@type": "Person", name })),
       },
     })),
   };
-  return <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(data) }} />;
+  return <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdString(data) }} />;
 }

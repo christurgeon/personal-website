@@ -15,8 +15,8 @@ describe("podcasts data", () => {
   });
 
   it("builds storefront-neutral Apple links from any stored Apple URL", () => {
-    const p = podcasts.find((x) => x.links.apple?.includes("/it/podcast/"))!;
-    expect(appleUrl(p)).toMatch(/^https:\/\/podcasts\.apple\.com\/podcast\/id\d+$/);
+    const p = { ...podcasts[0], links: { apple: "https://podcasts.apple.com/it/podcast/x/id123", apple_id: null, spotify: null, rss: null } };
+    expect(appleUrl(p)).toBe("https://podcasts.apple.com/podcast/id123");
   });
 
   it("falls back to search URLs when IDs are missing", () => {
