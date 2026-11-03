@@ -16,6 +16,10 @@ const stickerColors = ["red", "blue", "green", "yellow"] as const;
 const cardRotations = ["-0.5deg", "0.4deg", "-0.3deg", "0.6deg"] as const;
 const stickerRotations = [-6, 5, -4, 6] as const;
 
+// Rendered width of a cover: container max 1240px with 20px (28px from sm) side padding,
+// 2 columns from md with a 40px gap, minus the card's 4px borders.
+const COVER_SIZES = "(min-width: 1240px) 564px, (min-width: 768px) calc((100vw - 112px) / 2), calc(100vw - 48px)";
+
 export default function PhotographyPage() {
   const categories = getAllCategories();
   const totalPhotos = categories.reduce((acc, cat) => acc + cat.photos.length, 0);
@@ -103,7 +107,15 @@ export default function PhotographyPage() {
                 {/* Cover image */}
                 <div className="relative aspect-[4/3] overflow-hidden border-b-[3px]" style={{ borderColor: "var(--border)" }}>
                   <div className="gallery-image-zoom absolute inset-0">
-                    <Image src={category.coverImage} alt={category.name} fill className="object-cover" sizes="(max-width: 768px) 100vw, 50vw" />
+                    <Image
+                      src={category.coverImage}
+                      alt={category.name}
+                      fill
+                      className="object-cover"
+                      sizes={COVER_SIZES}
+                      preload={index === 0}
+                      fetchPriority={index === 0 ? "high" : undefined}
+                    />
                   </div>
 
                   {/* Floating sticker — top-left */}

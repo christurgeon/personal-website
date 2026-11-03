@@ -96,7 +96,7 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
       {/* Gallery */}
       <section className="animate-fade-in-delay-3 mb-16">
         {category.photos.length > 0 ? (
-          <PhotoGallery photos={category.photos} />
+          <PhotoGallery photos={category.photos} preloadFirst />
         ) : (
           <div
             className="py-20 text-center"
