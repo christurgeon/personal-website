@@ -97,6 +97,7 @@ const LISTEN_HOSTS = [
   "signalsandthreads.com",
   "bbc.co.uk",
   "conversationswithtyler.com",
+  "buzzsprout.com",
 ];
 
 export function listenUrl(e: Episode): string | null {

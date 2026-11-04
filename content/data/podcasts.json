@@ -3013,6 +3013,69 @@
     "artwork": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts115/v4/51/f0/38/51f038c0-260b-cc63-fe87-de33d418a015/mza_14250577191167827647.jpg/600x600bb.jpg"
   },
   {
+    "id": "planetgeo",
+    "name": "PlanetGeo: The Geology Podcast",
+    "hosts": [
+      "Chris Bolhuis",
+      "Jesse Reimink"
+    ],
+    "tier": "core",
+    "section": "science-math",
+    "categories": [
+      "other",
+      "general-science"
+    ],
+    "status": "active",
+    "format": "panel",
+    "start_year": null,
+    "note": "An award-winning Earth science teacher and his former student, now a Penn State geoscientist, explain the rocks and landscapes around you, from plate tectonics to how to identify a rock. Ideal for national park trips.",
+    "standout_episodes": [
+      {
+        "title": "What is a Tectonic Plate?",
+        "url": "https://open.spotify.com/episode/4NsL4KhaWL5DtiOpzP817J"
+      },
+      {
+        "title": "The Uniqueness of Iceland",
+        "url": "https://open.spotify.com/episode/5Q6vQjrF06XzizmFt9dCqo"
+      },
+      {
+        "title": "How to Identify Rocks",
+        "url": "https://planetgeocast.buzzsprout.com/1237277/13233709-how-to-identify-rocks"
+      }
+    ],
+    "links": {
+      "apple": "https://podcasts.apple.com/podcast/id1528861092",
+      "apple_id": 1528861092,
+      "spotify": "https://open.spotify.com/show/6vj1jYyF9GcU1l5EXGwgXd",
+      "rss": "https://feeds.buzzsprout.com/1237277.rss",
+      "overcast": "https://overcast.fm/itunes1528861092",
+      "pocketcasts": "https://pca.st/itunes/1528861092"
+    },
+    "evidence": {
+      "score": null,
+      "hn_comment_mentions": 0,
+      "distinct_source_domains": 0,
+      "found_by": [
+        "personal-pick"
+      ],
+      "fluff_risk": "low"
+    },
+    "sources": [
+      {
+        "where": "Apple Podcasts",
+        "url": "https://podcasts.apple.com/podcast/id1528861092"
+      },
+      {
+        "where": "Penn State News: professor teams up with his former teacher",
+        "url": "https://www.psu.edu/news/arts-and-entertainment/story/professor-teams-his-former-teacher-planet-geo-podcast"
+      },
+      {
+        "where": "EGU GMPV blog",
+        "url": "https://blogs.egu.eu/divisions/gmpv/2021/03/31/planetgeo-a-science-podcast/"
+      }
+    ]
+  },
+  {
     "id": "machine-learning-street-talk",
     "name": "Machine Learning Street Talk",
     "hosts": [
