@@ -28,8 +28,8 @@ describe("podcasts data", () => {
         if (e.apple_track_id) expect(e.url, `${p.name}: ${e.title}`).toBe(`https://podcasts.apple.com/podcast/id${apple_id}?i=${e.apple_track_id}`);
       }
     }
-    // Every subscribe-tier show should link straight to both apps, not to a search page.
-    for (const p of getPodcasts({ tier: "core" })) {
+    // Every show should link straight to both apps, not to a search page.
+    for (const p of podcasts) {
       expect(p.links.apple_id, p.name).toBeTruthy();
       expect(p.links.spotify, p.name).toBeTruthy();
     }

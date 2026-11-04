@@ -4087,54 +4087,6 @@
     "artwork": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts113/v4/46/7e/dd/467edd3f-69ed-eb00-db8b-7e42f903a254/mza_3984414375208923644.jpg/600x600bb.jpg"
   },
   {
-    "id": "asianometry",
-    "name": "Asianometry",
-    "hosts": [
-      "Jon Y"
-    ],
-    "tier": "deep-cut",
-    "section": "engineering-systems",
-    "categories": [
-      "cs-engineering",
-      "history",
-      "tech-business"
-    ],
-    "status": "active",
-    "format": "solo-lecture",
-    "start_year": 2017,
-    "note": "Semiconductor and industrial history explainers, audio version of the YouTube channel.",
-    "standout_episodes": [],
-    "links": {
-      "apple": null,
-      "apple_id": null,
-      "spotify": null,
-      "rss": null
-    },
-    "evidence": {
-      "score": 2.08,
-      "hn_comment_mentions": 0,
-      "distinct_source_domains": 3,
-      "found_by": [
-        "tech"
-      ],
-      "fluff_risk": "low"
-    },
-    "sources": [
-      {
-        "where": "Stratechery Plus announcement",
-        "url": "https://stratechery.com/2025/stratechery-plus-asianometry/"
-      },
-      {
-        "where": "MBI interview with Asianometry",
-        "url": "https://www.mbi-deepdives.com/asianometry/"
-      },
-      {
-        "where": "Hear This Idea ep 69 with Jon Y",
-        "url": "https://www.hearthisidea.com/episodes/asianometry"
-      }
-    ]
-  },
-  {
     "id": "type-theory-forall",
     "name": "Type Theory Forall",
     "hosts": [
@@ -5627,52 +5579,6 @@
       }
     ],
     "artwork": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts116/v4/ae/51/7b/ae517b55-4fc5-430e-29a3-227d8bfce933/mza_8769318646279676626.jpg/600x600bb.jpg"
-  },
-  {
-    "id": "strongly-connected-components",
-    "name": "Strongly Connected Components",
-    "hosts": [
-      "Samuel Hansen"
-    ],
-    "tier": "deep-cut",
-    "section": "science-math",
-    "categories": [
-      "math"
-    ],
-    "status": "ended",
-    "format": "interview",
-    "start_year": null,
-    "note": "Interviews with mathematicians about their work. Ended, still worth the archive.",
-    "standout_episodes": [],
-    "links": {
-      "apple": null,
-      "apple_id": null,
-      "spotify": null,
-      "rss": null
-    },
-    "evidence": {
-      "score": 3.47,
-      "hn_comment_mentions": 0,
-      "distinct_source_domains": 3,
-      "found_by": [
-        "lists"
-      ],
-      "fluff_risk": "low"
-    },
-    "sources": [
-      {
-        "where": "mathbabe: A survey of mathematical podcasts (Samuel Hansen)",
-        "url": "https://mathbabe.org/2015/02/12/guest-post-a-survey-of-mathematical-podcasts/"
-      },
-      {
-        "where": "The Aperiodical: Podcasts for a university maths student",
-        "url": "https://aperiodical.com/2014/05/podcasts-for-a-university-maths-student/"
-      },
-      {
-        "where": "Brian Tomasik: Recommended podcasts",
-        "url": "https://briantomasik.com/recommended-podcasts/"
-      }
-    ]
   },
   {
     "id": "the-cartesian-cafe",
