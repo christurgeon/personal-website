@@ -50,3 +50,6 @@ next-env.d.ts
 
 # superpowers brainstorming sessions
 /.superpowers
+
+# python
+__pycache__/

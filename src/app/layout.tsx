@@ -7,6 +7,7 @@ import { ThemeProvider } from "@/components/ThemeProvider";
 import { ReadingProgressBar } from "@/components/ReadingProgressBar";
 import { siteConfig } from "@/lib/config";
 import "./globals.css";
+import { jsonLdString } from "@/lib/jsonLd";
 
 const display = Archivo_Black({
   subsets: ["latin"],
@@ -79,7 +80,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${display.variable} ${sans.variable} ${mono.variable}`} suppressHydrationWarning>
       <body className="flex min-h-screen flex-col antialiased">
-        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(personJsonLd) }} />
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdString(personJsonLd) }} />
         <ThemeProvider>
           <ReadingProgressBar />
           <Header />

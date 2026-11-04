@@ -13,6 +13,7 @@ import { RisoThumbnail } from "@/components/riso/RisoThumbnail";
 import { TAG_COLORS, TAG_FGS, pickByIndex } from "@/lib/riso";
 import { GuideToc } from "@/components/GuideToc";
 import { extractToc } from "@/lib/toc";
+import { jsonLdString } from "@/lib/jsonLd";
 import type { Metadata } from "next";
 
 interface PostPageProps {
@@ -83,7 +84,7 @@ export default async function PostPage({ params }: PostPageProps) {
 
   return (
     <>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdString(jsonLd) }} />
       <div className="mx-auto max-w-[1240px] px-5 py-8 sm:px-7 md:py-12">
         <div className="animate-fade-in mb-8">
           <Link

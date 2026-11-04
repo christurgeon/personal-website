@@ -25,6 +25,7 @@ import {
 } from "./lazyDiagrams";
 import CapPartition from "./CapPartition";
 import SnowflakeIdLayout from "./SnowflakeIdLayout";
+import PodcastList, { PodcastJsonLd } from "./PodcastList";
 
 export const mdxComponents = {
   BackdoorRothSteps,
@@ -52,4 +53,6 @@ export const mdxComponents = {
   ShardedVsReplicatedCache,
   CapPartition,
   SnowflakeIdLayout,
+  PodcastList,
+  PodcastJsonLd,
 };
