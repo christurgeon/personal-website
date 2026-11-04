@@ -11,16 +11,18 @@ import SummaryBox from "./SummaryBox";
 import AgentWorkflowLoop from "./AgentWorkflowLoop";
 import StrategyGraveyard from "./StrategyGraveyard";
 import RadiationTypes from "./RadiationTypes";
-import ConsistentHashRing from "./ConsistentHashRing";
-import TokenBucket from "./TokenBucket";
-import LruCache from "./LruCache";
-import QuorumReplicas from "./QuorumReplicas";
-import LoadBalancerRace from "./LoadBalancerRace";
-import PageTableWalk from "./PageTableWalk";
-import HandshakeSequence from "./HandshakeSequence";
-import LsmTree from "./LsmTree";
-import PacketEncapsulation from "./PacketEncapsulation";
-import ShardedVsReplicatedCache from "./ShardedVsReplicatedCache";
+import {
+  ConsistentHashRing,
+  TokenBucket,
+  LruCache,
+  QuorumReplicas,
+  LoadBalancerRace,
+  PageTableWalk,
+  HandshakeSequence,
+  LsmTree,
+  PacketEncapsulation,
+  ShardedVsReplicatedCache,
+} from "./lazyDiagrams";
 import CapPartition from "./CapPartition";
 import SnowflakeIdLayout from "./SnowflakeIdLayout";
 

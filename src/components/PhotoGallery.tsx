@@ -9,13 +9,20 @@ import { XIcon, ChevronLeftIcon, ChevronRightIcon, MapPinIcon } from "@/componen
 interface PhotoGalleryProps {
   photos: Photo[];
   showLocation?: boolean;
+  /** Preload the first photo (the LCP element on category pages). Off for client-shuffled galleries. */
+  preloadFirst?: boolean;
 }
+
+// Rendered width of a grid image: container max 1240px with 20px (28px from sm) side padding,
+// 1/2/3 columns at base/md/lg with 24px gaps, minus the card's 3px borders.
+const GRID_SIZES =
+  "(min-width: 1240px) 373px, (min-width: 1024px) calc((100vw - 122px) / 3), (min-width: 768px) calc((100vw - 92px) / 2), calc(100vw - 46px)";
 
 const subscribeNoop = () => () => {};
 const getSnapshotTrue = () => true;
 const getSnapshotFalse = () => false;
 
-export function PhotoGallery({ photos, showLocation = true }: PhotoGalleryProps) {
+export function PhotoGallery({ photos, showLocation = true, preloadFirst = false }: PhotoGalleryProps) {
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [imageLoaded, setImageLoaded] = useState<Record<string, boolean>>({});
@@ -98,7 +105,9 @@ export function PhotoGallery({ photos, showLocation = true }: PhotoGalleryProps)
                     alt={photo.alt}
                     fill
                     className={`object-cover transition-opacity duration-500 ${isLoaded ? "opacity-100" : "opacity-0"}`}
-                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                    sizes={GRID_SIZES}
+                    preload={preloadFirst && index === 0}
+                    fetchPriority={preloadFirst && index === 0 ? "high" : undefined}
                     onLoad={() => setImageLoaded((prev) => ({ ...prev, [photo.id]: true }))}
                   />
                 </div>
@@ -218,13 +227,16 @@ export function PhotoGallery({ photos, showLocation = true }: PhotoGalleryProps)
                 alt={currentPhoto.alt}
                 width={currentPhoto.width}
                 height={currentPhoto.height}
+                // Displayed size is capped by max-w-[90vw] and max-h-[85vh] (height scaled by aspect ratio).
+                sizes={`min(90vw, ${Math.ceil((85 * currentPhoto.width) / currentPhoto.height)}vh)`}
                 className="animate-lightbox-enter block h-auto max-h-[85vh] w-auto border-[4px] object-contain"
                 style={{
                   borderColor: "var(--paper)",
                   boxShadow: "8px 8px 0 var(--paper)",
                   background: "var(--ink)",
                 }}
-                priority
+                loading="eager"
+                fetchPriority="high"
               />
             </div>
 
