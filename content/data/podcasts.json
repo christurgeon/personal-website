@@ -134,12 +134,18 @@
       {
         "title": "FlashAttention 2: making Transformers 800% faster w/o approximation - with Tri Dao of Together AI",
         "guest": "Tri Dao",
-        "why": "GPU kernel and IO-aware attention explained by its author."
+        "why": "GPU kernel and IO-aware attention explained by its author.",
+        "apple_track_id": 1000622420878,
+        "url": "https://podcasts.apple.com/podcast/id1674008350?i=1000622420878",
+        "release_date": "2023-07-26"
       },
       {
         "title": "The State of Silicon and the GPU Poors - with Dylan Patel of SemiAnalysis",
         "guest": "Dylan Patel",
-        "why": "Compute-economics primer."
+        "why": "Compute-economics primer.",
+        "apple_track_id": 1000635213033,
+        "url": "https://podcasts.apple.com/podcast/id1674008350?i=1000635213033",
+        "release_date": "2023-11-17"
       },
       {
         "title": "Why AI Compute Comes in Rectangles (Erik Bernhardsson, Modal CEO)",
@@ -152,7 +158,10 @@
       {
         "title": "The Mathematics of Training LLMs - with Quentin Anthony of Eleuther AI",
         "guest": "Quentin Anthony",
-        "why": "Memory and FLOP math for training."
+        "why": "Memory and FLOP math for training.",
+        "apple_track_id": 1000624670587,
+        "url": "https://podcasts.apple.com/podcast/id1674008350?i=1000624670587",
+        "release_date": "2023-08-16"
       }
     ],
     "links": {
@@ -230,12 +239,18 @@
       {
         "title": "Andrew McAfee on More from Less",
         "guest": "Andrew McAfee",
-        "url": "https://www.econtalk.org/andrew-mcafee-on-more-from-less/"
+        "url": "https://podcasts.apple.com/podcast/id135066958?i=1000453429262",
+        "source_url": "https://www.econtalk.org/andrew-mcafee-on-more-from-less/",
+        "apple_track_id": 1000453429262,
+        "release_date": "2019-10-14"
       },
       {
         "title": "Nick Bostrom on Superintelligence",
         "guest": "Nick Bostrom",
-        "why": "Picked in 2015 thread"
+        "why": "Picked in 2015 thread",
+        "apple_track_id": 1000446952680,
+        "url": "https://podcasts.apple.com/podcast/id135066958?i=1000446952680",
+        "release_date": "2014-12-01"
       },
       {
         "title": "Thomas Piketty on inequality",
@@ -330,7 +345,10 @@
     "standout_episodes": [
       {
         "title": "How banking worked before computers",
-        "url": "https://m.youtube.com/watch?v=kYpe_K8PzbQ"
+        "url": "https://podcasts.apple.com/podcast/id1056200096?i=1000617944703",
+        "source_url": "https://m.youtube.com/watch?v=kYpe_K8PzbQ",
+        "apple_track_id": 1000617944703,
+        "release_date": "2023-06-22"
       },
       {
         "title": "Converting commercial buildings to residential",
@@ -1404,7 +1422,10 @@
       {
         "title": "Imaginary Numbers",
         "why": "Singled out in 2017 thread",
-        "url": "http://www.bbc.co.uk/programmes/b00tt6b2"
+        "url": "https://podcasts.apple.com/podcast/id73330895?i=1000377912726",
+        "source_url": "http://www.bbc.co.uk/programmes/b00tt6b2",
+        "apple_track_id": 1000377912726,
+        "release_date": "2010-09-23"
       },
       {
         "title": "Pythagoras",
@@ -1423,12 +1444,18 @@
       {
         "title": "Pauli's Exclusion Principle",
         "guest": "",
-        "why": "Re-released in the 2025 archive run; a model physics-history panel."
+        "why": "Re-released in the 2025 archive run; a model physics-history panel.",
+        "apple_track_id": 1000384069257,
+        "url": "https://podcasts.apple.com/podcast/id73330895?i=1000384069257",
+        "release_date": "2017-04-06"
       },
       {
         "title": "Zeno's Paradoxes",
         "guest": "",
-        "why": "Bridges mathematics (limits, infinity) and philosophy."
+        "why": "Bridges mathematics (limits, infinity) and philosophy.",
+        "apple_track_id": 1000375654652,
+        "url": "https://podcasts.apple.com/podcast/id73330895?i=1000375654652",
+        "release_date": "2016-09-22"
       }
     ],
     "links": {
@@ -2633,7 +2660,10 @@
     "standout_episodes": [
       {
         "title": "63: Finding Gravity Within Quantum Mechanics (solo)",
-        "why": "2019 pick"
+        "why": "2019 pick",
+        "apple_track_id": 1000449115502,
+        "url": "https://podcasts.apple.com/podcast/id1406534739?i=1000449115502",
+        "release_date": "2019-09-09"
       },
       {
         "title": "Solo: The Crisis in Physics",
@@ -3032,15 +3062,24 @@
     "standout_episodes": [
       {
         "title": "What is a Tectonic Plate?",
-        "url": "https://open.spotify.com/episode/4NsL4KhaWL5DtiOpzP817J"
+        "url": "https://podcasts.apple.com/podcast/id1528861092?i=1000489292807",
+        "source_url": "https://open.spotify.com/episode/4NsL4KhaWL5DtiOpzP817J",
+        "apple_track_id": 1000489292807,
+        "release_date": "2020-08-27"
       },
       {
         "title": "The Uniqueness of Iceland",
-        "url": "https://open.spotify.com/episode/5Q6vQjrF06XzizmFt9dCqo"
+        "url": "https://podcasts.apple.com/podcast/id1528861092?i=1000657271696",
+        "source_url": "https://open.spotify.com/episode/5Q6vQjrF06XzizmFt9dCqo",
+        "apple_track_id": 1000657271696,
+        "release_date": "2024-05-30"
       },
       {
         "title": "How to Identify Rocks",
-        "url": "https://planetgeocast.buzzsprout.com/1237277/13233709-how-to-identify-rocks"
+        "url": "https://podcasts.apple.com/podcast/id1528861092?i=1000621746262",
+        "source_url": "https://planetgeocast.buzzsprout.com/1237277/13233709-how-to-identify-rocks",
+        "apple_track_id": 1000621746262,
+        "release_date": "2023-07-20"
       }
     ],
     "links": {
@@ -3073,7 +3112,8 @@
         "where": "EGU GMPV blog",
         "url": "https://blogs.egu.eu/divisions/gmpv/2021/03/31/planetgeo-a-science-podcast/"
       }
-    ]
+    ],
+    "artwork": "https://is1-ssl.mzstatic.com/image/thumb/Podcasts211/v4/38/86/14/388614d9-589d-ec16-8605-d30fc7743100/mza_8513962717529195959.jpg/600x600bb.jpg"
   },
   {
     "id": "machine-learning-street-talk",
@@ -5324,7 +5364,10 @@
       {
         "title": "Nature PastCast, December 1920: The Quantum Theory",
         "guest": "",
-        "why": "Archival history-of-science series."
+        "why": "Archival history-of-science series.",
+        "apple_track_id": 1000460897829,
+        "url": "https://podcasts.apple.com/podcast/id81934659?i=1000460897829",
+        "release_date": "2019-12-27"
       },
       {
         "title": "This Arabian desert was once a lush paradise. Why did ancient humans avoid it?",
@@ -5928,7 +5971,10 @@
         "title": "Jim Keller: Moore's Law, Microprocessors, First Principles",
         "guest": "Jim Keller",
         "why": "Recommended in 2020 favourites thread",
-        "url": "https://www.youtube.com/watch?v=Nb2tebYAaOA"
+        "url": "https://podcasts.apple.com/podcast/id1434243584?i=1000464730369",
+        "source_url": "https://www.youtube.com/watch?v=Nb2tebYAaOA",
+        "apple_track_id": 1000464730369,
+        "release_date": "2020-02-05"
       },
       {
         "title": "Brian Kernighan",
@@ -5946,7 +5992,10 @@
       {
         "title": "Lisa Feldman Barrett: Counterintuitive Ideas About How the Brain Works",
         "guest": "Lisa Feldman Barrett",
-        "url": "https://www.youtube.com/watch?v=NbdRIVCBqNI"
+        "url": "https://podcasts.apple.com/podcast/id1434243584?i=1000493544039",
+        "source_url": "https://www.youtube.com/watch?v=NbdRIVCBqNI",
+        "apple_track_id": 1000493544039,
+        "release_date": "2020-10-04"
       }
     ],
     "links": {
@@ -6397,7 +6446,10 @@
         "title": "Rich Hickey on Clojure",
         "guest": "Rich Hickey",
         "why": "Recommended by Martin Fowler",
-        "url": "https://www.martinfowler.com/bliki/Podcasts.html"
+        "url": "https://podcasts.apple.com/podcast/id120906714?i=1000487353239",
+        "source_url": "https://www.martinfowler.com/bliki/Podcasts.html",
+        "apple_track_id": 1000487353239,
+        "release_date": "2010-03-22"
       },
       {
         "title": "Kent Beck on testing",
@@ -6831,7 +6883,10 @@
       {
         "title": "#227 Knowing the Mind",
         "why": "Meditation science",
-        "url": "https://pca.st/episode/e838d883-1fc5-41a1-8f54-83af8475990d"
+        "url": "https://podcasts.apple.com/podcast/id733163012?i=1000501656378",
+        "source_url": "https://pca.st/episode/e838d883-1fc5-41a1-8f54-83af8475990d",
+        "apple_track_id": 1000501656378,
+        "release_date": "2020-12-07"
       },
       {
         "title": "The Map of Misunderstanding",
