@@ -10,8 +10,9 @@ const securityHeaders = [
 
 const nextConfig: NextConfig = {
   images: {
-    // AVIF first (smaller at equal quality), WebP fallback for browsers without AVIF.
-    formats: ["image/avif", "image/webp"],
+    // WebP only: AVIF at the default quality visibly smooths fine texture in the photos,
+    // and most of the byte savings come from right-sized `sizes`, not the format.
+    formats: ["image/webp"],
     // Photos in public/ are effectively immutable; keep optimized variants cached for 31 days
     // instead of the 4-hour default. Rename a file if you replace its contents.
     minimumCacheTTL: 2678400,
