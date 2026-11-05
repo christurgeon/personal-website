@@ -44,6 +44,8 @@ next-env.d.ts
 # personal documentation
 *.md
 !README.md
+!/AGENTS.md
+!/CLAUDE.md
 
 # design reference
 /design-mockups
