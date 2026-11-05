@@ -5,21 +5,21 @@ excerpt: "A $9 Hetzner server, a persistent tmux session, and an SSH client on a
 tags: ["engineering", "claude-code", "agentic-coding", "vps", "tmux", "remote-development"]
 ---
 
-A Claude Code session doing real work — reading a codebase, executing a plan, running tests, fixing what they catch — can go forty minutes without needing me. My laptop is a terrible place for that session to live. It sleeps, it roams between networks, and it gets shoved in a bag mid-task.
+A Claude Code session doing real work (reading a codebase, executing a plan, running tests, fixing what they catch) can go forty minutes without needing me. My laptop is a terrible place for that session to live. It sleeps, it roams between networks, and it gets shoved in a bag mid-task.
 
 So I moved the session somewhere that does none of those things. My development environment is now a $9 server in a Hetzner data center, and my laptop, iPad, and phone are just windows into it. I start a refactor at my desk, close the lid, and read the result an hour later on my phone.
 
-The rig has five parts, each boring on its own:
+The setup has five parts, none of them exciting:
 
 - **A small VPS** that runs 24/7 and holds the repos, dotfiles, toolchains, and Claude Code.
 - **[tmux](https://github.com/tmux/tmux/wiki)**, so sessions outlive the SSH connections that view them.
-- **SSH from every device** — a terminal on the laptop, [Termius](https://termius.com/) on the phone and iPad.
+- **SSH from every device:** a terminal on the laptop, [Termius](https://termius.com/) on the phone and iPad.
 - **`tm`**, a one-line shell function that drops any device into the same session.
 - **Remote Control**, so the agent can ping my phone when it needs me.
 
 ## Step 1: Rent the Box
 
-My box is a small shared-vCPU server on [Hetzner](https://www.hetzner.com/cloud/), about $9 a month. That sounds modest, and it is, but the box mostly runs a shell, git, and Claude Code. The inference happens on Anthropic's side. You're renting a desk, not a workshop.
+My box is a small shared-vCPU server on [Hetzner](https://www.hetzner.com/cloud/), about $9 a month. That's not much, but the box mostly runs a shell, git, and Claude Code. The inference happens on Anthropic's side, so you don't need much compute.
 
 Pick Ubuntu LTS and the region closest to you, since every keystroke makes that round trip. And add your SSH public key at creation time, so password auth never has to exist on the box at all.
 
@@ -42,7 +42,7 @@ printf 'PasswordAuthentication no\nPermitRootLogin no\n' \
 sudo sshd -T | grep -Ei 'passwordauth|permitroot'  # verify both say "no"
 ```
 
-Restart with `sudo systemctl restart ssh`, and log in as the new user from a second terminal *before* closing the first. Never lock the only door you're holding open.
+Restart with `sudo systemctl restart ssh`, and log in as the new user from a second terminal *before* closing the first, so a typo doesn't lock you out.
 
 Add a firewall and automatic security patches:
 
@@ -52,7 +52,7 @@ sudo ufw enable
 sudo apt install unattended-upgrades
 ```
 
-That's the floor. The better setup takes SSH off the public internet entirely with [Tailscale](https://tailscale.com/). Install the Tailscale app on your client devices first, so you have something to test from:
+That's the minimum. Better is to take SSH off the public internet entirely with [Tailscale](https://tailscale.com/). Install the Tailscale app on your client devices first, so you have something to test from:
 
 ```bash
 curl -fsSL https://tailscale.com/install.sh | sh
@@ -66,7 +66,7 @@ Port 22 now answers only to machines on your tailnet. If Tailscale ever breaks, 
 
 ## Step 3: Set It Up Once
 
-Dotfiles, shell, git config, toolchains, tmux (`sudo apt install tmux`). Every laptop I've owned put me through this ritual, and I'd discover three months later that something was missing at the worst possible moment. A persistent server ends the ritual. You do it once, and a new device needs nothing but an SSH client.
+Dotfiles, shell, git config, toolchains, tmux (`sudo apt install tmux`). Every laptop I've owned put me through this, and three months later I'd find out something was missing at the worst possible moment. With a persistent server you do it once, and a new device needs nothing but an SSH client.
 
 Then Claude Code, via the native installer:
 
@@ -86,9 +86,9 @@ The whole thing runs on one line in my shell config:
 tm() { tmux new -As "${1:-main}"; }
 ```
 
-`-A` attaches to the named session if it exists and creates it if it doesn't, which makes `tm` idempotent; `${1:-main}` just saves typing. It means "take me to my workspace," regardless of which device asks or whether the workspace exists yet. `tm` on the laptop puts you in `main`. `tm` on the phone an hour later puts you in the *same* `main` — same scrollback, same agent mid-thought. Named sessions give you parallel workspaces for free: `tm website` for this blog, `tm trading` for [the thing that loses me money](/blog/trading-weather-markets).
+`-A` attaches to the named session if it exists and creates it if it doesn't, which makes `tm` idempotent; `${1:-main}` just saves typing. It means "take me to my workspace," regardless of which device asks or whether the workspace exists yet. `tm` on the laptop puts you in `main`. `tm` on the phone an hour later puts you in the *same* `main`, with the same scrollback and the same agent mid-thought. Named sessions give you parallel workspaces for free: `tm website` for this blog, `tm trading` for [the thing that loses me money](/blog/trading-weather-markets).
 
-Detaching is `Ctrl-b d`, or nothing at all. Close the app, lose signal, walk away. tmux can't tell a deliberate detach from a dropped connection, and that indifference is the entire feature. Flaky airport wifi and closing your laptop on purpose become the same non-event. Start Claude on a long task, walk off, and reattach from whatever's nearby to scroll through everything it did while you were gone.
+Detaching is `Ctrl-b d`, or nothing at all. Close the app, lose signal, walk away. tmux can't tell a deliberate detach from a dropped connection, and for this setup that's exactly what you want. Flaky airport wifi and closing your laptop on purpose end up being the same thing. Start Claude on a long task, walk off, and reattach from whatever's nearby to scroll through everything it did while you were gone.
 
 ## Step 5: Put It in Your Pocket
 
@@ -99,7 +99,7 @@ Two settings worth finding immediately:
 - **The extra keyboard row.** It puts `Esc`, `Ctrl`, `Tab`, and arrows above the on-screen keyboard. On glass, this row is the difference between tmux being usable and tmux being a hostage situation.
 - **Font size.** Turn it down. A phone in landscape at a small font shows a surprisingly respectable amount of terminal.
 
-Then type `tm`. The iPad with a keyboard case is the sleeper hit: with a terminal full screen, it stops being "coding on a tablet" and just becomes coding.
+Then type `tm`. The iPad with a keyboard case surprised me the most. With a terminal full screen, it honestly feels like a normal laptop.
 
 ## Step 6: Get Pinged
 
@@ -119,17 +119,17 @@ Two caveats. While Remote Control is connected, Anthropic stores the session tra
 
 ## What It's Actually Like
 
-"I code from my phone" conjures someone typing function bodies on glass. That's not what happens. Typing code on a phone is miserable, and I don't do it.
+When I say I code from my phone, people picture me typing function bodies on glass. I don't. Typing code on a phone is miserable.
 
-What changed is that agentic coding made most of the work *reading and deciding*. The loop from [Vibe Coding with Guardrails](/blog/vibe-coding-with-guardrails) — research, plan, invite pushback, review the diff — is mostly conversation, and conversation is phone-shaped. The keyboard-shaped work happens when I'm at a keyboard; the judgment-shaped work happens wherever I am.
+What changed is that agentic coding made most of the work *reading and deciding*. The loop from [Vibe Coding with Guardrails](/blog/vibe-coding-with-guardrails) (research, plan, invite pushback, review the diff) is mostly conversation, and a phone is fine for conversation. I save the typing for when I'm at a keyboard and do the reviewing and deciding wherever I happen to be.
 
-In practice: I kick off a task after breakfast, approve the plan from my phone while running errands, and read the diff twenty minutes later on the iPad. Small windows that used to be dead air are now enough to unblock an agent.
+In practice: I kick off a task after breakfast, approve the plan from my phone while running errands, and read the diff twenty minutes later on the iPad. Ten minutes in a line somewhere is now enough to unblock an agent.
 
 ## The Tradeoffs
 
 - **Cost.** About $9 a month. I spend more than that on a single cocktail, so I've made my peace, but it's still a subscription.
 - **Latency.** Every keystroke round-trips to the server. On the same continent it's imperceptible; across an ocean you'll feel it. If you're often on bad connections, [mosh](https://mosh.org/) is worth the ten minutes: it uses SSH only to log in, then switches to its own UDP protocol with local echo and roaming. Over Tailscale, it needs no firewall changes.
 - **Your code lives on someone else's computer.** For personal projects I'm comfortable with a hardened box at a reputable provider. Work code has a different owner, so check your employer's policy before cloning anything onto a personal server.
-- **Shelf life.** Anthropic keeps shipping official ways to work away from your desk, and Remote Control already does part of this rig's job. But it needs a machine that stays on, and a $9 Linux box you fully control is a good one to give it.
+- **It might not last.** Anthropic keeps shipping official ways to work away from your desk, and Remote Control already does part of this rig's job. But it needs a machine that stays on, and a $9 Linux box you fully control is a good one to give it.
 
 My laptop still gets shoved in a bag mid-task. Now nothing stops when it does.

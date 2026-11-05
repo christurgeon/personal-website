@@ -8,21 +8,21 @@ tags: ["health", "skincare", "ai", "research", "self-experimentation"]
 
 For most of my twenties, my skincare routine was whatever bar soap happened to be in the shower, plus a low background guilt that I should probably be doing more.
 
-I am 27, oily and acne-prone, with skin sensitive enough to object to about half of what gets marketed at it. I also had a patch of redness beside my nose that had been appearing and disappearing for years. I never knew what it was, so I did what anyone with an internet connection and a minor problem does: I started reading.
+I'm 27, oily and acne-prone, with skin sensitive enough to object to about half of what gets marketed at it. I also had a patch of redness beside my nose that had been appearing and disappearing for years. I never knew what it was, so I did what anyone with an internet connection and a minor problem does: I started reading.
 
-Soon I had a dozen tabs open and no idea what to believe. Every ingredient seemed essential. Every product had a mechanism. Every routine came with its own little laws: wait exactly sixty seconds between layers, never mix this with that, use an oil cleanser even if you do not wear makeup, buy the expensive vitamin C because the cheap one is probably oxidized.
+Soon I had a dozen tabs open and no idea what to believe. Every ingredient seemed essential. Every product had a mechanism. Every routine came with its own little laws: wait exactly sixty seconds between layers, never mix this with that, use an oil cleanser even if you don't wear makeup, buy the expensive vitamin C because the cheap one is probably oxidized.
 
 The more I read, the longer the routine became.
 
-So I gave the problem to Claude. At first, this only made things worse. Ask a language model to build a skincare routine and it will build one. It can produce a mechanism story for nearly anything on the shelf, then arrange all of it into a confident morning-and-night protocol.
+So I gave the problem to Claude, which at first just made things worse. Ask a language model to build a skincare routine and it will build one. It can produce a mechanism story for nearly anything on the shelf, then arrange all of it into a confident morning-and-night protocol.
 
-The useful part started when I stopped asking what to add.
+It got useful once I stopped asking what to add.
 
 I spent a few evenings using Claude as a research assistant: finding studies, comparing trial designs, reading drug labels, and looking for overlap. The routine that came out the other side had four actives in it. Most of the work had been subtraction.
 
-That was the interesting result. Not the products themselves, exactly, but the difference between asking a model for an answer and asking it to help grade the evidence behind one.
+The products aren't really what this post is about. What I found interesting was how different the results were when I asked the model to grade the evidence instead of just giving me an answer.
 
-I am not a dermatologist, and this is not medical advice. It is the routine I built for my own skin and the reasoning I used to build it. Persistent, painful, nodular, cystic, or scarring acne belongs with a dermatologist, not a blog post.
+I'm not a dermatologist, and this isn't medical advice. It's the routine I built for my own skin and the reasoning I used to build it. Persistent, painful, nodular, cystic, or scarring acne belongs with a dermatologist, not a blog post.
 
 ---
 
@@ -32,7 +32,7 @@ Skincare is an unusually hostile information environment. Nearly every claim is 
 
 Forums are more candid, but they have their own problem. A rule gets repeated often enough and starts to feel empirical, even when nobody can explain where it came from. Meanwhile, a small industry-funded trial measuring hydration after two weeks can sit one search result away from a randomized clinical trial that followed acne lesions for three months. From the outside, both become "a study says."
 
-Claude was good at moving through that volume. It was not good enough to trust blindly, especially on anything medical. The division of labor that worked was simple: let the model locate and compare; make the paper or drug label settle the claim.
+Claude was good at getting through all of that, but not good enough to trust blindly, especially on anything medical. What worked was letting the model find and compare sources, and then letting the paper or drug label settle the actual claim.
 
 Four questions did most of the work.
 
@@ -42,35 +42,35 @@ Four questions did most of the work.
 
 A better question is: *What is the strongest human study here? Who was studied, at what concentration, for how long, against what control, and what actually improved?*
 
-That turns a product category back into a set of claims. In the case of niacinamide, much of the human evidence I found used concentrations around [2%](https://pubmed.ncbi.nlm.nih.gov/16766489/) to [5%](https://pubmed.ncbi.nlm.nih.gov/16029679/). That does not prove a 10% serum is useless. It does mean "twice as much" should not be confused with "twice as effective," especially on reactive skin.
+That turns a product category back into a set of claims. In the case of niacinamide, much of the human evidence I found used concentrations around [2%](https://pubmed.ncbi.nlm.nih.gov/16766489/) to [5%](https://pubmed.ncbi.nlm.nih.gov/16029679/). That doesn't prove a 10% serum is useless, but "twice as much" isn't the same as "twice as effective," especially on reactive skin.
 
-The same question helped separate ingredients with decades of acne data from ingredients with an elegant mechanism and a handful of small cosmetic studies. Both may work. They do not deserve the same confidence.
+The same question helped separate ingredients with decades of acne data from ingredients with an elegant mechanism and a handful of small cosmetic studies. Both might work, but I shouldn't trust them equally.
 
 ### 2. What mechanism would explain the whole pattern?
 
 The recurring redness beside my nose had always been filed in my head as either dry skin or some strange form of acne. Claude suggested that the pattern could be seborrheic dermatitis: a recurring inflammatory reaction associated with *Malassezia*, a yeast that normally lives on skin.
 
-That was not a diagnosis. But it was a useful hypothesis because it explained several things at once: why the redness returned in the same oily areas, why it also appeared around facial hair, and why antifungal products — not acne products — are commonly used to control it.
+That wasn't a diagnosis. But it was a useful hypothesis because it explained a few things at once: why the redness kept coming back in the same oily areas, why it also showed up around facial hair, and why people usually treat it with antifungals instead of acne products.
 
-This is where asking for mechanism beats asking for a product. A product recommendation ends at the bottle. A mechanism gives you predictions you can check.
+Asking for a mechanism helped more than asking for a product, because a mechanism makes predictions I can check. A product recommendation just gives me something to buy.
 
 ### 3. What is the best argument for removing this?
 
-Models are eager collaborators. I have [written before](/blog/vibe-coding-with-guardrails) about making them argue against my own code, and the same move works on a shopping list. If you ask one how vitamin C could help, it will tell you. If you ask how niacinamide, peptides, salicylic acid, and tea tree oil could help, it will tell you four more times.
+Models are eager to help. I've [written before](/blog/vibe-coding-with-guardrails) about making them argue against my own code, and the same move works on a shopping list. If you ask one how vitamin C could help, it will tell you. If you ask how niacinamide, peptides, salicylic acid, and tea tree oil could help, it will tell you four more times.
 
-The prompt that changed the routine was: *Here is everything I plan to use. What is the strongest case that each step is redundant?*
+The prompt that ended up changing the routine was: *Here is everything I plan to use. What is the strongest case that each step is redundant?*
 
-That is how vitamin C came out. There is real human evidence behind topical vitamin C, including small controlled studies showing improvements in photoaged skin. But "has evidence" was not my real threshold. I already had adapalene for acne and long-term skin texture, and azelaic acid for redness and post-acne marks. Vitamin C might add something at the margin, but not enough to justify another product, another possible source of irritation, and another thing to do every morning.
+That's how vitamin C got cut. There is real human evidence behind topical vitamin C, including small controlled studies showing improvements in photoaged skin. But "has evidence" was not my real threshold. I already had adapalene for acne and long-term skin texture, and azelaic acid for redness and post-acne marks. Vitamin C might add something at the margin, but not enough to justify another product, another possible source of irritation, and another thing to do every morning.
 
-That distinction — between *works* and *adds enough* — cleared out most of the cabinet.
+Separating *works* from *adds enough* cleared out most of the cabinet.
 
 ### 4. Where does the field disagree?
 
 Language models tend to compress a disputed literature into a pleasant consensus. Asking where the evidence conflicts is a useful correction.
 
-Diet and acne was the clearest example. There are randomized trials suggesting that a lower-glycemic diet can improve acne, while other data is messier and much of the dairy and whey literature remains observational or inconclusive. The honest answer was not "diet matters" or "diet is a myth." It was that any effect was uncertain, probably smaller than the effect of the core treatments, and slow enough that a casual two-week experiment would tell me very little.
+Diet and acne was the clearest example. There are randomized trials suggesting that a lower-glycemic diet can improve acne, while other data is messier and much of the dairy and whey literature remains observational or inconclusive. Where I landed was that any effect is uncertain, probably smaller than the core treatments, and slow enough that a casual two-week experiment wouldn't tell me much.
 
-So diet moved to the back of the queue. That was still an answer.
+So diet moved to the back of the queue, which I still count as an answer.
 
 ---
 
@@ -97,11 +97,11 @@ Everything else would be cleanser, moisturizer, or sunscreen.
 2. **Azelaic acid 10%.** A thin layer over the face, starting every other day and increasing only if my skin tolerates it.
 3. **Moisturizer with SPF 50.** I use CeraVe AM so moisturizer and sunscreen remain one step.
 
-I do not time the gaps between layers. I let one spread evenly, then apply the next.
+I don't time the gaps between layers. I let one spread evenly, then apply the next.
 
-The main trap with a moisturizer-sunscreen combination is treating it like moisturizer. SPF testing assumes a fairly generous dose; a small pump spread thinly across the face and neck will not deliver the protection printed on the bottle. I use roughly two finger-lengths for my face and neck and carry more when I will be [outside for hours](/blog/meltdown-and-sunburn).
+The main trap with a moisturizer-sunscreen combination is treating it like moisturizer. SPF testing assumes a fairly generous dose; a small pump spread thinly across the face and neck won't give you the protection printed on the bottle. I use roughly two finger-lengths for my face and neck and carry more when I'll be [outside for hours](/blog/meltdown-and-sunburn).
 
-The formula matters mostly because I need to keep using it. The Ordinary's azelaic acid suspension pilled badly under my sunscreen. Paula's Choice and Naturium layered better for me. That is not a verdict on which product is universally best. It is an example of a boring formulation detail deciding whether a routine survives contact with real life.
+The formula matters mostly because I need to keep using it. The Ordinary's azelaic acid suspension pilled badly under my sunscreen. Paula's Choice and Naturium layered better for me. I'm not claiming either is the best product. It's just that something as boring as how a formula layers can decide whether I keep using it.
 
 ### Night
 
@@ -109,7 +109,7 @@ The formula matters mostly because I need to keep using it. The Ordinary's azela
 2. **Adapalene 0.1%.** A pea-sized amount for the entire face, applied to dry skin and kept away from the eyes, lips, and creases beside the nose.
 3. **Moisturizer.** CeraVe PM or Beauty of Joseon.
 
-Adapalene does most of the long-term work. It is also the part most likely to make the routine feel unsuccessful at first. Dryness, scaling, stinging, and irritation are common early in treatment; the [prescribing information](https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=a0031324-92a6-4c11-90e2-c2818f7278ec) tells clinicians to have patients minimize sun exposure and use moisturizers for relief of dryness or irritation.
+Adapalene does most of the long-term work. It's also the part most likely to make you think the routine isn't working at first. Dryness, scaling, stinging, and irritation are common early in treatment; the [prescribing information](https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=a0031324-92a6-4c11-90e2-c2818f7278ec) tells clinicians to have patients minimize sun exposure and use moisturizers for relief of dryness or irritation.
 
 I ramped it instead of trying to be heroic:
 
@@ -120,15 +120,15 @@ I ramped it instead of trying to be heroic:
 
 On dry nights, I put moisturizer underneath and over it. Before applying adapalene, I use a little petrolatum on my lips and beside my nostrils, where the product tends to migrate and irritation shows up first.
 
-The exact ramp is less important than the rule behind it: frequency is adjustable. If my skin starts burning or peeling, I back down to the last frequency it tolerated. I do not add an exfoliant to fix the flakes caused by the first exfoliating-adjacent thing.
+The exact ramp is less important than the rule behind it: frequency is adjustable. If my skin starts burning or peeling, I back down to the last frequency it tolerated. I don't add an exfoliant to fix the flakes caused by the first exfoliating-adjacent thing.
 
 ### The two exceptions
 
 **Benzoyl peroxide:** I use 2.5% on individual inflamed lesions, not as another full-face layer. An older set of double-blind trials found [2.5% comparable with 5% and 10%](https://pubmed.ncbi.nlm.nih.gov/2948929/) for inflammatory lesions, with less irritation than the strongest formulation. It also bleaches fabric with impressive reliability, so white pillowcases help.
 
-**Ketoconazole:** I use 1% shampoo as short-contact treatment on the affected areas — lather, leave for a few minutes, rinse — on nights when I skip adapalene. During a flare I use it several times a week, then reduce the frequency after the redness and flaking settle. Recurrence is common; controlled research on scalp seborrheic dermatitis has found benefit from [continued intermittent use](https://pubmed.ncbi.nlm.nih.gov/7718463/) after the initial clearing phase. That trial used the 2% prescription strength on scalps rather than 1% on a face, so I treat it as a reason to keep going at a reduced frequency, not as a dose I have validated.
+**Ketoconazole:** I use 1% shampoo as short-contact treatment on the affected areas (lather, leave it for a few minutes, rinse) on nights when I skip adapalene. During a flare I use it several times a week, then reduce the frequency after the redness and flaking settle. Recurrence is common; controlled research on scalp seborrheic dermatitis has found benefit from [continued intermittent use](https://pubmed.ncbi.nlm.nih.gov/7718463/) after the initial clearing phase. That trial used the 2% prescription strength on scalps rather than 1% on a face, so I treat it as a reason to keep going at a reduced frequency, not as a dose I've validated.
 
-This is also the place where self-experimentation has a limit. Several rashes can look similar around the nose. If the pattern does not respond, keeps worsening, or has never been evaluated, the next step is a clinician — not a stronger interpretation from Claude.
+This is also the place where self-experimentation has a limit. Several rashes can look similar around the nose. If the pattern doesn't respond, keeps getting worse, or has never been looked at by a doctor, the next step is a clinician. Not a more confident answer from Claude.
 
 ---
 
@@ -143,15 +143,15 @@ For me, tightness, persistent stinging, flaking, or burning usually means the co
 3. Restart one active at the last frequency that felt fine.
 4. Add the next one only after things stay quiet.
 
-If the same frequency causes the same reaction twice, I treat that as information. The goal is not to reach nightly use at any cost. The goal is to find the highest frequency I can sustain without repeatedly blowing up the routine.
+If the same frequency causes the same reaction twice, I treat that as information. I'm not trying to get to nightly use at any cost, just the highest frequency I can keep up without repeatedly wrecking my skin.
 
-This sounds obvious written down. It was not obvious while standing in front of a sink, looking at irritated skin, considering whether a new "barrier repair" serum might be the missing piece.
+Written down, this seems obvious. It's a lot less obvious when you're standing in front of a sink, looking at irritated skin, considering whether a new "barrier repair" serum might be the missing piece.
 
 ## The other failure mode is impatience
 
 Skincare is a terrible personal experiment. The sample size is one. There is no control group. Sleep, stress, weather, sun, shaving, and whatever touched the pillowcase can all change at once. Worst of all, the feedback is slow.
 
-Benzoyl peroxide can shrink an individual spot within days. Most of the rest needs weeks or months. The over-the-counter label for adapalene says it [may take up to three months](https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=0739d631-171b-42a8-bd55-0022b8df2d8a) of daily use to see results, and the prescription labeling likewise tells clinicians to re-evaluate therapy if results are not apparent after twelve weeks. So it deserves a real assessment around twelve weeks, not twelve days. Post-acne marks can take longer. Sunscreen mostly prevents changes I will never get to observe in the counterfactual version of my face.
+Benzoyl peroxide can shrink an individual spot within days. Most of the rest needs weeks or months. The over-the-counter label for adapalene says it [may take up to three months](https://dailymed.nlm.nih.gov/dailymed/drugInfo.cfm?setid=0739d631-171b-42a8-bd55-0022b8df2d8a) of daily use to see results, and the prescription labeling likewise tells clinicians to re-evaluate therapy if results are not apparent after twelve weeks. So it deserves a real assessment around twelve weeks, not twelve days. Post-acne marks can take longer. Sunscreen mostly prevents changes I'll never get to see in the counterfactual version of my face.
 
 That led to three rules:
 
@@ -163,11 +163,11 @@ The photograph is important. Memory is too willing to convert today's breakout i
 
 ---
 
-## What did not make the cut
+## What didn't make the cut
 
 The shortest version of this article is the list of things Claude helped me remove.
 
-**Vitamin C:** plausible and supported by some human trials, but overlapping with stronger priorities already in the routine. I may reconsider it if pigmentation stalls. For now, the marginal benefit does not earn the morning step.
+**Vitamin C:** plausible and supported by some human trials, but overlapping with stronger priorities already in the routine. I may reconsider it if pigmentation stalls. For now, it's not worth adding a morning step for.
 
 **A separate niacinamide serum:** some evidence, but I was looking at a 10% formula when much of the clinical work I found used lower concentrations. My moisturizer already contains niacinamide. Adding more felt like solving the label rather than the problem.
 
@@ -175,9 +175,9 @@ The shortest version of this article is the list of things Claude helped me remo
 
 **Granactive Retinoid:** a more marketable name attached to a much thinner clinical record than adapalene. Easy cut.
 
-**Routine exfoliation:** possibly useful later, but difficult to justify while I was still adapting to azelaic acid and adapalene. The routine did not need another source of irritation just because exfoliation has become a skincare category.
+**Routine exfoliation:** possibly useful later, but difficult to justify while I was still adapting to azelaic acid and adapalene. I didn't need another source of irritation just because exfoliation is its own skincare category now.
 
-None of these products has to be fraudulent for leaving it out to be correct. That was the conceptual mistake I had been making. I kept asking whether a product could help. With enough patience, almost every product page can produce a yes.
+None of these products have to be scams for it to be right to leave them out. That was the mistake I'd been making. I kept asking whether a product could help. With enough patience, almost every product page can produce a yes.
 
 The better question was whether it added enough, given everything else I was already doing.
 
@@ -189,9 +189,9 @@ There is a point where "keep testing" becomes a bad plan.
 
 Painful nodules, cysts, or any scarring warrant a dermatologist early because scarring is much harder to address after the fact. The same goes for a rash that is spreading, severe, or resistant to the treatment that supposedly matches it. And if a consistent over-the-counter acne routine has produced little improvement after roughly three months, that is a reasonable time to discuss prescription options instead of stacking more products on top.
 
-A language model can help map the territory before that appointment. It can explain drug classes, turn a vague question into a list of things to ask, and help read the studies behind a recommendation. It cannot examine skin, distinguish look-alike conditions, or take responsibility for a diagnosis.
+A language model can help map the territory before that appointment. It can explain drug classes, turn a vague question into a list of things to ask, and help read the studies behind a recommendation. It can't examine skin, tell look-alike conditions apart, or take responsibility for a diagnosis.
 
-That line matters more in medicine than it does in most of the domains where I use these tools.
+I care about that line more in medicine than anywhere else I use these tools.
 
 ---
 
@@ -201,10 +201,8 @@ What is the strongest evidence? What mechanism explains the pattern? What is the
 
 Those questions produced a routine simple enough to remember without checking my notes: azelaic acid in the morning, adapalene at night, benzoyl peroxide when needed, ketoconazole for the recurring red patches, and sunscreen every day. More importantly, they gave me a way to decide what *not* to buy.
 
-Asked for a routine, a language model will gladly fill the bathroom cabinet. Asked to compare evidence and look for redundancy, it becomes much more useful — and much less flattering.
-
-That is the version I trust.
+If you ask a language model for a routine, it'll happily fill your bathroom cabinet. If you ask it to compare evidence and look for redundancy, it's a lot more useful, even if it's less fun to hear.
 
 ---
 
-*Disclaimer: I am not a dermatologist or any kind of medical professional. This article describes my own routine and research process, not individualized medical advice. Skin conditions can resemble one another, sensitivities vary, and topical treatments may be inappropriate with certain medications, conditions, or during pregnancy. Persistent, severe, painful, nodular, cystic, or scarring acne should be evaluated by a qualified clinician.*
+*Disclaimer: I'm not a dermatologist or any kind of medical professional. This article describes my own routine and research process, not individualized medical advice. Skin conditions can resemble one another, sensitivities vary, and topical treatments may be inappropriate with certain medications, conditions, or during pregnancy. Persistent, severe, painful, nodular, cystic, or scarring acne should be evaluated by a qualified clinician.*

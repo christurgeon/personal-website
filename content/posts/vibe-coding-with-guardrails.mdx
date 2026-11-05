@@ -7,17 +7,17 @@ tags: ["ai", "claude-code", "agentic-coding", "engineering", "security", "workfl
 
 I've shipped plenty of code with an AI agent riding shotgun. Some of it was great. Some of it I caught during review and quietly deleted. Enough of it broke in ways I didn't expect that I stopped treating "vibe coding" as a workflow and started treating it as a default that needs scaffolding around it.
 
-The term came out of a [half-joking post](https://x.com/karpathy/status/1886192184808149383) by Andrej Karpathy — the idea being that you let the LLM drive and barely read the code. For throwaway scripts and weekend projects, that's fine. But the second the code is going to live somewhere, be read by someone else, or touch a system I care about, I need guardrails.
+The term came out of a [half-joking post](https://x.com/karpathy/status/1886192184808149383) by Andrej Karpathy. The idea is that you let the LLM drive and barely read the code. For throwaway scripts and weekend projects, that's fine. But the second the code is going to live somewhere, be read by someone else, or touch a system I care about, I need guardrails.
 
-What follows is the workflow I've landed on. It's not about being cautious — I'm still moving fast. It's about stacking cheap checks so the agent's failure modes get caught early, while the thing is still easy to fix.
+What follows is the workflow I've landed on. I'm still moving fast. I just stack a bunch of cheap checks so the agent's mistakes get caught early, while they're still easy to fix.
 
 ---
 
 ## The Problem with Pure Vibe
 
-Left to its own devices, an agent will happily produce plausible-looking code that solves the wrong problem, introduces a subtle bug in an edge case, imports a package that doesn't exist, or silently breaks a contract the rest of the codebase depends on. The code *looks* right. It compiles. The tests — which the agent also wrote — pass.
+Left to its own devices, an agent will happily produce plausible-looking code that solves the wrong problem, introduces a subtle bug in an edge case, imports a package that doesn't exist, or silently breaks a contract the rest of the codebase depends on. The code *looks* right. It compiles. The tests pass, which would mean more if the agent hadn't also written them.
 
-The mental model I've found most useful: the agent is fast, well-read, tireless, and starts every session knowing nothing about yesterday. It can write code all day. It does not know your codebase, and it does not know all of the details that matter. Your job is to supply that context and verify the output. Everything below is a way of doing that cheaply — and the lack of memory, which is a liability when you're implementing, turns out to be an asset when you're reviewing.
+The mental model I've found most useful: the agent is fast, well-read, tireless, and starts every session knowing nothing about yesterday. It can write code all day. It does not know your codebase, and it does not know all of the details that matter. Your job is to supply that context and verify the output. Everything below is a way of doing that cheaply. And the lack of memory, which hurts when you're implementing, actually helps when you're reviewing.
 
 <Callout type="warning" title="The Failure Mode to Watch">
   The dangerous output isn't the code that breaks loudly. It's the code that works in the happy path but silently violates an invariant you didn't think to mention. If you're not reading the diff, you need *something* reading it.
@@ -39,13 +39,13 @@ The agent can't read your mind, and it can't smell which details matter. You hav
 
 ## Step 2: Invite the Pushback
 
-This is the step that changed everything for me.
+If I could only keep one step, it'd be this one.
 
 Before I ask the agent to build the thing, I ask it to argue against it. Literally: *here's what I'm planning. What are the risks? What would a senior engineer push back on? Is there a simpler approach I'm missing? What am I not thinking about?*
 
-Often enough to be worth the thirty seconds, it surfaces something real — a library that already does what I'm about to write, a race condition in the design, a schema decision that'll hurt us in six months, a simpler path I hadn't considered. When it doesn't surface anything real, I'm out thirty seconds.
+Often enough to be worth the thirty seconds, it surfaces something real: a library that already does what I'm about to write, a race condition in the design, a schema decision that'll hurt us in six months, a simpler path I hadn't considered. When it doesn't surface anything real, I'm out thirty seconds.
 
-It's a pre-mortem with a consultant who works for free and never gets tired.
+Think of it as a pre-mortem with a consultant who works for free.
 
 The key is to actually *consider* the pushback instead of defensively justifying your original plan. If the agent's critique is weak, fine, move on. If it's pointing at something you'd glossed over, slow down and fix the design before a single line of code exists.
 
@@ -53,13 +53,13 @@ The key is to actually *consider* the pushback instead of defensively justifying
 
 ## Step 3: Plan Mode, With a Second Opinion
 
-Once I've digested the pushback and refined the approach, I have the agent enter plan mode. Claude Code has this built in — the agent reads the code and proposes a structured plan without editing your source files.
+Once I've digested the pushback and refined the approach, I have the agent enter plan mode. Claude Code has this built in. The agent reads the code and proposes a plan without touching your source files.
 
 Then I take that plan to a *second* agent. Different context window, often a different prompt framing. "Review this plan. What's wrong with it? What's missing? Where would this fail?"
 
 The two agents often disagree. Agent A insists the right pattern is a factory; agent B argues that's over-engineered and suggests a direct approach. When that happens, I either ask them to debate each other or just make the call myself based on what I know about the codebase.
 
-The magic isn't that either agent is right. It's that the disagreement forces me to think about the tradeoff instead of rubber-stamping a plan. **Two agents in mild disagreement produce better decisions than one agent in confident agreement with itself.**
+Usually neither agent is fully right. What helps is that the disagreement makes me actually think about the tradeoff instead of rubber-stamping a plan. **Two agents in mild disagreement produce better decisions than one agent in confident agreement with itself.**
 
 {/* Diagram showing the loop: research → plan → second-agent review → reconcile → implement → scan */}
 <AgentWorkflowLoop />
@@ -68,7 +68,7 @@ The magic isn't that either agent is right. It's that the disagreement forces me
 
 ## Step 4: Reconcile, Then Implement
 
-After the plans converge, or I pick a winner, I let the primary agent implement. This is where "vibe" actually earns its name — I'm not reading every line as it streams. I'm watching for shape. Is it touching the files I expect? Is it writing tests? Is the diff size in the ballpark I predicted?
+After the plans converge, or I pick a winner, I let the primary agent implement. This is the part that's actually vibe coding. I'm not reading every line as it streams. I'm watching for shape. Is it touching the files I expect? Is it writing tests? Is the diff size in the ballpark I predicted?
 
 If something feels off while it's streaming, I stop it. Interrupting is cheap. Unwinding a bad 400-line diff is not.
 
@@ -80,7 +80,7 @@ The heuristic I use: if the agent's doing something I didn't anticipate from the
 
 Agents over-engineer. They add abstractions you didn't ask for, sprinkle in `try/except` blocks that swallow exceptions, write helper functions used in exactly one place, introduce an options dict "for flexibility."
 
-Claude Code ships with a bundled `/simplify` skill that does exactly what I want at this stage: review the diff, strip anything that isn't load-bearing, collapse abstractions used once, remove exception-swallowing try blocks, inline helpers that aren't reused. I didn't build it — it comes with Claude Code — but it's the step in my workflow I lean on most heavily.
+Claude Code ships with a bundled `/simplify` skill that does exactly what I want at this stage: review the diff, strip anything that isn't pulling its weight, collapse abstractions used once, remove exception-swallowing try blocks, inline helpers that aren't reused. I didn't build it (it comes with Claude Code), but I lean on it more than anything else in this list.
 
 Not every run improves things, but it reliably strips some of the noise without losing functionality. I run it whenever a diff becomes large or the code just feels heavier than the problem warrants.
 
@@ -90,11 +90,11 @@ Not every run improves things, but it reliably strips some of the noise without 
 
 Claude Code lets you define subagents with canned system prompts that live alongside your project. I've built a handful I use constantly:
 
-- **Reviewer** — reads a diff and plays senior-engineer-on-code-review. Pedantic by design.
-- **Planner** — takes a feature request and produces a plan with risks and assumptions called out explicitly.
-- **Simplifier** — a custom companion to Claude Code's `/simplify`, tuned to the patterns this codebase tends to over-engineer.
-- **Security Auditor** — tuned to the specific stack and risk patterns we actually care about, not a generic OWASP checklist.
-- **Bug Scanner** — looks for the specific failure patterns that keep showing up in postmortems.
+- **Reviewer:** reads a diff and plays the senior engineer on code review. Pedantic on purpose.
+- **Planner:** takes a feature request and turns it into a plan, with risks and assumptions spelled out.
+- **Simplifier:** my own companion to `/simplify`, tuned to the stuff this particular codebase tends to over-engineer.
+- **Security Auditor:** tuned to our stack and the risks we actually care about, rather than a generic OWASP checklist.
+- **Bug Scanner:** looks for the failure patterns that keep showing up in our postmortems.
 
 Here's roughly what my Security Auditor prompt looks like, to make this concrete:
 
@@ -123,29 +123,27 @@ severity (high/medium/low) | file:line | specific issue | suggested fix
 One row per finding. No preamble, no summary.
 ```
 
-The specificity is the point. A generic "look for security issues" prompt produces generic slop. A prompt that names your stack, lists the categories you actually care about, tells the agent what to ignore, and pins the output format produces findings you can triage in five minutes.
+Being specific is what makes it work. A generic "look for security issues" prompt gets you generic slop. A prompt that names your stack, lists the categories you actually care about, tells the agent what to ignore, and pins the output format produces findings you can triage in five minutes.
 
-The list order matters too, because agents miss different things than people do. In a test published in January 2026, the security firm Tenzai had Claude Code, Codex, Cursor, Replit, and Devin each build the same three apps from identical prompts, and [found 69 vulnerabilities across the 15 results](https://www.securityweek.com/vibe-coding-tested-ai-agents-nail-sqli-but-fail-miserably-on-security-controls/). None of the apps had an exploitable SQL injection or XSS — the textbook bugs that fill training data. All five agents introduced an SSRF vulnerability in the test Tenzai built to probe for one. The failures clustered in authorization and business logic, and on security controls like rate limiting, the agents, in Tenzai's words, "didn't even try." That's why the prompt leads with auth gaps instead of injection.
+The list order matters too, because agents miss different things than people do. In a test published in January 2026, the security firm Tenzai had Claude Code, Codex, Cursor, Replit, and Devin each build the same three apps from identical prompts, and [found 69 vulnerabilities across the 15 results](https://www.securityweek.com/vibe-coding-tested-ai-agents-nail-sqli-but-fail-miserably-on-security-controls/). None of the apps had an exploitable SQL injection or XSS, which are the textbook bugs that fill training data. All five agents introduced an SSRF vulnerability in the test Tenzai built to probe for one. The failures clustered in authorization and business logic, and on security controls like rate limiting, the agents, in Tenzai's words, "didn't even try." That's why the prompt leads with auth gaps instead of injection.
 
 Each subagent is a variation on this pattern: narrow scope, concrete output shape, explicit list of what to ignore.
 
-The payoff is twofold. First, I stop retyping the same meta-prompt fifteen times a day. Second — and this is the bigger win — each subagent enters the conversation *fresh*. It gets a fresh context window and the brief it's handed, not the conversation history: no recency bias toward the code that was just written, no sunk-cost attachment to the approach under review. They see the diff the way a reviewer in another timezone would: cold, without the story of how it got there.
+I get two things out of this. The small one is that I stop retyping the same meta-prompt fifteen times a day. The bigger one is that each subagent enters the conversation *fresh*. It gets a fresh context window and the brief it's handed, not the conversation history: no recency bias toward the code that was just written, no sunk-cost attachment to the approach under review. They see the diff the way a reviewer in another timezone would: cold, without the story of how it got there.
 
-A good subagent is a fresh pair of eyes you can summon on demand.
-
-That freshness is also the line between a subagent and a **skill**, which Claude Code supports alongside subagents. A skill is a folder of instructions — a `SKILL.md` plus whatever scripts or references it needs — that the agent loads on demand when the task in front of it matches the skill's description. It's the better home for *how we do things here*: the release checklist, the migration conventions, the house style for a blog post. By default, a skill loads into the context that's already running, story and all. A subagent starts clean. So the rule I'd use is simple: if the job is to *know* something, write a skill. If the job is to *judge* something, use a subagent, because it didn't watch the code get written. (A skill can also be set to run in its own forked subagent, which is a reasonable way to package a reviewer.)
+That freshness is also the line between a subagent and a **skill**, which Claude Code supports alongside subagents. A skill is a folder of instructions (a `SKILL.md` plus whatever scripts or references it needs) that the agent loads on demand when the task in front of it matches the skill's description. It's the better home for *how we do things here*: the release checklist, the migration conventions, the house style for a blog post. By default, a skill loads into the context that's already running, story and all. A subagent starts clean. So the rule I'd use is simple: if the job is to *know* something, write a skill. If the job is to *judge* something, use a subagent, because it didn't watch the code get written. (A skill can also be set to run in its own forked subagent, which is a reasonable way to package a reviewer.)
 
 ---
 
 ## Periodic Sweeps
 
-The per-task loop above is one rhythm. Here's the other: periodic sweeps across the whole codebase, run by the scanning subagents above, not tied to any particular feature.
+Separate from the per-task loop, I also run periodic sweeps across the whole codebase, run by the scanning subagents above, not tied to any particular feature.
 
 - **Security scan.** Auth issues, input validation gaps, secrets ending up in logs, injection surfaces, over-permissive IAM, things exposed that shouldn't be.
 - **Bug scan.** Off-by-one errors, null handling gaps, race conditions, resource leaks, retry logic that hammers a downstream when it's already unhappy.
 - **Refactoring scan.** Code smells, duplicated logic, dead code, comments that have drifted from the code they describe, anything that'll make the codebase harder to maintain in six months.
 
-These are slow and noisy. Most of what they flag isn't worth fixing, but enough of it is that the ratio earns its keep. It's the agentic equivalent of running every linter you own in paranoid mode, except the linter understands semantics.
+These are slow and noisy. Most of what they flag isn't worth fixing, but enough of it is that I keep running them. It's a bit like running every linter you own in paranoid mode, except this linter understands what the code means.
 
 I usually run one of these on a Friday afternoon when I don't want to start something new but don't want to coast either.
 
@@ -153,9 +151,9 @@ I usually run one of these on a Friday afternoon when I don't want to start some
 
 ## Hooks: Rules the Agent Can't Skip
 
-Everything so far has a weakness I glossed over: it's all prompts. The pushback, the plan review, the Security Auditor's carefully scoped instructions — the agent can misread any of them, forget them after a compaction, or decide this case is the exception. A `CLAUDE.md` that says *never edit the migrations directory* is a strong suggestion. It is not a lock.
+Everything so far has a weakness I glossed over: it's all prompts. The pushback, the plan review, the Security Auditor's carefully scoped instructions: the agent can misread any of them, forget them after a compaction, or decide this case is the exception. A `CLAUDE.md` that says *never edit the migrations directory* is a strong suggestion. It is not a lock.
 
-Hooks are the lock. Claude Code can run a shell command at fixed points in the agent's lifecycle — before a tool call, after a file edit, when the agent finishes responding — and the command's exit code decides what happens next. A `PreToolUse` hook that exits with code `2` blocks the tool call outright, and whatever it printed to stderr goes back to the agent as the reason. The [hooks reference](https://code.claude.com/docs/en/hooks) lists the full set of events.
+Hooks are the lock. Claude Code can run a shell command at fixed points in the agent's lifecycle (before a tool call, after a file edit, when the agent finishes responding), and the command's exit code decides what happens next. A `PreToolUse` hook that exits with code `2` blocks the tool call outright, and whatever it printed to stderr goes back to the agent as the reason. The [hooks reference](https://code.claude.com/docs/en/hooks) lists the full set of events.
 
 The configuration lives in `.claude/settings.json`:
 
@@ -193,7 +191,7 @@ This only catches the edit tools. An agent determined to change a migration can 
 
 The `Stop` hook is the more interesting one. It fires every time the agent finishes responding, runs the type checker and the fast tests, and exits with `2` if either fails. The agent sees the failure output and keeps working. "I've implemented the feature and all tests pass" stops being a claim the agent makes and becomes a condition the harness checks. Because it runs on every response, keep it to checks that finish in seconds; the full suite belongs in CI. The hook's input also includes a `stop_hook_active` flag, which you'll want to check so a test that can't pass doesn't keep the agent looping. Claude Code stops honoring a `Stop` hook after eight consecutive blocks anyway, but it's better not to lean on that.
 
-A good test for what belongs in a hook: would you be comfortable if the agent ignored this instruction one time in fifty? Code style, naming, how chatty the commit messages are — leave those in the prompt. Touching secrets, rewriting applied migrations, landing code that doesn't type-check — those go in a hook.
+A good test for what belongs in a hook: would you be comfortable if the agent ignored this instruction one time in fifty? Code style, naming, how chatty the commit messages are: leave those in the prompt. Touching secrets, rewriting applied migrations, landing code that doesn't type-check: those go in a hook.
 
 Hooks have limits. A [March 2026 study of iterative code refinement](https://arxiv.org/abs/2603.08520) compared several defenses against security drift across rounds of LLM edits. One of them, gating every round behind a static security analyzer, didn't stop the drift. The latent degradation rate actually rose, from 12.5% to 20.8%, because the analyzer's rules didn't cover the damage that mattered: defensive checks quietly removed, exception handling weakened. (It's the same drift Shukla et al. measured, covered further down.) A hook enforces exactly what it checks and nothing more, so it doesn't replace the reviewer subagents.
 
@@ -201,7 +199,7 @@ Hooks have limits. A [March 2026 study of iterative code refinement](https://arx
 
 ## Limit What the Agent Can Reach
 
-Hooks govern what the agent does. The other half of the problem is what the agent *can reach*. An agent runs with your permissions — your shell, your files, your cloud credentials, your SSH keys — and it reads a great deal of text you didn't write: dependency READMEs, fetched web pages, GitHub issues, MCP tool results. Any of that text can carry instructions.
+Hooks govern what the agent does. The other half of the problem is what the agent *can reach*. An agent runs with your permissions (your shell, your files, your cloud credentials, your SSH keys), and it reads a lot of text you didn't write: dependency READMEs, fetched web pages, GitHub issues, MCP tool results. Any of that text can carry instructions.
 
 Simon Willison calls the dangerous combination the [lethal trifecta](https://simonwillison.net/2025/Jun/16/the-lethal-trifecta/): access to private data, exposure to untrusted content, and a way to send data out. An agent with all three can be talked into leaking your secrets by a comment in a package it was asked to evaluate.
 
@@ -219,13 +217,13 @@ It's least privilege, the same rule you'd apply to a new contractor on their fir
 
 ## Steer Your Own Compaction
 
-Context windows are big now, but not infinite — and they degrade well before they fill. Claude Code shows you a context indicator, warns as usage gets high, and *auto-compacts* when the conversation reaches the model's context limit, silently summarizing older turns to free up room. (The API has a beta version of the same idea, [threshold compaction](https://platform.claude.com/docs/en/build-with-claude/compaction-threshold), which triggers at 150,000 input tokens by default.) Auto-compaction works. The problem is that by the time it fires, the agent is compressing under duress, and the summary is lossier than you'd think.
+Context windows are big now, but they aren't infinite, and they get worse well before they fill up. Claude Code shows you a context indicator, warns as usage gets high, and *auto-compacts* when the conversation reaches the model's context limit, silently summarizing older turns to free up room. (The API has a beta version of the same idea, [threshold compaction](https://platform.claude.com/docs/en/build-with-claude/compaction-threshold), which triggers at 150,000 input tokens by default.) Auto-compaction works. The problem is that by the time it fires, the agent is compressing under duress, and the summary is lossier than you'd think.
 
 How lossy? Factory [evaluated three compression methods](https://factory.com/news/evaluating-compression) on more than 36,000 messages from production sessions, with an LLM judge scoring each summary out of 5. The best method averaged 3.70. On the dimension that tracks which files were touched and changed, every method scored between 2.19 and 2.45, the weakest result in the study. One method discarded file paths outright as "low-entropy content." The exact details an engineer would never paraphrase are the first to go.
 
-The deeper problem is that the agent was already getting worse before compaction kicked in. Chroma's [*Context Rot*](https://www.trychroma.com/research/context-rot) study tested 18 models, including Claude Opus 4, GPT-4.1, and Gemini 2.5, and found that performance consistently degraded as input length grew, even on a task as simple as repeating words. The [NoLiMa benchmark](https://arxiv.org/abs/2502.05167) (Modarressi et al., 2025) sharpened the point: 11 of 13 models claiming 128K+ support dropped below half their short-context baseline at just 32K tokens. GPT-4o fell from **99.3% to 69.7%** accuracy on tasks requiring latent inference rather than literal match — a thirty-point drop at a quarter of the advertised window.
+The deeper problem is that the agent was already getting worse before compaction kicked in. Chroma's [*Context Rot*](https://www.trychroma.com/research/context-rot) study tested 18 models, including Claude Opus 4, GPT-4.1, and Gemini 2.5, and found that performance consistently degraded as input length grew, even on a task as simple as repeating words. The [NoLiMa benchmark](https://arxiv.org/abs/2502.05167) (Modarressi et al., 2025) sharpened the point: 11 of 13 models claiming 128K+ support dropped below half their short-context baseline at just 32K tokens. GPT-4o fell from **99.3% to 69.7%** accuracy on tasks requiring latent inference rather than literal match. That's a thirty-point drop at a quarter of the advertised window.
 
-Those numbers come from 2025-era models, and the window has grown since. Million-token contexts are common now, and simple retrieval at that length is close to solved: a [May 2026 evaluation](https://arxiv.org/abs/2605.02173) had Gemini 3.1 Pro, Claude Opus 4.7, and GPT-5.5 all finding a single planted fact at 1M tokens with perfect accuracy. But the same paper found that multi-hop reasoning — connecting two facts rather than finding one — still slips as the context grows. [ATLAS](https://arxiv.org/abs/2605.28079), which tested 26 models from 8K to 1M tokens, found most of them degrading steadily out to 128K, after which they split into models that hold up and models that fall off a cliff. Coding is a multi-hop task. *Which callers depend on this function, and what did we decide about its error handling an hour ago?* is two facts, not one.
+Those numbers come from 2025-era models, and the window has grown since. Million-token contexts are common now, and simple retrieval at that length is close to solved: a [May 2026 evaluation](https://arxiv.org/abs/2605.02173) had Gemini 3.1 Pro, Claude Opus 4.7, and GPT-5.5 all finding a single planted fact at 1M tokens with perfect accuracy. But the same paper found that multi-hop reasoning, where you connect two facts instead of finding one, still slips as the context grows. [ATLAS](https://arxiv.org/abs/2605.28079), which tested 26 models from 8K to 1M tokens, found most of them degrading steadily out to 128K, after which they split into models that hold up and models that fall off a cliff. Coding is a multi-hop task. *Which callers depend on this function, and what did we decide about its error handling an hour ago?* is two facts, not one.
 
 So by the time the auto-compactor is summarizing, it's a mediocre summarizer working from already-degraded recall. That's the wrong moment to hand it the keys.
 
@@ -233,26 +231,26 @@ The fix is to compact on your own terms, well before the agent does it for you. 
 
 > *"Summarize this session as a brief for a fresh agent picking up where you left off. Include the goal, the constraints we surfaced, the decisions we made and why, the open questions, and what to do next. Be specific about file paths, function names, and exact error strings. Skip anything reconstructable from the diff."*
 
-The output is a tight, structured brief — usually 200 to 500 words. I read it, edit it (the agent always over-includes irrelevant detail and under-includes the one weird constraint that took an hour to find), and either paste it into a new session or save it as a scratch file the next one can pull in. Anthropic's own [guidance for long-running agents](https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents) points the same way. Their harness has agents maintain a `claude-progress.txt` log, a structured feature list, and an `init.sh` to reconstruct the environment, because, in their words, compaction alone "isn't sufficient."
+What comes back is usually a 200 to 500 word brief. I read it, edit it (the agent always over-includes irrelevant detail and under-includes the one weird constraint that took an hour to find), and either paste it into a new session or save it as a scratch file the next one can pull in. Anthropic's own [guidance for long-running agents](https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents) points the same way. Their harness has agents maintain a `claude-progress.txt` log, a structured feature list, and an `init.sh` to reconstruct the environment, because, in their words, compaction alone "isn't sufficient."
 
 A few rules I've landed on:
 
-- **Watch the indicator.** Don't wait for the warning. Mid-task auto-compaction is the worst kind — it strips the scaffolding for the work you're actively doing.
+- **Watch the indicator.** Don't wait for the warning. Mid-task auto-compaction is the worst kind, because it strips out the context for the exact work you're in the middle of.
 - **Compact at natural breakpoints.** End of a feature, after a major review, before switching subjects. Same instinct as committing code.
-- **Treat the brief as a real artifact.** Edit it. Trim what isn't load-bearing. Add what the agent missed. The brief is the bridge between sessions, and a sloppy bridge falls down in the middle.
-- **When in doubt, start fresh with a brief.** A fresh agent reading a tight 300-word handoff is almost always sharper than a tired one in a 90%-full context. Context rot is real, and it gets worse the more you stuff in.
+- **Actually edit the brief.** Trim the filler and add what the agent missed. It's the only thing carrying over between sessions, so a sloppy one costs you later.
+- **When in doubt, start fresh with a brief.** A fresh agent reading a tight 300-word handoff is almost always sharper than a tired one in a 90%-full context. And the more you stuff in, the worse it gets.
 
-Compaction is going to happen. The only question is whether you wrote the summary or the agent did.
+Compaction is going to happen either way. I'd rather write the summary myself.
 
 ---
 
 ## Groom the Memory
 
-The same agent that's helpful because it remembers things across sessions becomes unreliable when those memories rot. Claude Code saves notes to its auto memory on its own — your stylistic preferences, project facts, decisions you made out loud weeks ago — and most of them are right when written. The trouble is they keep applying long after the underlying truth has moved.
+The same agent that's helpful because it remembers things across sessions becomes unreliable when those memories rot. Claude Code saves notes to its auto memory on its own (your stylistic preferences, project facts, decisions you made out loud weeks ago), and most of them are right when they're written. The trouble is they keep applying long after the underlying truth has moved.
 
 A memory that says *"the auth service uses JWT"* is gospel until you migrate to session cookies and forget to update it. The agent now confidently leans on a fact that hasn't been true for a week. Worse, it cites the stale memory when justifying a decision, and you don't notice because you'd forgotten you ever told it to remember.
 
-This compounds with a well-documented property of long contexts. Liu et al.'s [Lost in the Middle](https://arxiv.org/abs/2307.03172) found that LLM recall over a long context follows a U-shape: performance is often best at the beginning and end and worst for information buried in the middle. A bloated memory file doesn't just consume tokens — it pushes load-bearing facts into the recall sag while keeping the noise visible. Anthropic's [context-engineering guidance](https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents) favors just-in-time retrieval and structured notes over loading everything up front, and warns that overly aggressive compaction "can result in the loss of subtle but critical context." By the time you notice the drift, the *why* behind a decision is often already gone, and only a confident-sounding *what* remains.
+This compounds with a well-documented property of long contexts. Liu et al.'s [Lost in the Middle](https://arxiv.org/abs/2307.03172) found that LLM recall over a long context follows a U-shape: performance is often best at the beginning and end and worst for information buried in the middle. A bloated memory file costs more than tokens. It pushes the facts that matter into the recall sag while the noise stays visible. Anthropic's [context-engineering guidance](https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents) favors just-in-time retrieval and structured notes over loading everything up front, and warns that overly aggressive compaction "can result in the loss of subtle but critical context." By the time you notice the drift, the *why* behind a decision is often already gone, and only a confident-sounding *what* remains.
 
 The fix is cheap. Every couple of weeks, ask the agent to dump *everything* it has stored about you and the project. Read it cold. Delete what's wrong, condense what's bloated, rewrite anything that drifted. Ten minutes of pruning beats six months of an agent confidently repeating things that stopped being true on a Tuesday in March.
 
@@ -262,30 +260,30 @@ Treat the memory the way you'd treat a `CLAUDE.md`: it's the agent's source of t
 
 ## Your Comments Are Prompts
 
-Memory isn't the only place stale facts hide. The codebase itself is full of natural language — comments, docstrings, commented-out experiments — and the agent reads all of it. The research on how much this matters surprised me in both directions.
+Memory isn't the only place stale facts hide. The codebase itself is full of natural language (comments, docstrings, commented-out experiments), and the agent reads all of it. The research on how much this matters surprised me in both directions.
 
-The helpful direction first. A [study of comments in code translation](https://arxiv.org/abs/2601.16661) analyzed 80,000+ LLM translations across five languages and found that comments describing *intent* — what the code is for — helped more than line-by-line annotation. The authors' approach of retrying failed translations with generated comments raised success by **6–51%** in a single iteration. Line-by-line annotation could actively hurt. In one of their examples, the word "grid" repeated through the comments convinced the model that a `grid` variable must exist, so it invented one — a fixed 100×100 array that failed the moment real input outgrew it. The model didn't misread the code. It over-trusted the prose.
+The helpful direction first. A [study of comments in code translation](https://arxiv.org/abs/2601.16661) analyzed 80,000+ LLM translations across five languages and found that comments describing *intent*, meaning what the code is for, helped more than line-by-line annotation. The authors' approach of retrying failed translations with generated comments raised success by **6–51%** in a single iteration. Line-by-line annotation could actively hurt. In one of their examples, the word "grid" repeated through the comments convinced the model that a `grid` variable must exist, so it invented one: a fixed 100×100 array that failed the moment real input outgrew it. The model didn't misread the code. It over-trusted the prose.
 
-That's the pattern in the harmful direction too. [CodeCrash](https://arxiv.org/abs/2504.14119) (NeurIPS 2025) perturbed otherwise-working code with renames, structural changes, misleading comments, and misleading hints, and watched 17 models drop an average of **23.2%** on output-prediction tasks. Chain-of-thought reasoning softened the blow to 13.8% — better, not fixed. And a [fault-localization study](https://arxiv.org/abs/2504.04372) found that edits which don't change behavior at all — renames, misleading comments, dead code — made models lose track of a bug they'd already found **78%** of the time. Buried in that paper is the detail that reframed the whole topic for me: misleading comments hurt *more* than misleading variable names, with accuracy falling to 25.6% versus 29.0%. **The agent trusts your prose more than your identifiers.** A stale comment isn't clutter; it's a confident wrong answer sitting exactly where the model looks first.
+That's the pattern in the harmful direction too. [CodeCrash](https://arxiv.org/abs/2504.14119) (NeurIPS 2025) perturbed otherwise-working code with renames, structural changes, misleading comments, and misleading hints, and watched 17 models drop an average of **23.2%** on output-prediction tasks. Chain-of-thought reasoning softened that to 13.8%. Better, but still bad. And a [fault-localization study](https://arxiv.org/abs/2504.04372) found that edits which don't change behavior at all (renames, misleading comments, dead code) made models lose track of a bug they'd already found **78%** of the time. Buried in that paper is the detail that reframed the whole topic for me: misleading comments hurt *more* than misleading variable names, with accuracy falling to 25.6% versus 29.0%. **The agent trusts your prose more than your identifiers.** So a stale comment is worse than clutter. It's a confidently wrong answer sitting right where the model looks first.
 
 Two more findings worth carrying around:
 
-- **Dead code is worse than a lying comment.** In the same fault-localization study, inserting unreachable code cratered accuracy to 20.4% — a bigger hit than the misleading comments themselves. That commented-out block you're keeping "for reference" is actively misleading your reviewer subagents.
-- **Reasoning models are more robust, but not immune.** They held up best overall in CodeCrash, but misleading hints were their weak spot. In the paper's most extreme case, a single plausible-but-wrong hint sent QwQ-32B into what the authors call *Reasoning Collapse* — twenty thousand tokens of reasoning followed by twelve thousand tokens of "Hmm." The extra self-reflection amplified the bad hint instead of correcting it.
+- **Dead code is worse than a lying comment.** In the same fault-localization study, inserting unreachable code cratered accuracy to 20.4%, an even bigger hit than the misleading comments. That commented-out block you're keeping "for reference" is actively misleading your reviewer subagents.
+- **Reasoning models are more robust, but not immune.** They held up best overall in CodeCrash, but misleading hints were their weak spot. In the paper's most extreme case, a single plausible-but-wrong hint sent QwQ-32B into what the authors call *Reasoning Collapse*: twenty thousand tokens of reasoning followed by twelve thousand tokens of "Hmm." The extra self-reflection amplified the bad hint instead of correcting it.
 
-The practical upshot fits in one line: treat comments as prompts, because that's how the agent reads them. Write docstrings that state intent and invariants — that's the kind that measurably helps. Delete commented-out code; git remembers it so the agent doesn't have to be confused by it. And when the refactoring sweep flags a comment that no longer matches the code under it, fix it with the same urgency as the stale memory from the last section. It's the same bug at a different address.
+So: treat comments as prompts, because that's how the agent reads them. Write docstrings that state intent and invariants, since that's the kind that measurably helps. Delete commented-out code; git remembers it so the agent doesn't have to be confused by it. And when the refactoring sweep flags a comment that no longer matches the code under it, fix it with the same urgency as the stale memory from the last section. It's the same bug at a different address.
 
 ---
 
 ## The Curve Gets Steeper
 
-Early in a project, you can let the agent rip. Every change is cheap because there's barely anything to break. As the project matures, that inverts. Every new feature has to fit through a narrower hole — respect existing contracts, not regress tests you wrote three weeks ago, play nice with data already in production, and not surprise the six other places that import from the file you're touching.
+Early in a project, you can let the agent rip. Every change is cheap because there's barely anything to break. As the project matures, that inverts. Every new feature has to fit through a narrower hole. It has to respect existing contracts, not regress tests you wrote three weeks ago, play nice with data already in production, and not surprise the six other places that import from the file you're touching.
 
 Tom Cargill called the asymmetry the [ninety-ninety rule](https://en.wikipedia.org/wiki/Ninety%E2%80%93ninety_rule): the first 90% of the code takes 90% of the time, and the last 10% takes the other 90%. With an agent in the loop, that curve gets steeper, not flatter. Early on, the agent is drafting in an empty room. Near launch, every change is a puzzle piece, and the agent has to hold most of the surrounding puzzle in its head to place it correctly.
 
 Ousterhout, in [*A Philosophy of Software Design*](https://web.stanford.edu/~ouster/cgi-bin/book.php), calls the underlying phenomenon change amplification: a seemingly simple change requires modifications in many places. It's the first symptom of complexity, and it hits agent-driven workflows especially hard. The agent doesn't automatically see the three callers, the migration that depends on the schema, or the invariant encoded in the test suite two directories over. What a human engineer absorbs as tacit knowledge over months, the agent has to be fed fresh every session.
 
-This is why I plan harder the closer I get to launch, not less. A thirty-minute planning session that surfaces *"this breaks the email webhook"* is cheaper by an order of magnitude than discovering it from a user report on day three. Boehm and Basili [put the ratio](https://doi.org/10.1109/2.962984) at often 100x for fixing a defect after delivery versus during requirements and design on large systems, and closer to 5x on small ones. That was true before agents and is still true with them. The only thing that changes is *who* is doing the catching.
+This is why I plan harder the closer I get to launch, not less. A thirty-minute planning session that turns up *"this breaks the email webhook"* is an order of magnitude cheaper than discovering it from a user report on day three. Boehm and Basili [put the ratio](https://doi.org/10.1109/2.962984) at often 100x for fixing a defect after delivery versus during requirements and design on large systems, and closer to 5x on small ones. That was true before agents and is still true with them. The only thing that changes is *who* is doing the catching.
 
 That cost doesn't disappear if you skip the planning. It moves. A [Harvard working paper](https://fion.ac/jellyfish.pdf) by Fiona Chen and James Stratton followed more than 700,000 workers at 718 firms as those firms adopted AI coding agents. Code output went up: about 30% more lines added per worker, 20% more commits, 23% more pull requests. Resolved issues didn't move in any statistically significant way. The time from opening a pull request to merging it rose 49%, the share of PRs sent back for changes nearly doubled, and comments per PR rose 35%. The agents made writing code cheaper and pushed the cost downstream to review. (It's a job-market paper and hasn't been through peer review yet, so hold the exact numbers loosely.)
 
@@ -302,30 +300,26 @@ The agent doesn't get dumber as the project grows. The job just gets harder, and
 Since I first wrote this, the teams building these tools have published their own workflows, and they've landed in similar places. Anthropic's [best practices for Claude Code](https://www.anthropic.com/engineering/claude-code-best-practices) put giving the agent a way to verify its own work near the top of the list. Boris Cherny, who leads Claude Code, [reportedly](https://infoq.com/news/2026/01/claude-code-creator-workflow/) starts most sessions in plan mode and runs a simplifier when Claude finishes. Two of their ideas go further than this post did:
 
 - **Sort tasks by risk, not just by project stage.** Anthropic's [write-up of how its own teams use Claude Code](https://www-cdn.anthropic.com/58284b19e702b49db9302d5b6f135ad8871e7658.pdf) describes letting Claude run in auto-accept mode on peripheral features and prototypes, starting from a clean git state and committing checkpoints so a bad run is easy to revert. Anything touching core business logic gets synchronous supervision: detailed prompts, watched in real time. That's the curve above, applied per task instead of per project.
-- **Keep the instructions file short.** OpenAI's [harness engineering](https://openai.com/index/harness-engineering/) post describes a team that built an internal beta of roughly a million lines of code without writing any by hand. One of their earliest lessons was to treat `AGENTS.md` as a map that points to deeper docs, not a manual that tries to hold everything. It's the memory-grooming argument from the other side: a short file keeps the load-bearing facts out of the middle, where recall sags.
+- **Keep the instructions file short.** OpenAI's [harness engineering](https://openai.com/index/harness-engineering/) post describes a team that built an internal beta of roughly a million lines of code without writing any by hand. One of their earliest lessons was to treat `AGENTS.md` as a map that points to deeper docs, not a manual that tries to hold everything. It's the memory-grooming argument from the other side: a short file keeps the important facts out of the middle, where recall sags.
 
-One caveat worth naming: this workflow has a shelf life. Agents are getting better at the exact things that make it necessary — persistent memory across sessions, absorbing a codebase's conventions without being hand-fed, reasoning over hundreds of thousands of lines at once. A year or two from now, most of what I've described here will probably read as period-specific scaffolding. That's fine. You build the guardrails the current tools need, and tear them down when the tools outgrow them.
+I'll admit this workflow probably won't age well. Agents are getting better at the exact things that make it necessary: persistent memory across sessions, absorbing a codebase's conventions without being hand-fed, reasoning over hundreds of thousands of lines at once. A year or two from now, most of what I've described here will probably read as period-specific scaffolding. I'm fine with that. You build the guardrails the current tools need and tear them down when they're not needed anymore.
 
 ---
 
 ## Letting the Loop Run Itself
 
-Run this loop by hand enough times and you start to resent the parts that are pure ceremony — spinning up the session, pointing it at the right files, re-running the checks, opening the PR. The *thinking* is the valuable part; the clicking isn't. So I built a tool to do the clicking: [autobuild](https://github.com/christurgeon/autobuild).
+Run this loop by hand enough times and you start to resent the parts that are pure ceremony: spinning up the session, pointing it at the right files, re-running the checks, opening the PR. The thinking is worth my time. The clicking isn't. So I built a tool to do the clicking: [autobuild](https://github.com/christurgeon/autobuild).
 
-It leans on the one property this whole post has been circling — that each session **starts knowing nothing about yesterday**. Earlier I called that a liability to work around. autobuild treats it as the entire design. You write a `GOAL.md` and a backlog of `tasks/`, and it drains that backlog toward the goal by spawning a *fresh* `claude -p` session for each task, each in its own git worktree, so several run in parallel without stepping on one another. No context carries between them — all the state lives in files and git, so a run is disposable. Kill it halfway and re-run; it recovers from the files alone.
+It leans on the thing this whole post keeps coming back to, which is that each session **starts knowing nothing about yesterday**. Earlier I called that a liability to work around. autobuild treats it as the entire design. You write a `GOAL.md` and a backlog of `tasks/`, and it drains that backlog toward the goal by spawning a *fresh* `claude -p` session for each task, each in its own git worktree, so several run in parallel without stepping on one another. No context carries between them. All the state lives in files and git, so a run is disposable. Kill it halfway and re-run; it recovers from the files alone.
 
-Everything the last few sections have been about — context rot, lossy compaction, memory that quietly goes stale — never arises when no context survives a single task.
+Context rot, lossy compaction, stale memory: most of what the last few sections worried about just doesn't come up when no context survives past a single task.
 
-Each session runs the same loop laid out above, enforced instead of remembered: **plan, self-review, implement, run your checks.** Then a supervisor does the part I least trust the agent to do — it re-runs the checks *itself* before anything lands, and only merges or opens a PR if they pass. *If you're not reading the diff, you need something reading it* — here that something is a second process with no stake in the code it's grading. A task that fails, or hits a wall, is left blocked with its branch intact for me to pick up.
+Each session runs the same loop laid out above, enforced instead of remembered: **plan, self-review, implement, run your checks.** Then a supervisor does the part I least trust the agent to do. It re-runs the checks *itself* before anything lands, and only merges or opens a PR if they pass. Remember *if you're not reading the diff, you need something reading it*? Here that something is a second process with no stake in the code it's grading. A task that fails, or hits a wall, is left blocked with its branch intact for me to pick up.
 
-The catch is the one I keep coming back to: it only works if the work is decomposed into right-sized, dependency-ordered tasks with acceptance criteria a machine can check. Writing that backlog *is* the job — the planning tax from the curve, paid up front and in one place instead of bled across a dozen sessions. The harness doesn't think for you; it just runs the loop so you don't have to sit there while it does. (And since each session is a headless agent with real access to your machine, everything in the section on limiting reach applies double: point it at a sandbox with throwaway credentials, not your main laptop on a Friday night.)
+The catch is the same one as before: it only works if the work is decomposed into right-sized, dependency-ordered tasks with acceptance criteria a machine can check. Writing that backlog *is* the job. It's the same planning tax from the curve section, just paid up front in one place instead of spread across a dozen sessions. The harness doesn't think for you. It runs the loop so you don't have to sit there and watch. (And since each session is a headless agent with real access to your machine, everything in the section on limiting reach applies double: point it at a sandbox with throwaway credentials, not your main laptop on a Friday night.)
 
 ---
 
 ## The Loop
 
-Zoom out and the whole thing is a loop: *research, pushback, plan, second opinion, reconcile, implement, simplify, scan* — with hooks enforcing the few rules that can't be left to judgment. Each step is cheap. None of them on its own catches everything. Stacked together, they catch most of what matters, and they do it fast enough that I'm still shipping faster than I would without the agent.
-
-The tools are a lever. The workflow is the fulcrum.
-
-Stay rigorous, keep the agent honest, and may your diffs stay small.
+So that's the loop: *research, pushback, plan, second opinion, reconcile, implement, simplify, scan*, plus hooks for the handful of rules I can't leave to judgment. Every step is cheap, and none of them catches everything on its own. Together they catch most of what matters, and it's still fast enough that I ship quicker with the agent than without it.
