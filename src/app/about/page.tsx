@@ -5,12 +5,13 @@ import { ArrowRightIcon, GitHubIcon, GoodreadsIcon, LinkedInIcon, SoundCloudIcon
 import { Sticker } from "@/components/riso/Sticker";
 import { COLOR_PAIRS, type RisoColor } from "@/lib/riso";
 import type { Metadata } from "next";
+import { pageMetadata } from "@/lib/metadata";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata({
   title: "About",
   description: `About ${siteConfig.name}, a software engineer at Point72 and solo traveler sharing blog posts, travel photography, and personal coding projects.`,
-  alternates: { canonical: "/about" },
-};
+  path: "/about",
+});
 
 const socialButtons: Array<{
   name: string;

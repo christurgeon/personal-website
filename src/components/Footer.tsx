@@ -14,7 +14,6 @@ const siteLinks = [
 const extrasLinks = [
   { name: "Links", href: "/links" },
   { name: "Subscribe", href: "/subscribe" },
-  { name: "Resume", href: siteConfig.documents.resume },
 ];
 
 export function Footer() {
@@ -67,9 +66,17 @@ export function Footer() {
                 {l.name}
               </FooterLink>
             ))}
-            <FooterLink href="/blog/feed.xml" external>
-              RSS
-            </FooterLink>
+            {/* Static files, not routes: a plain <a> skips next/link's RSC fetch attempt. */}
+            <li>
+              <a href={siteConfig.documents.resume} className="footer-link">
+                Resume
+              </a>
+            </li>
+            <li>
+              <a href="/blog/feed.xml" className="footer-link">
+                RSS
+              </a>
+            </li>
           </FooterColumn>
         </div>
 

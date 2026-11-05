@@ -11,19 +11,25 @@ export function ReadingProgressBar() {
   useEffect(() => {
     if (!isBlogPost) return;
 
-    const article = document.querySelector("article");
-    if (!article) return;
+    // Not a bare `article` selector: PostCards are <article>s too (e.g. on the 404 for an unknown slug).
+    const article = document.querySelector<HTMLElement>("[data-post-body]");
+    if (!article) {
+      if (barRef.current) barRef.current.style.transform = "scaleX(0)";
+      return;
+    }
 
-    let rafId: number;
+    let rafId = 0;
 
     const handleScroll = () => {
+      cancelAnimationFrame(rafId);
       rafId = requestAnimationFrame(() => {
         const articleTop = article.offsetTop;
         const articleHeight = article.offsetHeight;
         const viewportHeight = window.innerHeight;
         const scrollY = window.scrollY;
 
-        const progress = (scrollY - articleTop) / (articleHeight - viewportHeight);
+        const scrollable = articleHeight - viewportHeight;
+        const progress = scrollable > 0 ? (scrollY - articleTop) / scrollable : 1;
         const clamped = Math.min(Math.max(progress, 0), 1);
 
         if (barRef.current) {
@@ -33,13 +39,15 @@ export function ReadingProgressBar() {
     };
 
     window.addEventListener("scroll", handleScroll, { passive: true });
+    window.addEventListener("resize", handleScroll);
     handleScroll();
 
     return () => {
       window.removeEventListener("scroll", handleScroll);
+      window.removeEventListener("resize", handleScroll);
       cancelAnimationFrame(rafId);
     };
-  }, [isBlogPost]);
+  }, [isBlogPost, pathname]);
 
   if (!isBlogPost) return null;
 

@@ -48,8 +48,11 @@ export function PhotoGallery({ photos, showLocation = true, preloadFirst = false
   useEffect(() => {
     if (!lightboxOpen) return;
     document.body.style.overflow = "hidden";
+    // Focus moves into the dialog (close button autoFocus); hand it back to the grid tile on close.
+    const opener = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     return () => {
       document.body.style.overflow = "";
+      opener?.focus();
     };
   }, [lightboxOpen]);
 
@@ -165,12 +168,16 @@ export function PhotoGallery({ photos, showLocation = true, preloadFirst = false
         currentPhoto &&
         createPortal(
           <div
+            role="dialog"
+            aria-modal="true"
+            aria-label="Photo viewer"
             className="fixed inset-0 z-50 flex items-center justify-center"
             style={{ background: "color-mix(in srgb, var(--ink) 94%, transparent)" }}
             onClick={closeLightbox}
           >
             {/* Close button — top-right */}
             <button
+              autoFocus
               onClick={closeLightbox}
               className="brutal-lift-sm absolute top-5 right-5 z-10 flex h-12 w-12 items-center justify-center border-[3px]"
               style={{

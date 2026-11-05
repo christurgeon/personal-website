@@ -5,12 +5,13 @@ import { MapPinIcon, CameraIcon, ArrowRightIcon } from "@/components/Icons";
 import { Sticker } from "@/components/riso/Sticker";
 import { CARD_BGS, CARD_FGS, pickByIndex } from "@/lib/riso";
 import type { Metadata } from "next";
+import { pageMetadata } from "@/lib/metadata";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata({
   title: "Photography",
   description: "A collection of photographs from travels around the world.",
-  alternates: { canonical: "/photography" },
-};
+  path: "/photography",
+});
 
 const stickerColors = ["red", "blue", "green", "yellow"] as const;
 const cardRotations = ["-0.5deg", "0.4deg", "-0.3deg", "0.6deg"] as const;
