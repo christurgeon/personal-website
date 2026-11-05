@@ -5,12 +5,13 @@ import { Sticker } from "@/components/riso/Sticker";
 import { RisoThumbnail } from "@/components/riso/RisoThumbnail";
 import { CARD_BGS, CARD_FGS, pickByIndex } from "@/lib/riso";
 import type { Metadata } from "next";
+import { pageMetadata } from "@/lib/metadata";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata({
   title: "Projects",
   description: `A selection of open-source and personal projects by ${siteConfig.name}.`,
-  alternates: { canonical: "/projects" },
-};
+  path: "/projects",
+});
 
 const stickerLabels = ["OSS", "TOOL", "APP", "EXPERIMENT"] as const;
 const stickerColors = ["red", "blue", "green", "yellow", "pink"] as const;

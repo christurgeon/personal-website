@@ -3,12 +3,14 @@ import { ExternalLinkIcon } from "@/components/Icons";
 import { SectionHead } from "@/components/riso/SectionHead";
 import { STRIPE_COLORS, pickByIndex } from "@/lib/riso";
 import type { Metadata } from "next";
+import { pageMetadata } from "@/lib/metadata";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata({
   title: "Referrals",
   description: `Services and products ${siteConfig.name} personally uses and recommends`,
-  alternates: { canonical: "/referrals" },
-};
+  path: "/referrals",
+  ogImage: "/opengraph-image",
+});
 
 interface Referral {
   name: string;

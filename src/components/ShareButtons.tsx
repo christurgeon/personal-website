@@ -45,7 +45,11 @@ export function ShareButtons({ title, slug }: ShareButtonsProps) {
   const url = `${siteConfig.url}/blog/${slug}`;
 
   const copyLink = useCallback(async () => {
-    await navigator.clipboard.writeText(url);
+    try {
+      await navigator.clipboard.writeText(url);
+    } catch {
+      return;
+    }
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   }, [url]);

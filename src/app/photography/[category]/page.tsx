@@ -5,6 +5,7 @@ import { PhotoGallery } from "@/components/PhotoGallery";
 import { MapPinIcon, ChevronLeftIcon, CameraIcon } from "@/components/Icons";
 import { Sticker } from "@/components/riso/Sticker";
 import type { Metadata } from "next";
+import { pageMetadata } from "@/lib/metadata";
 
 interface CategoryPageProps {
   params: Promise<{ category: string }>;
@@ -27,11 +28,12 @@ export async function generateMetadata({ params }: CategoryPageProps): Promise<M
     };
   }
 
-  return {
+  return pageMetadata({
     title: `${category.name} Photography`,
     description: category.description,
-    alternates: { canonical: `/photography/${categorySlug}` },
-  };
+    path: `/photography/${categorySlug}`,
+    ogImage: "/photography/opengraph-image",
+  });
 }
 
 export default async function CategoryPage({ params }: CategoryPageProps) {

@@ -17,12 +17,14 @@ import {
 } from "@/components/Icons";
 import { STRIPE_COLORS, pickByIndex } from "@/lib/riso";
 import type { Metadata } from "next";
+import { pageMetadata } from "@/lib/metadata";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata({
   title: "Links",
   description: `All of ${siteConfig.name}'s links in one place - blog, photos, music, social profiles, and more.`,
-  alternates: { canonical: "/links" },
-};
+  path: "/links",
+  ogImage: "/opengraph-image",
+});
 
 type LinkItem = {
   name: string;

@@ -2,12 +2,13 @@ import { siteConfig } from "@/lib/config";
 import { SubscribeForm } from "@/components/SubscribeForm";
 import { Sticker } from "@/components/riso/Sticker";
 import type { Metadata } from "next";
+import { pageMetadata } from "@/lib/metadata";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata({
   title: "Subscribe",
   description: "Get new posts from christurgeon.com by email — software, markets, and travel. No schedule, no spam.",
-  alternates: { canonical: "/subscribe" },
-};
+  path: "/subscribe",
+});
 
 export default function SubscribePage() {
   return (

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTheme } from "next-themes";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { siteConfig } from "@/lib/config";
 import { SunIcon, MoonIcon } from "@/components/Icons";
 
@@ -11,6 +11,23 @@ export function Header() {
   const pathname = usePathname();
   const { setTheme, resolvedTheme } = useTheme();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [menuPathname, setMenuPathname] = useState(pathname);
+
+  // Close on any navigation (back/forward, logo click), not just nav-link clicks. Adjusting state during render
+  // instead of in an effect avoids a stale-menu frame and the react-hooks set-state-in-effect rule.
+  if (menuPathname !== pathname) {
+    setMenuPathname(pathname);
+    setMenuOpen(false);
+  }
+
+  useEffect(() => {
+    if (!menuOpen) return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setMenuOpen(false);
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [menuOpen]);
 
   const toggleTheme = () => {
     setTheme(resolvedTheme === "dark" ? "light" : "dark");

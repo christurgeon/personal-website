@@ -4,12 +4,13 @@ import { getAllPosts } from "@/lib/blog";
 import { PostCard } from "@/components/PostCard";
 import { Sticker } from "@/components/riso/Sticker";
 import type { Metadata } from "next";
+import { pageMetadata } from "@/lib/metadata";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata({
   title: "Blog",
   description: `Essays and guides by ${siteConfig.name} on AI coding agents, system design, production debugging, trading, personal finance, travel, and science.`,
-  alternates: { canonical: "/blog" },
-};
+  path: "/blog",
+});
 
 export default function BlogPage() {
   const posts = getAllPosts();

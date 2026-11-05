@@ -14,6 +14,7 @@ import { TAG_COLORS, TAG_FGS, pickByIndex } from "@/lib/riso";
 import { GuideToc } from "@/components/GuideToc";
 import { extractToc } from "@/lib/toc";
 import { jsonLdString } from "@/lib/jsonLd";
+import { baseOpenGraph } from "@/lib/metadata";
 import type { Metadata } from "next";
 
 interface PostPageProps {
@@ -42,10 +43,14 @@ export async function generateMetadata({ params }: PostPageProps): Promise<Metad
     description: post.excerpt,
     alternates: { canonical: `/blog/${slug}` },
     openGraph: {
+      ...baseOpenGraph,
       title: post.title,
       description: post.excerpt,
+      url: `/blog/${slug}`,
       type: "article",
       publishedTime: post.date,
+      authors: [siteConfig.url],
+      tags: post.tags,
     },
   };
 }
@@ -86,7 +91,7 @@ export default async function PostPage({ params }: PostPageProps) {
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdString(jsonLd) }} />
       <div className="mx-auto max-w-[1240px] px-5 py-8 sm:px-7 md:py-12">
-        <div className="animate-fade-in mb-8">
+        <div className="mb-8">
           <Link
             href="/blog"
             className="font-mono-label inline-flex items-center gap-2 transition-colors hover:text-[color:var(--accent)]"
@@ -96,7 +101,7 @@ export default async function PostPage({ params }: PostPageProps) {
           </Link>
         </div>
 
-        <header className={`animate-fade-in mb-10 ${column}`}>
+        <header className={`mb-10 ${column}`}>
           {post.tags && post.tags.length > 0 && (
             <div className="mb-6 flex flex-wrap gap-2">
               {post.tags.map((tag, idx) => (
@@ -135,7 +140,7 @@ export default async function PostPage({ params }: PostPageProps) {
         </header>
 
         {post.coverImage && (
-          <div className={`animate-fade-in-delay-1 mb-14 ${column}`}>
+          <div className={`mb-14 ${column}`}>
             <div
               className="relative w-full overflow-hidden"
               style={{
@@ -152,10 +157,14 @@ export default async function PostPage({ params }: PostPageProps) {
         {isGuide ? (
           <div className="lg:grid lg:grid-cols-[240px_minmax(0,1fr)] lg:gap-12">
             <GuideToc entries={toc} />
-            <article className="prose prose-lg guide-article animate-fade-in-delay-2 max-w-none min-w-0">{content}</article>
+            <article data-post-body className="prose prose-lg guide-article max-w-none min-w-0">
+              {content}
+            </article>
           </div>
         ) : (
-          <article className="prose prose-lg animate-fade-in-delay-2 mx-auto max-w-[68ch]">{content}</article>
+          <article data-post-body className="prose prose-lg mx-auto max-w-[68ch]">
+            {content}
+          </article>
         )}
 
         <div className={column}>
